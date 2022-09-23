@@ -34,8 +34,8 @@ public class Trip extends Timestamped{
     @JsonFormat(pattern = "yyyy/MM/dd")
     private LocalDate endAt;
 
-//    @JoinColumn(name = "member_id", nullable = false)
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    private Member member;
+    @JoinColumn(name = "member_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Member member;
 
 }

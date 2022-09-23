@@ -1,5 +1,6 @@
 package com.innocamp.dduha.controller;
 
+import com.innocamp.dduha.dto.ResponseDto;
 import com.innocamp.dduha.dto.request.TripRequestDto;
 import com.innocamp.dduha.model.Trip;
 import com.innocamp.dduha.service.TripService;
@@ -19,12 +20,12 @@ public class TripController {
     private final TripService tripService;
 
     @PostMapping("/auth/trip")
-    public void createTrip(@RequestBody TripRequestDto requestDto, HttpServletRequest request) {
-        tripService.createTrip(requestDto, request);
+    public ResponseDto<?> createTrip(@RequestBody TripRequestDto requestDto, HttpServletRequest request) {
+        return tripService.createTrip(requestDto, request);
     }
 
     @GetMapping("/auth/trip")
-    public List<Trip> getMyTrip(HttpServletRequest request) {  //사용자 검증 후 변경
+    public ResponseDto<?> getMyTrip(HttpServletRequest request) {  //사용자 검증 후 변경
       return tripService.getMyTrip(request);
     }
 }
