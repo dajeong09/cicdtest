@@ -14,15 +14,15 @@ public class GoogleLoginDto {
     private String email;
     private String emailVerified;
     private String atHash;
-    private String name;
-    private String picture;
-    private String givenName;
-    private String familyName;
-    private String locale;
+//    private String name;
+//    private String picture;
+//    private String givenName;
+//    private String familyName;
+//    private String locale;
     private String iat;
     private String exg;
-    private String kidp;
-    private String al;
+    private String kid;
+    private String alg;
     private String typ;
 
 }

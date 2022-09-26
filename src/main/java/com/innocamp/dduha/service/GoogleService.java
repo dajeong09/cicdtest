@@ -44,8 +44,9 @@ public class GoogleService {
         Member member = memberRepository.findMemberByEmail(googleUser.getEmail());
 
         if (member == null){
+            String[] str = googleUser.getEmail().split("@");
             member = Member.builder()
-                    .nickname(googleUser.getName()) // 구글에 닉네임 정보 없어서 이름으로 대체함
+                    .nickname(str[0]) // 구글에 닉네임 정보 없어서 대체함
                     .email(googleUser.getEmail())
                     .password("7ZqM7JuQ6rCA7J6F65qc67KF7ZWY7Jqw6rmM7J6F64uI64uk")
                     .authority(Authority.ROLE_MEMBER)
