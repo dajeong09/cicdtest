@@ -54,6 +54,8 @@ public class WebSecurityConfig {
                 .and()
                 .authorizeRequests()
                 .antMatchers("/member/**").permitAll()
+                .antMatchers("/oauth/**").permitAll()
+                .antMatchers("/login/**").permitAll()
                 .antMatchers("/touristspot/**").permitAll()
                 .antMatchers("/restaurant/**").permitAll()
                 .antMatchers("/accomodation/**").permitAll()
