@@ -1,17 +1,13 @@
 package com.innocamp.dduha.controller;
 
 import com.innocamp.dduha.dto.ResponseDto;
+import com.innocamp.dduha.dto.request.CourseRequestDto;
 import com.innocamp.dduha.dto.request.TripRequestDto;
-import com.innocamp.dduha.model.Trip;
 import com.innocamp.dduha.service.TripService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -25,7 +21,27 @@ public class TripController {
     }
 
     @GetMapping("/auth/trip")
-    public ResponseDto<?> getMyTrip(HttpServletRequest request) {  //사용자 검증 후 변경
-      return tripService.getMyTrip(request);
+    public ResponseDto<?> getMyTrips(HttpServletRequest request) {  //사용자 검증 후 변경
+      return tripService.getMyTrips(request);
+    }
+
+    @GetMapping("/auth/trip/{id}")
+    public ResponseDto<?> getTripInfo(@PathVariable Long id,  HttpServletRequest request) {
+        return tripService.getTripInfo(id, request);
+    }
+
+    @DeleteMapping("/auth/trip/{id}")
+    public ResponseDto<?> deleteTrip(@PathVariable Long id, HttpServletRequest request) {
+        return tripService.deleteTrip(id, request);
+    }
+
+    @GetMapping("/trip")
+    public ResponseDto<?> getPublicTrips() {
+        return tripService.getPublicTrips();
+    }
+
+    @PostMapping("/auth/course")
+    public ResponseDto<?> createCourse(@RequestBody CourseRequestDto courseRequestDto, HttpServletRequest request) {
+        return tripService.createCourse(courseRequestDto, request);
     }
 }

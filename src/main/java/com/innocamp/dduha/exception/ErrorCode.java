@@ -26,16 +26,14 @@ public enum ErrorCode {
     INVALID_TOKEN("INVALID_TOKEN","잘못된 JWT 토큰입니다."),
     REFRESH_TOKEN_NOT_FOUND("REFRESH_TOKEN_NOT_FOUND", "존재하지 않는 Refresh_Token 입니다."),
 
-    //Post(게시글) 관련 오류
-    FILE_NOT_FOUND("FILE_NOT_FOUND", "파일을 찾을 수 없습니다."),
-    POST_NOT_FOUND("POST_NOT_FOUND", "게시글을 찾을 수 없습니다."),
+    //Trip(일정) 관련 오류
+    TRIP_NOT_FOUND("TRIP_NOT_FOUND", "일정을 찾을 수 없습니다."),
+    COURSE_NOT_FOUND("COURSE_NOT_FOUND", "해당 일정을 찾을 수 없습니다."),
 
-//    //Comment(댓글) 관련 오류
-//    COMMENT_NOT_FOUND("COMMENT_NOT_FOUND", "댓글을 찾을 수 없습니다."),
 
     //Favorite(즐겨찾기) 관련 오류
-    DUPLICATE_LIKES("DUPLICATE_LIKES", "이미 좋아요를 눌렀습니다."),
-    LIKES_NOT_FOUND("FAVORITE_NOT_FOUND", "아직 좋아요를 누르지 않았습니다."),
+//    DUPLICATE_LIKES("DUPLICATE_LIKES", "이미 좋아요를 눌렀습니다."),
+//    LIKES_NOT_FOUND("FAVORITE_NOT_FOUND", "아직 좋아요를 누르지 않았습니다."),
 
     //수정, 삭제권한 관련 오류
     NOT_AUTHORIZED("NOT_AUTHORIZED", "권한이 없습니다.");
