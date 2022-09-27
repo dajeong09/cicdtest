@@ -3,8 +3,6 @@ package com.innocamp.dduha.service;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
-import com.innocamp.dduha.config.GoogleLoginConfig;
 import com.innocamp.dduha.dto.GoogleLoginDto;
 import com.innocamp.dduha.dto.ResponseDto;
 import com.innocamp.dduha.dto.request.GoogleLoginRequestDto;
@@ -15,6 +13,7 @@ import com.innocamp.dduha.model.Authority;
 import com.innocamp.dduha.model.Member;
 import com.innocamp.dduha.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -29,17 +28,26 @@ import javax.servlet.http.HttpServletResponse;
 @RequiredArgsConstructor
 public class GoogleService {
 
-    private final GoogleLoginConfig googleLoginConfiguration;
-
     private final MemberRepository memberRepository;
 
     private final TokenProvider tokenProvider;
 
-    public ResponseDto<?> googleLogin(String authCode, HttpServletResponse response) {
+    @Value("${google.client.id}")
+    private String googleClientId;
 
-        // authCode를 가지고 구글 유저 가져오기
+    @Value("${google.secret}")
+    private String googleSecret;
+    @Value("${google.redirect.uri}")
+    private String googleRedirectUrl;
+
+    @Value("${google.auth.url}")
+    private String googleAuthUrl;
+
+    public ResponseDto<?> googleLogin(String code, HttpServletResponse response) {
+
+        // code를 가지고 구글 유저 가져오기
         // 추후 리팩토링 예정
-        GoogleLoginDto googleUser = FindGoogleUser(authCode);
+        GoogleLoginDto googleUser = FindGoogleUser(code);
 
         Member member = memberRepository.findMemberByEmail(googleUser.getEmail());
 
@@ -67,10 +75,10 @@ public class GoogleService {
         // HTTP 통신을 위해 RestTemplate 활용
         RestTemplate restTemplate = new RestTemplate();
         GoogleLoginRequestDto requestParams = GoogleLoginRequestDto.builder()
-                .clientId(googleLoginConfiguration.getGoogleClientId())
-                .clientSecret(googleLoginConfiguration.getGoogleSecret())
+                .clientId(googleClientId)
+                .clientSecret(googleSecret)
                 .code(code)
-                .redirectUri(googleLoginConfiguration.getGoogleRedirectUri())
+                .redirectUri(googleRedirectUrl)
                 .grantType("authorization_code")
                 .build();
         try {
@@ -78,11 +86,11 @@ public class GoogleService {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<GoogleLoginRequestDto> httpRequestEntity = new HttpEntity<>(requestParams, headers);
-            ResponseEntity<String> apiResponseJson = restTemplate.postForEntity(googleLoginConfiguration.getGoogleAuthUrl() + "/token", httpRequestEntity, String.class);
+            ResponseEntity<String> apiResponseJson = restTemplate.postForEntity(googleAuthUrl + "/token", httpRequestEntity, String.class);
 
             // ObjectMapper를 통해 String to Object로 변환
             ObjectMapper objectMapper = new ObjectMapper();
-            objectMapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
+//            objectMapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
             objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL); // NULL이 아닌 값만 응답받기(NULL인 경우는 생략)
             GoogleLoginResponseDto googleLoginResponse = objectMapper.readValue(apiResponseJson.getBody(), new TypeReference<>() {
             });
@@ -91,15 +99,14 @@ public class GoogleService {
             String jwtToken = googleLoginResponse.getIdToken();
 
             // JWT Token을 전달해 JWT 저장된 사용자 정보 확인
-            String requestUrl = UriComponentsBuilder.fromHttpUrl(googleLoginConfiguration.getGoogleAuthUrl() + "/tokeninfo").queryParam("id_token", jwtToken).toUriString();
+            String requestUrl = UriComponentsBuilder.fromHttpUrl(googleAuthUrl + "/tokeninfo").queryParam("id_token", jwtToken).toUriString();
 
             String resultJson = restTemplate.getForObject(requestUrl, String.class);
 
             if(resultJson != null) {
-                GoogleLoginDto userInfoDto = objectMapper.readValue(resultJson, new TypeReference<>() {
+               return objectMapper.readValue(resultJson, new TypeReference<>() {
                 });
 
-                return userInfoDto;
             }
             else {
                 throw new Exception("Google OAuth failed!");
