@@ -5,6 +5,7 @@ import com.innocamp.dduha.dto.request.MemberRequestDto;
 import com.innocamp.dduha.jwt.TokenDto;
 import com.innocamp.dduha.dto.ResponseDto;
 import com.innocamp.dduha.jwt.TokenProvider;
+import com.innocamp.dduha.model.Authority;
 import com.innocamp.dduha.model.Member;
 import com.innocamp.dduha.model.RefreshToken;
 import com.innocamp.dduha.repository.MemberRepository;
@@ -41,6 +42,7 @@ public class MemberService {
                 .email(requestDto.getEmail())
                 .nickname(requestDto.getNickname())
                 .password(passwordEncoder.encode(requestDto.getPassword()))
+                .authority(Authority.ROLE_MEMBER)
                 .build();
         memberRepository.save(member);
 

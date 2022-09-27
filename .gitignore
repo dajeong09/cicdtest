@@ -8,6 +8,7 @@ build/
 application.properties
 application-jwt.properties
 application-mysql.properties
+application-oauth2.properties
 
 ### STS ###
 .apt_generated
