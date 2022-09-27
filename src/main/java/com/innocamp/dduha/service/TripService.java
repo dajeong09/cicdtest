@@ -67,7 +67,7 @@ public class TripService {
                 .member(member)
                 .build();
 
-        tripRepository.save(trip);
+        Trip savedTrip = tripRepository.save(trip);
 
         for(int i = 1; i <= ChronoUnit.DAYS.between(startAt,endAt)+1; i++) {
             Course course = Course.builder()
@@ -77,7 +77,7 @@ public class TripService {
             courseRepository.save(course);
         }
 
-        return ResponseDto.success(NULL);
+        return ResponseDto.success(savedTrip.getId());
     }
 
     public ResponseDto<?> getMyTrips(HttpServletRequest request) {
@@ -123,7 +123,7 @@ public class TripService {
             return ResponseDto.fail(MEMBER_NOT_FOUND);
         }
 
-        if (member.getId() != trip.getId()) {
+        if (member.getId() != trip.getMember().getId()) {
             return ResponseDto.fail(NOT_AUTHORIZED);
         }
 
@@ -154,7 +154,7 @@ public class TripService {
             return ResponseDto.fail(MEMBER_NOT_FOUND);
         }
 
-        if (member.getId() != trip.getId()) {
+        if (member.getId() != trip.getMember().getId()) {
             return ResponseDto.fail(NOT_AUTHORIZED);
         }
 

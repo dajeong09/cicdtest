@@ -20,7 +20,7 @@ public class GoogleLoginDto {
 //    private String familyName;
 //    private String locale;
     private String iat;
-    private String exg;
+    private String exp;
     private String kid;
     private String alg;
     private String typ;
