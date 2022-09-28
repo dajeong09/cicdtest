@@ -47,7 +47,7 @@ public class GoogleService {
 
         // code를 가지고 구글 유저 가져오기
         // 추후 리팩토링 예정
-        GoogleLoginDto googleUser = FindGoogleUser(code);
+        GoogleLoginDto googleUser = findGoogleUser(code);
 
         Member member = memberRepository.findMemberByEmail(googleUser.getEmail());
 
@@ -71,7 +71,7 @@ public class GoogleService {
             return ResponseDto.success(tokenDto.getAccessToken());
         }
     }
-    public GoogleLoginDto FindGoogleUser(String code){
+    public GoogleLoginDto findGoogleUser(String code){
         // HTTP 통신을 위해 RestTemplate 활용
         RestTemplate restTemplate = new RestTemplate();
         GoogleLoginRequestDto requestParams = GoogleLoginRequestDto.builder()
