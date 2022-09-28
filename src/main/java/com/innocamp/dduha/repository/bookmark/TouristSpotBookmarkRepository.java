@@ -7,4 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface TouristSpotBookmarkRepository extends JpaRepository<TouristSpotBookmark,Long> {
     TouristSpotBookmark findByMemberAndTouristSpot(Member member, TouristSpot touristSpot);
+
+    int countTouristSpotBookmarkByMember(Member member);
 }

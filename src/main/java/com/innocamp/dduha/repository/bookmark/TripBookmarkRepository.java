@@ -7,4 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface TripBookmarkRepository extends JpaRepository<TripBookmark, Long> {
     TripBookmark findByMemberAndTrip(Member member, Trip trip);
+
+    int countTripBookmarkByMember(Member member);
+
 }

@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface RestaurantBookmarkRepository extends JpaRepository<RestaurantBookmark, Long> {
     RestaurantBookmark findByMemberAndRestaurant(Member member, Restaurant restaurant);
+
+    int countRestaurantBookmarkByMember(Member member);
 }
 
 
