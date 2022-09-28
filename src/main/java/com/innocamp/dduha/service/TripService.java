@@ -165,11 +165,14 @@ public class TripService {
                         .name(courseDetailRest.getRestaurant().getName()).build()
                 );
             }
-            CourseDetailAcc courseDetailAcc = courseDetailAccReposiotry.findCourseDetailAccByCourse(course);
-            CourseAccommodationResponseDto accommodation = CourseAccommodationResponseDto.builder()
-                    .id(courseDetailAcc.getId())
-                    .name(courseDetailAcc.getAccommodation().getName()).build();
 
+            CourseDetailAcc courseDetailAcc = courseDetailAccReposiotry.findCourseDetailAccByCourse(course);
+            CourseAccommodationResponseDto accommodation = null;
+            if (null != courseDetailAcc) {
+                accommodation = CourseAccommodationResponseDto.builder()
+                        .id(courseDetailAcc.getId())
+                        .name(courseDetailAcc.getAccommodation().getName()).build();
+            }
             courseResponseDtoList.add(CourseResponseDto.builder()
                             .courseId(course.getId())
                             .day(course.getDay())
