@@ -1,6 +1,7 @@
 package com.innocamp.dduha.service;
 
 import com.innocamp.dduha.dto.ResponseDto;
+import com.innocamp.dduha.dto.response.BookmarkResponseDto;
 import com.innocamp.dduha.model.Member;
 import com.innocamp.dduha.model.bookmark.RestaurantBookmark;
 import com.innocamp.dduha.model.restaurant.Restaurant;
@@ -38,7 +39,9 @@ public class RestaurantBookmarkService {
         RestaurantBookmark checkBookmark = restaurantBookmarkRepository.findByMemberAndRestaurant(member, restaurant);
         if (null != checkBookmark) {
             restaurantBookmarkRepository.delete(checkBookmark); // 즐겨 찾기 취소
-            return ResponseDto.success(NULL);
+            return ResponseDto.success(BookmarkResponseDto.builder()
+                    .isBookmarked(false)
+                    .build());
         }
         RestaurantBookmark restaurantBookmark = RestaurantBookmark.builder()
                 .member(member)
@@ -46,7 +49,9 @@ public class RestaurantBookmarkService {
                 .build();
 
         restaurantBookmarkRepository.save(restaurantBookmark); // 즐겨 찾기
-        return ResponseDto.success(NULL);
+        return ResponseDto.success(BookmarkResponseDto.builder()
+                .isBookmarked(true)
+                .build());
     }
 
     @Transactional

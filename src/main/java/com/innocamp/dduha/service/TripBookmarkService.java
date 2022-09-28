@@ -1,6 +1,7 @@
 package com.innocamp.dduha.service;
 
 import com.innocamp.dduha.dto.ResponseDto;
+import com.innocamp.dduha.dto.response.BookmarkResponseDto;
 import com.innocamp.dduha.model.Member;
 import com.innocamp.dduha.model.Trip;
 import com.innocamp.dduha.model.bookmark.TripBookmark;
@@ -41,7 +42,9 @@ public class TripBookmarkService {
         TripBookmark checkBookmark = tripBookmarkRepository.findByMemberAndTrip(member, trip);
         if (null != checkBookmark) {
             tripBookmarkRepository.delete(checkBookmark); // 즐겨 찾기 취소
-            return ResponseDto.success(NULL);
+            return ResponseDto.success(BookmarkResponseDto.builder()
+                    .isBookmarked(false)
+                    .build());
         }
         TripBookmark tripBookmark = TripBookmark.builder()
                 .member(member)
@@ -49,7 +52,9 @@ public class TripBookmarkService {
                 .build();
 
         tripBookmarkRepository.save(tripBookmark); // 즐겨 찾기
-        return ResponseDto.success(NULL);
+        return ResponseDto.success(BookmarkResponseDto.builder()
+                .isBookmarked(true)
+                .build());
     }
 
     @Transactional
