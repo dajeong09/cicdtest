@@ -20,12 +20,11 @@ public class RestaurantService {
 
     private final RestaurantRepository restaurantRepository;
 
-    public ResponseDto<?> getRestaurantList() {
     private final TokenProvider tokenProvider;
 
     private final RestaurantBookmarkRepository restaurantBookmarkRepository;
 
-    public ResponseDto<?> getRestaurantList(HttpServletRequest request) {
+    public ResponseDto<?> getRestaurantList() {
 
         // 사용자 검증 추가 필요
         Member member = tokenProvider.getMemberFromAuthentication();
@@ -68,7 +67,6 @@ public class RestaurantService {
         }
         return ResponseDto.success(restaurantResponseDtoList);
 
-        return ResponseDto.success(restaurantResponseDtoList);
     }
 
 }
