@@ -1,6 +1,6 @@
 package com.innocamp.dduha.repository;
 
-import com.innocamp.dduha.model.Course;
+import com.innocamp.dduha.model.course.Course;
 import com.innocamp.dduha.model.Trip;
 import org.springframework.data.jpa.repository.JpaRepository;
 

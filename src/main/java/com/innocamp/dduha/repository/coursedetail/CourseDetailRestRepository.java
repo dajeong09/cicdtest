@@ -1,7 +1,7 @@
 package com.innocamp.dduha.repository.coursedetail;
 
-import com.innocamp.dduha.model.Course;
-import com.innocamp.dduha.model.CourseDetailRest;
+import com.innocamp.dduha.model.course.Course;
+import com.innocamp.dduha.model.course.CourseDetailRest;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

@@ -1,6 +1,7 @@
 package com.innocamp.dduha.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.innocamp.dduha.model.course.Course;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

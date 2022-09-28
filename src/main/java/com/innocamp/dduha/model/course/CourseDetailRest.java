@@ -1,4 +1,4 @@
-package com.innocamp.dduha.model;
+package com.innocamp.dduha.model.course;
 
 import com.innocamp.dduha.model.restaurant.Restaurant;
 import lombok.AllArgsConstructor;

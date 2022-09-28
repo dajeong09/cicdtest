@@ -1,5 +1,6 @@
-package com.innocamp.dduha.model;
+package com.innocamp.dduha.model.course;
 
+import com.innocamp.dduha.model.Trip;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
