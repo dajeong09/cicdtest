@@ -10,6 +10,7 @@ import com.innocamp.dduha.dto.response.CourseResponseDto;
 import com.innocamp.dduha.dto.response.TripResponseDto;
 import com.innocamp.dduha.jwt.TokenProvider;
 import com.innocamp.dduha.model.*;
+import com.innocamp.dduha.model.bookmark.TripBookmark;
 import com.innocamp.dduha.model.restaurant.Restaurant;
 import com.innocamp.dduha.model.touristspot.TouristSpot;
 import com.innocamp.dduha.repository.accommodation.AccommodationRepository;
@@ -18,6 +19,7 @@ import com.innocamp.dduha.repository.coursedetail.CourseDetailRestRepository;
 import com.innocamp.dduha.repository.coursedetail.CourseDetailSpotRepository;
 import com.innocamp.dduha.repository.CourseRepository;
 import com.innocamp.dduha.repository.TripRepository;
+import com.innocamp.dduha.repository.bookmark.TripBookmarkRepository;
 import com.innocamp.dduha.repository.restaurant.RestaurantRepository;
 import com.innocamp.dduha.repository.touristspot.TouristSpotRepository;
 import lombok.RequiredArgsConstructor;
@@ -47,6 +49,7 @@ public class TripService {
     private final CourseDetailRestRepository courseDetailRestRepository;
     private final AccommodationRepository accommodationRepository;
     private final CourseDetailAccReposiotry courseDetailAccReposiotry;
+    private final TripBookmarkRepository tripBookmarkRepository;
 
 
     private final TokenProvider tokenProvider;
@@ -210,17 +213,39 @@ public class TripService {
     }
 
     public ResponseDto<?> getPublicTrips() {
+
+        Member member = tokenProvider.getMemberFromAuthentication();
+
         List<TripResponseDto> tripResponseDtoList = new ArrayList<>();
         List<Trip> tripList = tripRepository.findAllByIsPublic(true);
 
-        for (Trip trip : tripList) {
-            tripResponseDtoList.add(TripResponseDto.builder()
-                    .id(trip.getId())
-                    .title(trip.getTitle())
-                    .isPublic(trip.getIsPublic())
-                    .startAt(trip.getStartAt().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")))
-                    .endAt(trip.getEndAt().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"))).build()
-            );
+        if (null != member) {
+            for (Trip trip : tripList) {
+                boolean isbookmarked = false;
+                TripBookmark findTripBookmark = tripBookmarkRepository.findByMemberAndTrip(member, trip);
+                if (null != findTripBookmark) {
+                    isbookmarked = true;
+                }
+                tripResponseDtoList.add(TripResponseDto.builder()
+                        .id(trip.getId())
+                        .title(trip.getTitle())
+                        .isPublic(trip.getIsPublic())
+                        .startAt(trip.getStartAt().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")))
+                        .endAt(trip.getEndAt().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")))
+                        .isbookmarked(isbookmarked)
+                        .build()
+                );
+            }
+        } else {
+            for (Trip trip : tripList) {
+                tripResponseDtoList.add(TripResponseDto.builder()
+                        .id(trip.getId())
+                        .title(trip.getTitle())
+                        .isPublic(trip.getIsPublic())
+                        .startAt(trip.getStartAt().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")))
+                        .endAt(trip.getEndAt().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"))).build()
+                );
+            }
         }
         return ResponseDto.success(tripResponseDtoList);
     }

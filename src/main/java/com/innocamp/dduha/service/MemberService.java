@@ -131,5 +131,12 @@ public class MemberService {
         return optionalRefreshToken.orElse(null);
     }
 
+    @Transactional
+    public Member validateMember(HttpServletRequest request) {
+        if (!tokenProvider.validateToken(request.getHeader("Refresh-Token"))) {
+            return null;
+        }
+        return tokenProvider.getMemberFromAuthentication();
+    }
 
 }

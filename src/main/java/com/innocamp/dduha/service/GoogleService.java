@@ -47,7 +47,6 @@ public class GoogleService {
 
         // code를 가지고 구글 유저 가져오기
         // 추후 리팩토링 예정
-
         GoogleLoginDto googleUser = findGoogleUser(code);
 
         Member member = memberRepository.findMemberByEmail(googleUser.getEmail());
