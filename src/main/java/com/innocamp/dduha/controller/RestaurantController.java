@@ -4,6 +4,7 @@ import com.innocamp.dduha.dto.ResponseDto;
 import com.innocamp.dduha.service.RestaurantService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 
@@ -16,5 +17,10 @@ public class RestaurantController {
     @GetMapping("/restaurant")
     public ResponseDto<?> getRestaurantList() {
         return restaurantService.getRestaurantList();
+    }
+
+    @GetMapping("/restaurant/{id}")
+    public ResponseDto<?> getRestaurantDetail(@PathVariable Long id) {
+        return restaurantService.getRestaurantDetail(id);
     }
 }

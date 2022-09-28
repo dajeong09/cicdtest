@@ -6,7 +6,7 @@ import lombok.Getter;
 
 @Builder
 @Getter
-public class TouristSpotReviewResponseDto {
+public class ReviewResponseDto {
     private Long id;
     private String reviewer;
     private String review;

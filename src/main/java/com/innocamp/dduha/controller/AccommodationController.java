@@ -4,6 +4,7 @@ import com.innocamp.dduha.dto.ResponseDto;
 import com.innocamp.dduha.service.AccommodationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 
@@ -18,4 +19,8 @@ public class AccommodationController {
         return accommodationService.getAccommodationList();
     }
 
+    @GetMapping("/accommodation/{id}")
+    public ResponseDto<?> getAccommodationDetail(@PathVariable Long id) {
+        return accommodationService.getAccommodationDetail(id);
+    }
 }
