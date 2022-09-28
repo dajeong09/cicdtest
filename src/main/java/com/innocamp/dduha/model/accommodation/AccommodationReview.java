@@ -1,32 +1,34 @@
-package com.innocamp.dduha.model;
+package com.innocamp.dduha.model.accommodation;
 
-import com.innocamp.dduha.model.touristspot.TouristSpot;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.time.LocalDate;
 
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Builder
-public class CourseDetailSpot {
+public class AccommodationReview {
 
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     private Long id;
 
     @Column(nullable = false)
-    private int detailOrder;
+    private String reviewer;
 
-    @JoinColumn(name = "course_id", nullable = false)
-    @ManyToOne(fetch = FetchType.LAZY)
-    private Course course;
+    @Column(nullable = false)
+    private String review;
 
-    @JoinColumn(name = "spot_id", nullable = false)
+    @Column(nullable = false)
+    private LocalDate reviewedAt;
+
+    @JoinColumn(name = "acc_id", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
-    private TouristSpot touristSpot;
+    private Accommodation accommodation;
 }

@@ -7,5 +7,6 @@ import java.util.List;
 @Getter
 public class CourseRequestDto {
     private Long courseId;
-    private List<CourseRequestDetailDto> courseDetails;
+    private List<CourseDetailRequestDto> courseDetails;
+    private Long accId;
 }

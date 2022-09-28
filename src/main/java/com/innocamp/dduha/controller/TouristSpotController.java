@@ -16,12 +16,12 @@ public class TouristSpotController {
     private final TouristSpotService touristSpotService;
 
     @GetMapping("/touristspot")
-    public ResponseDto<?> getTouristSpotList(HttpServletRequest request) {
-        return touristSpotService.getTouristSpotList(request);
+    public ResponseDto<?> getTouristSpotList() {
+        return touristSpotService.getTouristSpotList();
     }
 
     @GetMapping("/touristspot/{id}")
-    public ResponseDto<?> getTouristSpotDetail(@PathVariable Long id, HttpServletRequest request) {
-        return touristSpotService.getTouristSpotDetail(id, request);
+    public ResponseDto<?> getTouristSpotDetail(@PathVariable Long id) {
+        return touristSpotService.getTouristSpotDetail(id);
     }
 }

@@ -1,6 +1,6 @@
-package com.innocamp.dduha.model;
+package com.innocamp.dduha.model.course;
 
-import com.innocamp.dduha.model.restaurant.Restaurant;
+import com.innocamp.dduha.model.touristspot.TouristSpot;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -13,7 +13,7 @@ import javax.persistence.*;
 @NoArgsConstructor
 @Getter
 @Builder
-public class CourseDetailRest {
+public class CourseDetailSpot {
 
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
@@ -26,8 +26,7 @@ public class CourseDetailRest {
     @ManyToOne(fetch = FetchType.LAZY)
     private Course course;
 
-    @JoinColumn(name = "rest_id", nullable = false)
+    @JoinColumn(name = "spot_id", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
-    private Restaurant restaurant;
-
+    private TouristSpot touristSpot;
 }

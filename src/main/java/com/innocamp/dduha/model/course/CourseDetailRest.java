@@ -1,5 +1,6 @@
-package com.innocamp.dduha.model;
+package com.innocamp.dduha.model.course;
 
+import com.innocamp.dduha.model.restaurant.Restaurant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,21 +13,21 @@ import javax.persistence.*;
 @NoArgsConstructor
 @Getter
 @Builder
-public class Course {
+public class CourseDetailRest {
 
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     private Long id;
 
     @Column(nullable = false)
-    private int day;
+    private int detailOrder;
 
-    @JoinColumn(name = "trip_id", nullable = false)
+    @JoinColumn(name = "course_id", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
-    private Trip trip;
+    private Course course;
 
+    @JoinColumn(name = "rest_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Restaurant restaurant;
 
-//    @JoinColumn(name = "acc_id", nullable = false)    //null이 가능하고 데이터가 지워지면 null로 변환
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    private Accommodation accommodation;
 }
