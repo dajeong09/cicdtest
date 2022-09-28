@@ -9,9 +9,9 @@ import java.util.Optional;
 
 
 public interface TripRepository extends JpaRepository<Trip, Long> {
-    List<Trip> findAllByMember(Member member);
+    List<Trip> findAllByMemberAndIsHidden(Member member, Boolean isHidden);
 
-    List<Trip> findAllByIsPublic(Boolean isPublic);
+    List<Trip> findAllByIsPublicAndIsHidden(Boolean isPublic, Boolean isHidden);
 
     Optional<Trip> findById(Long tripId);
 

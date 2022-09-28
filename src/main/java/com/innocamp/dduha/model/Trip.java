@@ -36,11 +36,18 @@ public class Trip extends Timestamped{
     @JsonFormat(pattern = "yyyy/MM/dd")
     private LocalDate endAt;
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @Column(nullable = false)
+    private Boolean isHidden;
+
+    @OneToMany(fetch = FetchType.LAZY) //, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Course> courses;
 
     @JoinColumn(name = "member_id", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
     private Member member;
+
+    public void doHidden() {
+        this.isHidden = true;
+    }
 
 }

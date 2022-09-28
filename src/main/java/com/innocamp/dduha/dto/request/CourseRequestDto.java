@@ -8,4 +8,5 @@ import java.util.List;
 public class CourseRequestDto {
     private Long courseId;
     private List<CourseDetailRequestDto> courseDetails;
+    private Long accId;
 }

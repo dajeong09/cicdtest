@@ -7,7 +7,7 @@ import java.util.List;
 
 @Builder
 @Getter
-public class TouristSpotDetailResponseDto {
+public class DetailResponseDto {
     private Long id;
     private String name;
     private String description;
@@ -18,6 +18,6 @@ public class TouristSpotDetailResponseDto {
     private String region;
     private String thumbnailUrl;
     private List<String> imgUrl;
-    private List<TouristSpotReviewResponseDto> touristSpotReviews;
+    private List<ReviewResponseDto> reviews;
     private boolean isBookmarked;
 }

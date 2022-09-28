@@ -10,6 +10,7 @@ import com.innocamp.dduha.dto.response.CourseResponseDto;
 import com.innocamp.dduha.dto.response.TripResponseDto;
 import com.innocamp.dduha.jwt.TokenProvider;
 import com.innocamp.dduha.model.*;
+import com.innocamp.dduha.model.accommodation.Accommodation;
 import com.innocamp.dduha.model.bookmark.TripBookmark;
 import com.innocamp.dduha.model.course.Course;
 import com.innocamp.dduha.model.course.CourseDetailAcc;
@@ -78,6 +79,7 @@ public class TripService {
                 .isPublic(requestDto.getIsPublic())
                 .startAt(startAt)
                 .endAt(endAt)
+                .isHidden(false)
                 .member(member)
                 .build();
 
@@ -106,7 +108,7 @@ public class TripService {
         }
         List<TripResponseDto> tripResponseDtoList = new ArrayList<>();
 
-        List<Trip> tripList = tripRepository.findAllByMember(member);
+        List<Trip> tripList = tripRepository.findAllByMemberAndIsHidden(member, false);
 
         for (Trip trip : tripList) {
             tripResponseDtoList.add(TripResponseDto.builder()
@@ -124,7 +126,7 @@ public class TripService {
     public ResponseDto<?> getTripInfo(Long id, HttpServletRequest request) {
 
         Trip trip = isPresentTrip(id);
-        if(null == trip) {
+        if(null == trip || trip.getIsHidden()) {
             return ResponseDto.fail(TRIP_NOT_FOUND);
         }
 
@@ -214,7 +216,9 @@ public class TripService {
             return ResponseDto.fail(NOT_AUTHORIZED);
         }
 
-        tripRepository.delete(trip);
+        trip.doHidden();
+
+        tripRepository.save(trip);
 
         return ResponseDto.success(NULL);
     }
@@ -224,7 +228,7 @@ public class TripService {
         Member member = tokenProvider.getMemberFromAuthentication();
 
         List<TripResponseDto> tripResponseDtoList = new ArrayList<>();
-        List<Trip> tripList = tripRepository.findAllByIsPublic(true);
+        List<Trip> tripList = tripRepository.findAllByIsPublicAndIsHidden(true, false);
 
         if (null != member) {
             for (Trip trip : tripList) {
@@ -297,6 +301,12 @@ public class TripService {
             }
         }
 
+        Accommodation accommodation = isPresentAccommodation(courseRequestDto.getAccId());
+        CourseDetailAcc courseDetailAcc = CourseDetailAcc.builder()
+                .course(course)
+                .accommodation(accommodation).build();
+        courseDetailAccReposiotry.save(courseDetailAcc);
+
         return ResponseDto.success(NULL);
     }
 
@@ -318,6 +328,11 @@ public class TripService {
     public TouristSpot isPresentTouristSpot(Long id) {
         Optional<TouristSpot> optionalTouristSpot = touristSpotRepository.findById(id);
         return optionalTouristSpot.orElse(null);
+    }
+
+    public Accommodation isPresentAccommodation(Long id) {
+        Optional<Accommodation> optionalAccommodation = accommodationRepository.findById(id);
+        return optionalAccommodation.orElse(null);
     }
 
 }

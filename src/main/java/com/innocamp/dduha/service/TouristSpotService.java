@@ -1,9 +1,9 @@
 package com.innocamp.dduha.service;
 
 import com.innocamp.dduha.dto.ResponseDto;
-import com.innocamp.dduha.dto.response.TouristSpotDetailResponseDto;
+import com.innocamp.dduha.dto.response.DetailResponseDto;
+import com.innocamp.dduha.dto.response.ReviewResponseDto;
 import com.innocamp.dduha.dto.response.TouristSpotResponseDto;
-import com.innocamp.dduha.dto.response.TouristSpotReviewResponseDto;
 import com.innocamp.dduha.jwt.TokenProvider;
 import com.innocamp.dduha.model.Member;
 import com.innocamp.dduha.model.bookmark.TouristSpotBookmark;
@@ -17,7 +17,6 @@ import com.innocamp.dduha.repository.touristspot.TouristSpotReviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +34,7 @@ public class TouristSpotService {
 
     private final TouristSpotBookmarkRepository touristSpotBookmarkRepository;
 
-    public ResponseDto<?> getTouristSpotList(HttpServletRequest request) {
+    public ResponseDto<?> getTouristSpotList() {
 
         // 유효한 사용자라는 가정 하에 로그인 상태 확인 (추후 수정) __ 로그인이 안 되어 있으면 null
         Member member = tokenProvider.getMemberFromAuthentication();
@@ -79,7 +78,7 @@ public class TouristSpotService {
         return ResponseDto.success(touristSpotResponseDtoList);
     }
 
-    public ResponseDto<?> getTouristSpotDetail(Long id, HttpServletRequest request) {
+    public ResponseDto<?> getTouristSpotDetail(Long id) {
         // 유효한 사용자라는 가정 하에 로그인 상태 확인 (추후 수정) __ 로그인이 안 되어 있으면 null
         Member member = tokenProvider.getMemberFromAuthentication();
 
@@ -90,24 +89,24 @@ public class TouristSpotService {
             touristSpotImgs.add(touristSpotImg.getImgUrl());
         }
         List<TouristSpotReview> touristSpotReviewList = touristSpotReviewRepository.findAllByTouristSpotOrderByReviewedAtDesc(touristSpot);
-        List<TouristSpotReviewResponseDto> touristSpotReviewResponseDtoList = new ArrayList<>();
+        List<ReviewResponseDto> touristSpotReviewResponseDtoList = new ArrayList<>();
         for (TouristSpotReview touristSpotReview : touristSpotReviewList) {
             touristSpotReviewResponseDtoList.add(
-                    TouristSpotReviewResponseDto.builder()
+                    ReviewResponseDto.builder()
                             .id(touristSpotReview.getId())
                             .reviewer(touristSpotReview.getReviewer())
                             .review(touristSpotReview.getReview()).build()
             );
         }
 
-        TouristSpotDetailResponseDto responseDto;
+        DetailResponseDto responseDto;
         if (null != member) {
             boolean isBookmarked = false;
             TouristSpotBookmark findTouristSpotBookmark = touristSpotBookmarkRepository.findByMemberAndTouristSpot(member, touristSpot);
             if (null != findTouristSpotBookmark) {
                 isBookmarked = true;
             }
-            responseDto = TouristSpotDetailResponseDto.builder()
+            responseDto = DetailResponseDto.builder()
                     .id(touristSpot.getId())
                     .name(touristSpot.getName())
                     .description(touristSpot.getDescription())
@@ -118,12 +117,12 @@ public class TouristSpotService {
                     .thumbnailUrl(touristSpot.getThumbnailUrl())
                     .region(touristSpot.getRegion())
                     .imgUrl(touristSpotImgs)
-                    .touristSpotReviews(touristSpotReviewResponseDtoList)
+                    .reviews(touristSpotReviewResponseDtoList)
                     .isBookmarked(isBookmarked)
                     .build();
 
         } else {
-            responseDto = TouristSpotDetailResponseDto.builder()
+            responseDto = DetailResponseDto.builder()
                     .id(touristSpot.getId())
                     .name(touristSpot.getName())
                     .description(touristSpot.getDescription())
@@ -134,7 +133,7 @@ public class TouristSpotService {
                     .thumbnailUrl(touristSpot.getThumbnailUrl())
                     .region(touristSpot.getRegion())
                     .imgUrl(touristSpotImgs)
-                    .touristSpotReviews(touristSpotReviewResponseDtoList)
+                    .reviews(touristSpotReviewResponseDtoList)
                     .build();
         }
         return ResponseDto.success(responseDto);
