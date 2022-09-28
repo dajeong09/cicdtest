@@ -3,6 +3,8 @@ package com.innocamp.dduha.dto.response;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.util.List;
+
 @Builder
 @Getter
 public class TripResponseDto {
@@ -11,4 +13,5 @@ public class TripResponseDto {
     private Boolean isPublic;
     private String startAt;
     private String endAt;
+    private List<CourseResponseDto> courses;
 }

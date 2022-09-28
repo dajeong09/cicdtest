@@ -4,7 +4,7 @@ import lombok.Getter;
 
 
 @Getter
-public class CourseRequestDetailDto {
+public class CourseDetailRequestDto {
     private String category;
     private Long id;
     private int detailOrder;

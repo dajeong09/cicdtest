@@ -1,12 +1,12 @@
 package com.innocamp.dduha.service;
 
+import com.innocamp.dduha.dto.ResponseDto;
 import com.innocamp.dduha.dto.response.RestaurantResponseDto;
 import com.innocamp.dduha.model.restaurant.Restaurant;
 import com.innocamp.dduha.repository.restaurant.RestaurantRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,9 +16,10 @@ public class RestaurantService {
 
     private final RestaurantRepository restaurantRepository;
 
-    public List<RestaurantResponseDto> getRestaurantList(HttpServletRequest request) {
+    public ResponseDto<?> getRestaurantList() {
 
         // 사용자 검증 추가 필요
+
 
         List<Restaurant> restaurantList = restaurantRepository.findAll();
         List<RestaurantResponseDto> restaurantResponseDtoList = new ArrayList<>();
@@ -37,7 +38,9 @@ public class RestaurantService {
             );
         }
 
-        return restaurantResponseDtoList;
+        return ResponseDto.success(restaurantResponseDtoList);
     }
+
+
 
 }

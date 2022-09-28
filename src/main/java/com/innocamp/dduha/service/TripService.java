@@ -1,16 +1,21 @@
 package com.innocamp.dduha.service;
 
 import com.innocamp.dduha.dto.ResponseDto;
-import com.innocamp.dduha.dto.request.CourseRequestDetailDto;
+import com.innocamp.dduha.dto.request.CourseDetailRequestDto;
 import com.innocamp.dduha.dto.request.CourseRequestDto;
 import com.innocamp.dduha.dto.request.TripRequestDto;
+import com.innocamp.dduha.dto.response.CourseAccommodationResponseDto;
+import com.innocamp.dduha.dto.response.CourseDetailResponseDto;
+import com.innocamp.dduha.dto.response.CourseResponseDto;
 import com.innocamp.dduha.dto.response.TripResponseDto;
 import com.innocamp.dduha.jwt.TokenProvider;
 import com.innocamp.dduha.model.*;
 import com.innocamp.dduha.model.restaurant.Restaurant;
 import com.innocamp.dduha.model.touristspot.TouristSpot;
-import com.innocamp.dduha.repository.CourseDetailRestRepository;
-import com.innocamp.dduha.repository.CourseDetailSpotRepository;
+import com.innocamp.dduha.repository.accommodation.AccommodationRepository;
+import com.innocamp.dduha.repository.coursedetail.CourseDetailAccReposiotry;
+import com.innocamp.dduha.repository.coursedetail.CourseDetailRestRepository;
+import com.innocamp.dduha.repository.coursedetail.CourseDetailSpotRepository;
 import com.innocamp.dduha.repository.CourseRepository;
 import com.innocamp.dduha.repository.TripRepository;
 import com.innocamp.dduha.repository.restaurant.RestaurantRepository;
@@ -40,6 +45,8 @@ public class TripService {
     private final CourseDetailSpotRepository courseDetailSpotRepository;
     private final RestaurantRepository restaurantRepository;
     private final CourseDetailRestRepository courseDetailRestRepository;
+    private final AccommodationRepository accommodationRepository;
+    private final CourseDetailAccReposiotry courseDetailAccReposiotry;
 
 
     private final TokenProvider tokenProvider;
@@ -127,13 +134,52 @@ public class TripService {
             return ResponseDto.fail(NOT_AUTHORIZED);
         }
 
+        List<Course> courseList = courseRepository.findAllByTrip(trip);
+        List<CourseResponseDto> courseResponseDtoList = new ArrayList<>();
+
+
+        for (Course course : courseList) {
+            List<CourseDetailResponseDto> courseDetailResponseDtoList = new ArrayList<>();
+            List<CourseDetailSpot> courseDetailSpotList = courseDetailSpotRepository.findAllByCourse(course);
+            for(CourseDetailSpot courseDetailSpot : courseDetailSpotList) {
+                courseDetailResponseDtoList.add(CourseDetailResponseDto.builder()
+                        .detailOrder(courseDetailSpot.getDetailOrder())
+                        .category("관광지")
+                        .id(courseDetailSpot.getTouristSpot().getId())
+                        .name(courseDetailSpot.getTouristSpot().getName()).build()
+                );
+            }
+            List<CourseDetailRest> courseDetailRestList = courseDetailRestRepository.findAllByCourse(course);
+            for(CourseDetailRest courseDetailRest : courseDetailRestList) {
+                courseDetailResponseDtoList.add(CourseDetailResponseDto.builder()
+                        .detailOrder(courseDetailRest.getDetailOrder())
+                        .category("맛집")
+                        .id(courseDetailRest.getRestaurant().getId())
+                        .name(courseDetailRest.getRestaurant().getName()).build()
+                );
+            }
+            CourseDetailAcc courseDetailAcc = courseDetailAccReposiotry.findCourseDetailAccByCourse(course);
+            CourseAccommodationResponseDto accommodation = CourseAccommodationResponseDto.builder()
+                    .id(courseDetailAcc.getId())
+                    .name(courseDetailAcc.getAccommodation().getName()).build();
+
+            courseResponseDtoList.add(CourseResponseDto.builder()
+                            .courseId(course.getId())
+                            .day(course.getDay())
+                            .courseDetails(courseDetailResponseDtoList)
+                            .accommodation(accommodation)
+                    .build());
+        }
+
 
         TripResponseDto tripResponseDto = TripResponseDto.builder()
                 .id(trip.getId())
                 .title(trip.getTitle())
                 .isPublic(trip.getIsPublic())
                 .startAt(trip.getStartAt().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")))
-                .endAt(trip.getEndAt().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"))).build();
+                .endAt(trip.getEndAt().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")))
+                .courses(courseResponseDtoList).build();
+
         return ResponseDto.success(tripResponseDto);
     }
 
@@ -195,7 +241,7 @@ public class TripService {
             return ResponseDto.fail(COURSE_NOT_FOUND);
         }
 
-        for(CourseRequestDetailDto requestDto : courseRequestDto.getCourseDetails()) {
+        for(CourseDetailRequestDto requestDto : courseRequestDto.getCourseDetails()) {
             switch (requestDto.getCategory()) {
                 case "관광지":
                     TouristSpot touristSpot = isPresentTouristSpot(requestDto.getId());

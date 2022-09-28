@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity
 @AllArgsConstructor
@@ -25,8 +26,16 @@ public class Course {
     @ManyToOne(fetch = FetchType.LAZY)
     private Trip trip;
 
-
 //    @JoinColumn(name = "acc_id", nullable = false)    //null이 가능하고 데이터가 지워지면 null로 변환
 //    @ManyToOne(fetch = FetchType.LAZY)
 //    private Accommodation accommodation;
+
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CourseDetailRest> courseDetailRests;
+
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CourseDetailSpot> courseDetailSpots;
+
+
+
 }
