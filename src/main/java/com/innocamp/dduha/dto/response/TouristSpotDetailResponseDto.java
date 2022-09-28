@@ -19,4 +19,5 @@ public class TouristSpotDetailResponseDto {
     private String thumbnailUrl;
     private List<String> imgUrl;
     private List<TouristSpotReviewResponseDto> touristSpotReviews;
+    private boolean isBookmarked;
 }

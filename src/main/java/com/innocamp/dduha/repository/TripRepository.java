@@ -5,11 +5,15 @@ import com.innocamp.dduha.model.Trip;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 
 public interface TripRepository extends JpaRepository<Trip, Long> {
     List<Trip> findAllByMember(Member member);
 
     List<Trip> findAllByIsPublic(Boolean isPublic);
+
+    Optional<Trip> findById(Long tripId);
+
 
 }
