@@ -13,6 +13,6 @@ public class TripResponseDto {
     private Boolean isPublic;
     private String startAt;
     private String endAt;
-    private boolean isbookmarked;
+    private boolean isBookmarked;
     private List<CourseResponseDto> courses;
 }

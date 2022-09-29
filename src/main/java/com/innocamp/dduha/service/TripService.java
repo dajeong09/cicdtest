@@ -232,10 +232,10 @@ public class TripService {
 
         if (null != member) {
             for (Trip trip : tripList) {
-                boolean isbookmarked = false;
+                boolean isBookmarked = false;
                 TripBookmark findTripBookmark = tripBookmarkRepository.findByMemberAndTrip(member, trip);
                 if (null != findTripBookmark) {
-                    isbookmarked = true;
+                    isBookmarked = true;
                 }
                 tripResponseDtoList.add(TripResponseDto.builder()
                         .id(trip.getId())
@@ -243,7 +243,7 @@ public class TripService {
                         .isPublic(trip.getIsPublic())
                         .startAt(trip.getStartAt().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")))
                         .endAt(trip.getEndAt().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")))
-                        .isbookmarked(isbookmarked)
+                        .isBookmarked(isBookmarked)
                         .build()
                 );
             }
