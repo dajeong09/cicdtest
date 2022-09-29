@@ -29,6 +29,7 @@ public class MyPageService {
     private final TouristSpotBookmarkRepository touristSpotBookmarkRepository;
     private final RestaurantBookmarkRepository restaurantBookmarkRepository;
     private final AccommodationBookmarkRepository accommodationBookmarkRepository;
+
     private final MemberService memberService;
 
     // 내가 즐겨찾기한 각 목록 조회(즐겨찾기 개수)
