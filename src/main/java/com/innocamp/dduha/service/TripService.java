@@ -276,15 +276,16 @@ public class TripService {
         if(null == course) {
             return ResponseDto.fail(COURSE_NOT_FOUND);
         }
-
+        int order = 0;
         for(CourseDetailRequestDto requestDto : courseRequestDto.getCourseDetails()) {
+            order++;
             switch (requestDto.getCategory()) {
                 case "관광지":
                     TouristSpot touristSpot = isPresentTouristSpot(requestDto.getId());
                     CourseDetailSpot courseDetailSpot = CourseDetailSpot.builder()
                             .course(course)
                             .touristSpot(touristSpot)
-                            .detailOrder(requestDto.getDetailOrder()).build();
+                            .detailOrder(order).build();
                     courseDetailSpotRepository.save(courseDetailSpot);
                     break;
                 case "맛집":
@@ -292,7 +293,7 @@ public class TripService {
                     CourseDetailRest courseDetailRest = CourseDetailRest.builder()
                             .course(course)
                             .restaurant(restaurant)
-                            .detailOrder(requestDto.getDetailOrder()).build();
+                            .detailOrder(order).build();
                     courseDetailRestRepository.save(courseDetailRest);
                     break;
                 default:
@@ -300,12 +301,15 @@ public class TripService {
 
             }
         }
+        Accommodation accommodation;
+        if (courseRequestDto.getAccId() != null) {
+            accommodation = isPresentAccommodation(courseRequestDto.getAccId());
+            CourseDetailAcc courseDetailAcc = CourseDetailAcc.builder()
+                    .course(course)
+                    .accommodation(accommodation).build();
+            courseDetailAccReposiotry.save(courseDetailAcc);
+        }
 
-        Accommodation accommodation = isPresentAccommodation(courseRequestDto.getAccId());
-        CourseDetailAcc courseDetailAcc = CourseDetailAcc.builder()
-                .course(course)
-                .accommodation(accommodation).build();
-        courseDetailAccReposiotry.save(courseDetailAcc);
 
         return ResponseDto.success(NULL);
     }

@@ -7,5 +7,4 @@ import lombok.Getter;
 public class CourseDetailRequestDto {
     private String category;
     private Long id;
-    private int detailOrder;
 }
