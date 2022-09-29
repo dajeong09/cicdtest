@@ -33,6 +33,10 @@ public class MyPageController {
     }
 
     //내가 즐겨찾기한 숙소 조회
+    @GetMapping("/auth/mypage/accommodation/bookmark")
+    public ResponseDto<?> getMyAccommodationBookmark(HttpServletRequest request) {
+        return myPageService.getMyAccommodationBookmark(request);
+    }
 
     //내가 즐겨찾기한 일정 조회
     @GetMapping("/auth/mypage/trip/bookmark")

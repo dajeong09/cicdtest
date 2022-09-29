@@ -33,6 +33,8 @@ public enum ErrorCode {
     // TouristSpot(관광지) 관련 오류
     SPOT_NOT_FOUND("SPOT_NOT_FOUND", "해당 관광지를 찾을 수 없습니다."),
 
+    // Accommodation(숙소) 관련 오류
+    ACCOMMODATION_NOT_FOUND("ACCOMMODATION_NOT_FOUND", "해당 숙소를 찾을 수 없습니다."),
 
     //Favorite(즐겨찾기) 관련 오류
 //    DUPLICATE_LIKES("DUPLICATE_LIKES", "이미 좋아요를 눌렀습니다."),

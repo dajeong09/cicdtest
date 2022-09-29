@@ -1,6 +1,7 @@
 package com.innocamp.dduha.controller;
 
 import com.innocamp.dduha.dto.ResponseDto;
+import com.innocamp.dduha.service.AccommodationBookmarkService;
 import com.innocamp.dduha.service.RestaurantBookmarkService;
 import com.innocamp.dduha.service.TouristSpotBookmarkService;
 import com.innocamp.dduha.service.TripBookmarkService;
@@ -19,6 +20,8 @@ public class BookmarkController {
 
     private final RestaurantBookmarkService restaurantBookmarkService;
 
+    private final AccommodationBookmarkService accommodationBookmarkService;
+
     private final TripBookmarkService tripBookmarkService;
 
     // 관광지 즐겨찾기 / 취소하기
@@ -34,6 +37,10 @@ public class BookmarkController {
     }
 
     // 숙소 즐겨찾기 / 취소하기
+    @GetMapping("/auth/accommodation/bookmark/{accId}")
+    public ResponseDto<?> createAccommodationBookmark(@PathVariable Long accId, HttpServletRequest request) {
+        return accommodationBookmarkService.createAccommodationBookmark(accId, request);
+    }
 
     // 일정 즐겨찾기 / 취소하기
     @GetMapping("/auth/trip/bookmark/{tripId}")

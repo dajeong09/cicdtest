@@ -12,4 +12,5 @@ public class AccommodationResponseDto {
     private int likeNum;
     private String region;
     private String thumbnailUrl;
+    private boolean isBookmarked;
 }

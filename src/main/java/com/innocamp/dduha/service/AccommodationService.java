@@ -9,9 +9,11 @@ import com.innocamp.dduha.model.Member;
 import com.innocamp.dduha.model.accommodation.Accommodation;
 import com.innocamp.dduha.model.accommodation.AccommodationImg;
 import com.innocamp.dduha.model.accommodation.AccommodationReview;
+import com.innocamp.dduha.model.bookmark.AccommodationBookmark;
 import com.innocamp.dduha.repository.accommodation.AccommodationImgRepository;
 import com.innocamp.dduha.repository.accommodation.AccommodationRepository;
 import com.innocamp.dduha.repository.accommodation.AccommodationReviewRepository;
+import com.innocamp.dduha.repository.bookmark.AccommodationBookmarkRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -27,31 +29,53 @@ public class AccommodationService {
     private final AccommodationRepository accommodationRepository;
     private final AccommodationReviewRepository accommodationReviewRepository;
     private final AccommodationImgRepository accommodationImgRepository;
+    private final AccommodationBookmarkRepository accommodationBookmarkRepository;
 
     private final TokenProvider tokenProvider;
 
     public ResponseDto<?> getAccommodationList() {
 
         // 사용자 검증 추가 필요
+        Member member = tokenProvider.getMemberFromAuthentication();
 
         List<Accommodation> accommodationList = accommodationRepository.findAll();
         List<AccommodationResponseDto> accommodationResponseDtoList = new ArrayList<>();
 
-        for (Accommodation accommodation : accommodationList) {
-
-            accommodationResponseDtoList.add(
-                    AccommodationResponseDto.builder()
-                            .id(accommodation.getId())
-                            .name(accommodation.getName())
-                            .description(accommodation.getDescription())
-                            .likeNum(accommodation.getLikeNum())
-                            .region(accommodation.getRegion())
-                            .thumbnailUrl(accommodation.getThumbnailUrl())
-                            .build()
-            );
+        if (null != member) {
+            for (Accommodation accommodation : accommodationList) {
+                boolean isBookmarked = false;
+                AccommodationBookmark accommodationBookmark = accommodationBookmarkRepository.findByMemberAndAccommodation(member, accommodation);
+                if (null != accommodationBookmark) {
+                    isBookmarked = true;
+                }
+                accommodationResponseDtoList.add(
+                        AccommodationResponseDto.builder()
+                                .id(accommodation.getId())
+                                .name(accommodation.getName())
+                                .description(accommodation.getDescription())
+                                .likeNum(accommodation.getLikeNum())
+                                .region(accommodation.getRegion())
+                                .thumbnailUrl(accommodation.getThumbnailUrl())
+                                .isBookmarked(isBookmarked)
+                                .build()
+                );
+            }
+        } else {
+            for (Accommodation accommodation : accommodationList) {
+                accommodationResponseDtoList.add(
+                        AccommodationResponseDto.builder()
+                                .id(accommodation.getId())
+                                .name(accommodation.getName())
+                                .description(accommodation.getDescription())
+                                .likeNum(accommodation.getLikeNum())
+                                .region(accommodation.getRegion())
+                                .thumbnailUrl(accommodation.getThumbnailUrl())
+                                .build()
+                );
+            }
         }
-
         return ResponseDto.success(accommodationResponseDtoList);
+
     }
 
 
@@ -79,10 +103,10 @@ public class AccommodationService {
         DetailResponseDto responseDto;
         if (null != member) {
             boolean isBookmarked = false;
-//            RestaurantBookmark findRestaurantBookmark = restaurantBookmarkRepository.findByMemberAndRestaurant(member, restaurant);
-//            if (null != findRestaurantBookmark) {
-//                isBookmarked = true;
-//            }
+            AccommodationBookmark findAccommodationBookmark = accommodationBookmarkRepository.findByMemberAndAccommodation(member, accommodation);
+            if (null != findAccommodationBookmark) {
+                isBookmarked = true;
+            }
             responseDto = DetailResponseDto.builder()
                     .id(accommodation.getId())
                     .name(accommodation.getName())
