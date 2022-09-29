@@ -8,4 +8,5 @@ import java.util.List;
 
 public interface CourseDetailSpotRepository extends JpaRepository<CourseDetailSpot, Long> {
     List<CourseDetailSpot> findAllByCourse(Course course);
+    void deleteAllByCourse(Course course);
 }
