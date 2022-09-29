@@ -1,14 +1,13 @@
 package com.innocamp.dduha.service;
 
 import com.innocamp.dduha.dto.ResponseDto;
-import com.innocamp.dduha.dto.response.MyPageResponseDto;
-import com.innocamp.dduha.dto.response.RestaurantResponseDto;
-import com.innocamp.dduha.dto.response.TouristSpotResponseDto;
-import com.innocamp.dduha.dto.response.TripResponseDto;
+import com.innocamp.dduha.dto.response.*;
 import com.innocamp.dduha.model.Member;
+import com.innocamp.dduha.model.bookmark.AccommodationBookmark;
 import com.innocamp.dduha.model.bookmark.RestaurantBookmark;
 import com.innocamp.dduha.model.bookmark.TouristSpotBookmark;
 import com.innocamp.dduha.model.bookmark.TripBookmark;
+import com.innocamp.dduha.repository.bookmark.AccommodationBookmarkRepository;
 import com.innocamp.dduha.repository.bookmark.RestaurantBookmarkRepository;
 import com.innocamp.dduha.repository.bookmark.TouristSpotBookmarkRepository;
 import com.innocamp.dduha.repository.bookmark.TripBookmarkRepository;
@@ -29,6 +28,7 @@ public class MyPageService {
     private final TripBookmarkRepository tripBookmarkRepository;
     private final TouristSpotBookmarkRepository touristSpotBookmarkRepository;
     private final RestaurantBookmarkRepository restaurantBookmarkRepository;
+    private final AccommodationBookmarkRepository accommodationBookmarkRepository;
     private final MemberService memberService;
 
     // 내가 즐겨찾기한 각 목록 조회(즐겨찾기 개수)
@@ -45,12 +45,13 @@ public class MyPageService {
         int tripBookmarkNum = tripBookmarkRepository.countTripBookmarkByMember(member);
         int touristSpotBookmarkNum = touristSpotBookmarkRepository.countTouristSpotBookmarkByMember(member);
         int restaurantBookmarkNum = restaurantBookmarkRepository.countRestaurantBookmarkByMember(member);
-        // 숙소 즐겨찾기 개수 추가 예정
+        int accommodationBookmarkNum = accommodationBookmarkRepository.countAccommodationBookmarkByMember(member);
 
         MyPageResponseDto myPageResponseDto = MyPageResponseDto.builder()
                 .tripBookmarkNum(tripBookmarkNum)
                 .touristSpotBookmarkNum(touristSpotBookmarkNum)
                 .restaurantBookmarkNum(restaurantBookmarkNum)
+                .accommodationBookmarkNum(accommodationBookmarkNum)
                 .build();
         return ResponseDto.success(myPageResponseDto);
     }
@@ -115,6 +116,32 @@ public class MyPageService {
     }
 
     //내가 즐겨찾기한 숙소 조회
+    public ResponseDto<?> getMyAccommodationBookmark(HttpServletRequest request) {
+        if (null == request.getHeader("Authorization")) {
+            return ResponseDto.fail(MEMBER_NOT_FOUND);
+        }
+        Member member = memberService.validateMember(request);
+        if (null == member) {
+            return ResponseDto.fail(INVALID_TOKEN);
+        }
+        List<AccommodationBookmark> accommodationBoookmarkList = accommodationBookmarkRepository.findAllByMember(member);
+        List<AccommodationResponseDto> AccommodationResponseDtoList = new ArrayList<>();
+
+        for (AccommodationBookmark accommodationBookmark : accommodationBoookmarkList) {
+            AccommodationResponseDtoList.add(
+                    AccommodationResponseDto.builder()
+                            .id(accommodationBookmark.getAccommodation().getId())
+                            .name(accommodationBookmark.getAccommodation().getName())
+                            .description(accommodationBookmark.getAccommodation().getDescription())
+                            .likeNum(accommodationBookmark.getAccommodation().getLikeNum())
+                            .region(accommodationBookmark.getAccommodation().getRegion())
+                            .thumbnailUrl(accommodationBookmark.getAccommodation().getThumbnailUrl())
+                            .isBookmarked(true)
+                            .build()
+            );
+        }
+        return ResponseDto.success(AccommodationResponseDtoList);
+    }
 
     //내가 즐겨찾기한 일정 조회
     public ResponseDto<?> getMyTripBookmark(HttpServletRequest request) {
@@ -133,7 +160,6 @@ public class MyPageService {
                     TripResponseDto.builder()
                             .id(tripBookmark.getTrip().getId())
                             .title(tripBookmark.getTrip().getTitle())
-                            .isPublic(tripBookmark.getTrip().getIsPublic())
                             .startAt(tripBookmark.getTrip().getStartAt().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")))
                             .endAt(tripBookmark.getTrip().getEndAt().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")))
                             .isBookmarked(true)
