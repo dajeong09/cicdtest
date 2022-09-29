@@ -261,6 +261,7 @@ public class TripService {
         return ResponseDto.success(tripResponseDtoList);
     }
 
+    @Transactional
     public ResponseDto<?> createCourse(CourseRequestDto courseRequestDto, HttpServletRequest request) {
 
         if (!tokenProvider.validateToken(request.getHeader("Refresh-Token"))) {
@@ -276,6 +277,17 @@ public class TripService {
         if(null == course) {
             return ResponseDto.fail(COURSE_NOT_FOUND);
         }
+
+        if(!course.getTrip().getMember().getId().equals(member.getId())) {
+            return ResponseDto.fail(NOT_AUTHORIZED);
+        }
+
+        //코스에 이미 연결된 데이터가 있는지 확인 or 초기화
+        courseDetailRestRepository.deleteAllByCourse(course);
+        courseDetailSpotRepository.deleteAllByCourse(course);
+        courseDetailAccReposiotry.deleteAllByCourse(course);
+
+
         int order = 0;
         for(CourseDetailRequestDto requestDto : courseRequestDto.getCourseDetails()) {
             order++;
