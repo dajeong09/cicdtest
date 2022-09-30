@@ -40,7 +40,7 @@ public class TripController {
         return tripService.getPublicTrips();
     }
 
-    @PostMapping("/auth/course")
+    @PostMapping("/auth/trip/course")
     public ResponseDto<?> createCourse(@RequestBody CourseRequestDto courseRequestDto, HttpServletRequest request) {
         return tripService.createCourse(courseRequestDto, request);
     }

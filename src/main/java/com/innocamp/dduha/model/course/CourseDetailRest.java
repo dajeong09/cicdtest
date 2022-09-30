@@ -30,4 +30,11 @@ public class CourseDetailRest {
     @ManyToOne(fetch = FetchType.LAZY)
     private Restaurant restaurant;
 
+    public void postponeOrder() {
+        this.detailOrder++;
+    }
+    public void advanceOrder() {
+        this.detailOrder--;
+    }
+
 }

@@ -26,4 +26,8 @@ public class CourseDetailAcc {
     @JoinColumn(name = "acc_id", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
     private Accommodation accommodation;
+
+    public void changeAccommodation(Accommodation accommodation) {
+        this.accommodation = accommodation;
+    }
 }
