@@ -41,4 +41,10 @@ public class Accommodation {
 
     @Column(nullable = false)
     private String region;
+
+    @Column
+    private double latitude;
+
+    @Column
+    private double longitude;
 }

@@ -1,16 +1,19 @@
 package com.innocamp.dduha.service;
 
 import com.innocamp.dduha.dto.ResponseDto;
+import com.innocamp.dduha.dto.response.BusStationResponseDto;
 import com.innocamp.dduha.dto.response.DetailResponseDto;
 import com.innocamp.dduha.dto.response.ReviewResponseDto;
 import com.innocamp.dduha.dto.response.TouristSpotResponseDto;
 import com.innocamp.dduha.jwt.TokenProvider;
 import com.innocamp.dduha.model.Member;
 import com.innocamp.dduha.model.bookmark.TouristSpotBookmark;
+import com.innocamp.dduha.model.nearby.TouristSpotNearby;
 import com.innocamp.dduha.model.touristspot.TouristSpot;
 import com.innocamp.dduha.model.touristspot.TouristSpotImg;
 import com.innocamp.dduha.model.touristspot.TouristSpotReview;
 import com.innocamp.dduha.repository.bookmark.TouristSpotBookmarkRepository;
+import com.innocamp.dduha.repository.nearby.TouristSpotNearbyRepository;
 import com.innocamp.dduha.repository.touristspot.TouristSpotImgRepository;
 import com.innocamp.dduha.repository.touristspot.TouristSpotRepository;
 import com.innocamp.dduha.repository.touristspot.TouristSpotReviewRepository;
@@ -22,7 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-
 @Service
 @RequiredArgsConstructor
 public class TouristSpotService {
@@ -33,6 +35,7 @@ public class TouristSpotService {
     private final TokenProvider tokenProvider;
 
     private final TouristSpotBookmarkRepository touristSpotBookmarkRepository;
+    private final TouristSpotNearbyRepository touristSpotNearbyRepository;
 
     public ResponseDto<?> getTouristSpotList() {
 
@@ -88,6 +91,17 @@ public class TouristSpotService {
         for (TouristSpotImg touristSpotImg : touristSpotImgList) {
             touristSpotImgs.add(touristSpotImg.getImgUrl());
         }
+
+        List<TouristSpotNearby> touristSpotNearbyList = touristSpotNearbyRepository.findAllByTouristSpot(touristSpot);
+        List<BusStationResponseDto> busStationResponseDtoList = new ArrayList<>();
+        for(TouristSpotNearby touristSpotNearby : touristSpotNearbyList) {
+            busStationResponseDtoList.add(
+                    BusStationResponseDto.builder()
+                            .stationName(touristSpotNearby.getBusStation().getStationName())
+                            .distance(touristSpotNearby.getDistance()).build()
+            );
+        }
+
         List<TouristSpotReview> touristSpotReviewList = touristSpotReviewRepository.findAllByTouristSpotOrderByReviewedAtDesc(touristSpot);
         List<ReviewResponseDto> touristSpotReviewResponseDtoList = new ArrayList<>();
         for (TouristSpotReview touristSpotReview : touristSpotReviewList) {
@@ -116,6 +130,9 @@ public class TouristSpotService {
                     .likeNum(touristSpot.getLikeNum())
                     .thumbnailUrl(touristSpot.getThumbnailUrl())
                     .region(touristSpot.getRegion())
+                    .latitude(touristSpot.getLatitude())
+                    .longitude(touristSpot.getLongitude())
+                    .stations(busStationResponseDtoList)
                     .imgUrl(touristSpotImgs)
                     .reviews(touristSpotReviewResponseDtoList)
                     .isBookmarked(isBookmarked)
@@ -132,6 +149,9 @@ public class TouristSpotService {
                     .likeNum(touristSpot.getLikeNum())
                     .thumbnailUrl(touristSpot.getThumbnailUrl())
                     .region(touristSpot.getRegion())
+                    .latitude(touristSpot.getLatitude())
+                    .longitude(touristSpot.getLongitude())
+                    .stations(busStationResponseDtoList)
                     .imgUrl(touristSpotImgs)
                     .reviews(touristSpotReviewResponseDtoList)
                     .build();

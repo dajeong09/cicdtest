@@ -1,16 +1,19 @@
 package com.innocamp.dduha.service;
 
 import com.innocamp.dduha.dto.ResponseDto;
+import com.innocamp.dduha.dto.response.BusStationResponseDto;
 import com.innocamp.dduha.dto.response.RestaurantResponseDto;
 import com.innocamp.dduha.dto.response.ReviewResponseDto;
 import com.innocamp.dduha.dto.response.DetailResponseDto;
 import com.innocamp.dduha.jwt.TokenProvider;
 import com.innocamp.dduha.model.Member;
 import com.innocamp.dduha.model.bookmark.RestaurantBookmark;
+import com.innocamp.dduha.model.nearby.RestaurantNearby;
 import com.innocamp.dduha.model.restaurant.Restaurant;
 import com.innocamp.dduha.model.restaurant.RestaurantImg;
 import com.innocamp.dduha.model.restaurant.RestaurantReview;
 import com.innocamp.dduha.repository.bookmark.RestaurantBookmarkRepository;
+import com.innocamp.dduha.repository.nearby.RestaurantNearbyRepository;
 import com.innocamp.dduha.repository.restaurant.RestaurantImgRepository;
 import com.innocamp.dduha.repository.restaurant.RestaurantRepository;
 import com.innocamp.dduha.repository.restaurant.RestaurantReviewRepository;
@@ -32,7 +35,7 @@ public class RestaurantService {
     private final TokenProvider tokenProvider;
 
     private final RestaurantBookmarkRepository restaurantBookmarkRepository;
-
+    private final RestaurantNearbyRepository restaurantNearbyRepository;
     public ResponseDto<?> getRestaurantList() {
 
         // 사용자 검증 추가 필요
@@ -89,6 +92,17 @@ public class RestaurantService {
         for (RestaurantImg restaurantImg : restaurantImgList) {
             restaurantImgs.add(restaurantImg.getImgUrl());
         }
+
+        List<RestaurantNearby> restaurantNearbyList = restaurantNearbyRepository.findAllByRestaurant(restaurant);
+        List<BusStationResponseDto> busStationResponseDtoList = new ArrayList<>();
+        for(RestaurantNearby restaurantNearby : restaurantNearbyList) {
+            busStationResponseDtoList.add(
+                    BusStationResponseDto.builder()
+                            .stationName(restaurantNearby.getBusStation().getStationName())
+                            .distance(restaurantNearby.getDistance()).build()
+            );
+        }
+
         List<RestaurantReview> restaurantReviewList = restaurantReviewRepository.findAllByRestaurantOrderByReviewedAtDesc(restaurant);
         List<ReviewResponseDto> reviewResponseDtoList = new ArrayList<>();
         for (RestaurantReview restaurantReview : restaurantReviewList) {
@@ -117,6 +131,9 @@ public class RestaurantService {
                     .likeNum(restaurant.getLikeNum())
                     .thumbnailUrl(restaurant.getThumbnailUrl())
                     .region(restaurant.getRegion())
+                    .latitude(restaurant.getLatitude())
+                    .longitude(restaurant.getLongitude())
+                    .stations(busStationResponseDtoList)
                     .imgUrl(restaurantImgs)
                     .reviews(reviewResponseDtoList)
                     .isBookmarked(isBookmarked)
@@ -133,6 +150,9 @@ public class RestaurantService {
                     .likeNum(restaurant.getLikeNum())
                     .thumbnailUrl(restaurant.getThumbnailUrl())
                     .region(restaurant.getRegion())
+                    .latitude(restaurant.getLatitude())
+                    .longitude(restaurant.getLongitude())
+                    .stations(busStationResponseDtoList)
                     .imgUrl(restaurantImgs)
                     .reviews(reviewResponseDtoList)
                     .build();

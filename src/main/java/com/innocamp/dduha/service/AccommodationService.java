@@ -2,6 +2,7 @@ package com.innocamp.dduha.service;
 
 import com.innocamp.dduha.dto.ResponseDto;
 import com.innocamp.dduha.dto.response.AccommodationResponseDto;
+import com.innocamp.dduha.dto.response.BusStationResponseDto;
 import com.innocamp.dduha.dto.response.DetailResponseDto;
 import com.innocamp.dduha.dto.response.ReviewResponseDto;
 import com.innocamp.dduha.jwt.TokenProvider;
@@ -10,10 +11,12 @@ import com.innocamp.dduha.model.accommodation.Accommodation;
 import com.innocamp.dduha.model.accommodation.AccommodationImg;
 import com.innocamp.dduha.model.accommodation.AccommodationReview;
 import com.innocamp.dduha.model.bookmark.AccommodationBookmark;
+import com.innocamp.dduha.model.nearby.AccommodationNearby;
 import com.innocamp.dduha.repository.accommodation.AccommodationImgRepository;
 import com.innocamp.dduha.repository.accommodation.AccommodationRepository;
 import com.innocamp.dduha.repository.accommodation.AccommodationReviewRepository;
 import com.innocamp.dduha.repository.bookmark.AccommodationBookmarkRepository;
+import com.innocamp.dduha.repository.nearby.AccommodationNearbyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +33,7 @@ public class AccommodationService {
     private final AccommodationReviewRepository accommodationReviewRepository;
     private final AccommodationImgRepository accommodationImgRepository;
     private final AccommodationBookmarkRepository accommodationBookmarkRepository;
+    private final AccommodationNearbyRepository accommodationNearbyRepository;
 
     private final TokenProvider tokenProvider;
 
@@ -89,6 +93,17 @@ public class AccommodationService {
         for (AccommodationImg accommodationImg : accommodationImgList) {
             accommodationImgs.add(accommodationImg.getImgUrl());
         }
+
+        List<AccommodationNearby> accommodationNearbyList = accommodationNearbyRepository.findAllByAccommodation(accommodation);
+        List<BusStationResponseDto> busStationResponseDtoList = new ArrayList<>();
+        for(AccommodationNearby accommodationNearby : accommodationNearbyList) {
+            busStationResponseDtoList.add(
+                    BusStationResponseDto.builder()
+                            .stationName(accommodationNearby.getBusStation().getStationName())
+                            .distance(accommodationNearby.getDistance()).build()
+            );
+        }
+
         List<AccommodationReview> accommodationReviewList = accommodationReviewRepository.findAllByAccommodationOrderByReviewedAtDesc(accommodation);
         List<ReviewResponseDto> reviewResponseDtoList = new ArrayList<>();
         for (AccommodationReview accommodationReview : accommodationReviewList) {
@@ -117,8 +132,11 @@ public class AccommodationService {
                     .likeNum(accommodation.getLikeNum())
                     .thumbnailUrl(accommodation.getThumbnailUrl())
                     .region(accommodation.getRegion())
+                    .latitude(accommodation.getLatitude())
+                    .longitude(accommodation.getLongitude())
                     .imgUrl(accommodationImgs)
                     .reviews(reviewResponseDtoList)
+                    .stations(busStationResponseDtoList)
                     .isBookmarked(isBookmarked)
                     .build();
 
@@ -133,8 +151,11 @@ public class AccommodationService {
                     .likeNum(accommodation.getLikeNum())
                     .thumbnailUrl(accommodation.getThumbnailUrl())
                     .region(accommodation.getRegion())
+                    .latitude(accommodation.getLatitude())
+                    .longitude(accommodation.getLongitude())
                     .imgUrl(accommodationImgs)
                     .reviews(reviewResponseDtoList)
+                    .stations(busStationResponseDtoList)
                     .build();
         }
         return ResponseDto.success(responseDto);

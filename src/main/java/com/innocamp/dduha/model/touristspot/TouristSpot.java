@@ -43,6 +43,9 @@ public class TouristSpot {
     private String region;      // enum 으로 바꿀까 고민
 
     @Column
-    private String mapUrl;      // 지도 API 사용?
+    private double latitude;
+
+    @Column
+    private double longitude;
 
 }
