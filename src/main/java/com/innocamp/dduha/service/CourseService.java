@@ -1,7 +1,6 @@
 package com.innocamp.dduha.service;
 
 import com.innocamp.dduha.dto.ResponseDto;
-import com.innocamp.dduha.dto.request.CourseAccRequestDto;
 import com.innocamp.dduha.dto.request.CourseDetailRequestDto;
 import com.innocamp.dduha.jwt.TokenProvider;
 import com.innocamp.dduha.model.Member;
@@ -65,23 +64,44 @@ public class CourseService {
             return ResponseDto.fail(NOT_AUTHORIZED);
         }
 
-        List<CourseDetailSpot> savedCourseDetailSpotList =
-                courseDetailSpotRepository.findAllByCourseAndDetailOrderGreaterThanEqual(course, requestDto.getDetailOrder());
-        if (null != savedCourseDetailSpotList) {
-            for (CourseDetailSpot courseDetailSpot : savedCourseDetailSpotList) {
-                courseDetailSpot.postponeOrder();
-                courseDetailSpotRepository.save(courseDetailSpot);
+        int detailOrder = courseDetailAccRepository.countAllByCourse(course) +
+            courseDetailSpotRepository.countAllByCourse(course) +
+            courseDetailRestRepository.countAllByCourse(course) + 1;
+
+
+        if(requestDto.getDetailOrder() != 0) {
+
+            detailOrder = requestDto.getDetailOrder();
+
+            List<CourseDetailSpot> savedCourseDetailSpotList =
+                    courseDetailSpotRepository.findAllByCourseAndDetailOrderGreaterThanEqual(course, detailOrder);
+            if (null != savedCourseDetailSpotList) {
+                for (CourseDetailSpot courseDetailSpot : savedCourseDetailSpotList) {
+                    courseDetailSpot.postponeOrder();
+                    courseDetailSpotRepository.save(courseDetailSpot);
+                }
+            }
+
+            List<CourseDetailRest> savedCourseDetailRestList =
+                    courseDetailRestRepository.findAllByCourseAndDetailOrderGreaterThanEqual(course, detailOrder);
+            if (null != savedCourseDetailRestList) {
+                for (CourseDetailRest courseDetailRest : savedCourseDetailRestList) {
+                    courseDetailRest.postponeOrder();
+                    courseDetailRestRepository.save(courseDetailRest);
+                }
+            }
+
+            List<CourseDetailAcc> savedCourseDetailAccList =
+                    courseDetailAccRepository.findAllByCourseAndDetailOrderGreaterThanEqual(course, detailOrder);
+            if (null != savedCourseDetailRestList) {
+                for (CourseDetailAcc courseDetailAcc : savedCourseDetailAccList) {
+                    courseDetailAcc.postponeOrder();
+                    courseDetailAccRepository.save(courseDetailAcc);
+                }
             }
         }
 
-        List<CourseDetailRest> savedCourseDetailRestList =
-                courseDetailRestRepository.findAllByCourseAndDetailOrderGreaterThanEqual(course, requestDto.getDetailOrder());
-        if (null != savedCourseDetailRestList) {
-            for (CourseDetailRest courseDetailRest : savedCourseDetailRestList) {
-                courseDetailRest.postponeOrder();
-                courseDetailRestRepository.save(courseDetailRest);
-            }
-        }
+        System.out.println(requestDto.getDetailId());
 
         switch (requestDto.getCategory()) {
             case "관광지":
@@ -89,7 +109,7 @@ public class CourseService {
                 CourseDetailSpot courseDetailSpot = CourseDetailSpot.builder()
                         .course(course)
                         .touristSpot(touristSpot)
-                        .detailOrder(requestDto.getDetailOrder()).build();
+                        .detailOrder(detailOrder).build();
                 courseDetailSpotRepository.save(courseDetailSpot);
                 break;
             case "맛집":
@@ -97,11 +117,19 @@ public class CourseService {
                 CourseDetailRest courseDetailRest = CourseDetailRest.builder()
                         .course(course)
                         .restaurant(restaurant)
-                        .detailOrder(requestDto.getDetailOrder()).build();
+                        .detailOrder(detailOrder).build();
                 courseDetailRestRepository.save(courseDetailRest);
                 break;
-            default:
+            case "숙소":
+                Accommodation accommodation = isPresentAccommodation(requestDto.getDetailId());
+                CourseDetailAcc courseDetailAcc = CourseDetailAcc.builder()
+                        .course(course)
+                        .accommodation(accommodation)
+                        .detailOrder(detailOrder).build();
+                courseDetailAccRepository.save(courseDetailAcc);
                 break;
+            default:
+                return ResponseDto.fail(INVALID_CATEGORY);
         }
 
         return ResponseDto.success(NULL);
@@ -127,6 +155,8 @@ public class CourseService {
                 if(null == courseDetailSpot) {
                     return ResponseDto.fail(DETAIL_NOT_FOUND);
                 }
+                System.out.println(courseDetailSpot.getCourse().getTrip().getMember().getId());
+                System.out.println(member.getId());
                 if(!courseDetailSpot.getCourse().getTrip().getMember().getId().equals(member.getId())) {
                     return ResponseDto.fail(NOT_AUTHORIZED);
                 }
@@ -146,8 +176,20 @@ public class CourseService {
                 course = isPresentCourse(courseDetailRest.getCourse().getId());
                 detailOrder = courseDetailRest.getDetailOrder();
                 break;
-            default:
+            case "숙소":
+                CourseDetailAcc courseDetailAcc = isCourseDetailAcc(courseDetailRequestDto.getDetailId());
+                if(null == courseDetailAcc) {
+                    return ResponseDto.fail(DETAIL_NOT_FOUND);
+                }
+                if(!courseDetailAcc.getCourse().getTrip().getMember().getId().equals(member.getId())) {
+                    return ResponseDto.fail(NOT_AUTHORIZED);
+                }
+                courseDetailAccRepository.delete(courseDetailAcc);
+                course = isPresentCourse(courseDetailAcc.getCourse().getId());
+                detailOrder = courseDetailAcc.getDetailOrder();
                 break;
+            default:
+                return ResponseDto.fail(INVALID_CATEGORY);
         }
 
         List<CourseDetailSpot> savedCourseDetailSpotList =
@@ -168,72 +210,14 @@ public class CourseService {
             }
         }
 
-
-        return ResponseDto.success(NULL);
-    }
-
-
-    @Transactional
-    public ResponseDto<?> addAccommodation(CourseAccRequestDto courseAccRequestDto, HttpServletRequest request) {
-
-        if (!tokenProvider.validateToken(request.getHeader("Refresh-Token"))) {
-            return ResponseDto.fail(INVALID_TOKEN);
+        List<CourseDetailAcc> savedCourseDetailAccList =
+                courseDetailAccRepository.findAllByCourseAndDetailOrderGreaterThanEqual(course, detailOrder);
+        if (null != savedCourseDetailAccList) {
+            for (CourseDetailAcc courseDetailAcc : savedCourseDetailAccList) {
+                courseDetailAcc.advanceOrder();
+                courseDetailAccRepository.save(courseDetailAcc);
+            }
         }
-
-        Member member = tokenProvider.getMemberFromAuthentication();
-        if (null == member) {
-            return ResponseDto.fail(MEMBER_NOT_FOUND);
-        }
-
-        Course course = isPresentCourse(courseAccRequestDto.getCourseId());
-        if (null == course) {
-            return ResponseDto.fail(COURSE_NOT_FOUND);
-        }
-
-        if(!course.getTrip().getMember().getId().equals(member.getId())) {
-            return ResponseDto.fail(NOT_AUTHORIZED);
-        }
-
-        Accommodation accommodation = isPresentAccommodation(courseAccRequestDto.getAccId());
-        if(null == accommodation) {
-            return ResponseDto.fail(ACCOMMODATION_NOT_FOUND);
-        }
-
-        CourseDetailAcc courseDetailAcc = courseDetailAccRepository.findCourseDetailAccByCourse(course);
-        if (null == courseDetailAcc) {
-            courseDetailAcc = CourseDetailAcc.builder()
-                    .course(course)
-                    .accommodation(accommodation).build();
-        } else {
-            courseDetailAcc.changeAccommodation(accommodation);
-        }
-
-        courseDetailAccRepository.save(courseDetailAcc);
-
-        return ResponseDto.success(NULL);
-    }
-
-    @Transactional
-    public ResponseDto<?> removeAccommodation(Long id, HttpServletRequest request) {
-        if (!tokenProvider.validateToken(request.getHeader("Refresh-Token"))) {
-            return ResponseDto.fail(INVALID_TOKEN);
-        }
-
-        Member member = tokenProvider.getMemberFromAuthentication();
-        if (null == member) {
-            return ResponseDto.fail(MEMBER_NOT_FOUND);
-        }
-
-        CourseDetailAcc courseDetailAcc = isCourseDetailAcc(id);
-        if(null == courseDetailAcc) {
-            return ResponseDto.fail(DETAIL_NOT_FOUND);
-        }
-
-        if(!courseDetailAcc.getCourse().getTrip().getMember().getId().equals(member.getId())) {
-            return ResponseDto.fail(NOT_AUTHORIZED);
-        }
-
-        courseDetailAccRepository.delete(courseDetailAcc);
 
         return ResponseDto.success(NULL);
     }

@@ -10,4 +10,5 @@ public interface CourseDetailSpotRepository extends JpaRepository<CourseDetailSp
     List<CourseDetailSpot> findAllByCourse(Course course);
     List<CourseDetailSpot> findAllByCourseAndDetailOrderGreaterThanEqual(Course course, int detailOrder);
     void deleteAllByCourse(Course course);
+    int countAllByCourse(Course course);
 }
