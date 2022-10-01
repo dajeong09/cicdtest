@@ -8,5 +8,7 @@ import java.util.List;
 
 public interface CourseDetailRestRepository extends JpaRepository<CourseDetailRest, Long> {
     List<CourseDetailRest> findAllByCourse(Course course);
+    List<CourseDetailRest> findAllByCourseAndDetailOrderGreaterThanEqual(Course course, int detailOrder);
     void deleteAllByCourse(Course course);
+    int countAllByCourse(Course course);
 }

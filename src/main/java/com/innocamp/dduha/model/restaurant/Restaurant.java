@@ -43,5 +43,8 @@ public class Restaurant {
     private String region;
 
     @Column
-    private String mapUrl;
+    private double latitude;
+
+    @Column
+    private double longitude;
 }

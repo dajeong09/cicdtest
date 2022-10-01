@@ -16,8 +16,11 @@ public class DetailResponseDto {
     private String address;
     private String info;
     private String region;
+    private Double latitude;
+    private Double longitude;
     private String thumbnailUrl;
     private List<String> imgUrl;
     private List<ReviewResponseDto> reviews;
+    private List<BusStationResponseDto> stations;
     private boolean isBookmarked;
 }

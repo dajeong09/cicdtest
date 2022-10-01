@@ -19,6 +19,9 @@ public class CourseDetailAcc {
     @Id
     private Long id;
 
+    @Column(nullable = false)
+    private int detailOrder;
+
     @JoinColumn(name = "course_id", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
     private Course course;
@@ -26,4 +29,11 @@ public class CourseDetailAcc {
     @JoinColumn(name = "acc_id", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
     private Accommodation accommodation;
+
+    public void postponeOrder() {
+        this.detailOrder++;
+    }
+    public void advanceOrder() {
+        this.detailOrder--;
+    }
 }

@@ -27,8 +27,8 @@ public class Course {
     @ManyToOne(fetch = FetchType.LAZY)
     private Trip trip;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private CourseDetailAcc courseDetailAcc;
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CourseDetailAcc> courseDetailAccs;
 
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CourseDetailRest> courseDetailRests;

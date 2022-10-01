@@ -5,6 +5,8 @@ import lombok.Getter;
 
 @Getter
 public class CourseDetailRequestDto {
+    private Long courseId;
+    private int detailOrder;
     private String category;
-    private Long id;
+    private Long detailId;
 }

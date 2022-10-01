@@ -293,7 +293,7 @@ public class TripService {
             order++;
             switch (requestDto.getCategory()) {
                 case "관광지":
-                    TouristSpot touristSpot = isPresentTouristSpot(requestDto.getId());
+                    TouristSpot touristSpot = isPresentTouristSpot(requestDto.getDetailId());
                     CourseDetailSpot courseDetailSpot = CourseDetailSpot.builder()
                             .course(course)
                             .touristSpot(touristSpot)
@@ -301,7 +301,7 @@ public class TripService {
                     courseDetailSpotRepository.save(courseDetailSpot);
                     break;
                 case "맛집":
-                    Restaurant restaurant = isPresentRestaurant(requestDto.getId());
+                    Restaurant restaurant = isPresentRestaurant(requestDto.getDetailId());
                     CourseDetailRest courseDetailRest = CourseDetailRest.builder()
                             .course(course)
                             .restaurant(restaurant)

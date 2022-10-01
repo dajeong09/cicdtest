@@ -29,4 +29,11 @@ public class CourseDetailSpot {
     @JoinColumn(name = "spot_id", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
     private TouristSpot touristSpot;
+
+    public void postponeOrder() {
+        this.detailOrder++;
+    }
+    public void advanceOrder() {
+        this.detailOrder--;
+    }
 }

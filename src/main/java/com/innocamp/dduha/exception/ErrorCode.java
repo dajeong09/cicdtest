@@ -29,6 +29,7 @@ public enum ErrorCode {
     // Trip(일정) 관련 오류
     TRIP_NOT_FOUND("TRIP_NOT_FOUND", "일정을 찾을 수 없습니다."),
     COURSE_NOT_FOUND("COURSE_NOT_FOUND", "해당 일정을 찾을 수 없습니다."),
+    DETAIL_NOT_FOUND("DETAIL_NOT_FOUND", "해당 상세 정보를 찾을 수 없습니다."),
 
     // TouristSpot(관광지) 관련 오류
     SPOT_NOT_FOUND("SPOT_NOT_FOUND", "해당 관광지를 찾을 수 없습니다."),
@@ -42,6 +43,9 @@ public enum ErrorCode {
 
     // Restaurant(맛집) 관련 오류
     RESTAURANT_NOT_FOUND("RESTAURANT_NOT_FOUND", "해당 맛집을 찾을 수 없습니다."),
+
+    // Course(코스) 관련 오류
+    INVALID_CATEGORY("INVALID_CATEGORY", "잘못된 분류 입니다."),
 
     //수정, 삭제권한 관련 오류
     NOT_AUTHORIZED("NOT_AUTHORIZED", "권한이 없습니다.");
