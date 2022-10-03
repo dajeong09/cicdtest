@@ -30,6 +30,11 @@ public class TripController {
         return tripService.getMyTripInfo(id, request);
     }
 
+    @PutMapping("/auth/trip/{id}")
+    public ResponseDto<?> modifyMyTrip(@PathVariable Long id, @RequestBody TripRequestDto requestDto, HttpServletRequest request) {
+        return tripService.modifyMyTrip(id, requestDto, request);
+    }
+
     @DeleteMapping("/auth/trip/{id}")
     public ResponseDto<?> deleteTrip(@PathVariable Long id, HttpServletRequest request) {
         return tripService.deleteTrip(id, request);

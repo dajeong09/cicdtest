@@ -205,6 +205,53 @@ public class TripService {
     }
 
     @Transactional
+    public  ResponseDto<?> modifyMyTrip(Long id, TripRequestDto requestDto, HttpServletRequest request) {
+
+        Trip trip = isPresentTrip(id);
+        if(null == trip || trip.getIsHidden()) {
+            return ResponseDto.fail(TRIP_NOT_FOUND);
+        }
+
+        if (!tokenProvider.validateToken(request.getHeader("Refresh-Token"))) {
+            return ResponseDto.fail(INVALID_TOKEN);
+        }
+
+        Member member = tokenProvider.getMemberFromAuthentication();
+        if (null == member) {
+            return ResponseDto.fail(MEMBER_NOT_FOUND);
+        }
+
+        if (member.getId() != trip.getMember().getId()) {
+            return ResponseDto.fail(NOT_AUTHORIZED);
+        }
+
+        int originalDays = (int) ChronoUnit.DAYS.between(trip.getStartAt(), trip.getEndAt())+1;
+        trip.update(requestDto);
+        int modifiedDays = (int) ChronoUnit.DAYS.between(trip.getStartAt(), trip.getEndAt())+1;
+
+        if (originalDays < modifiedDays) {
+            for(int i = originalDays + 1; i <= modifiedDays; i++) {
+                Course course = Course.builder()
+                        .day(i)
+                        .trip(trip)
+                        .build();
+                courseRepository.save(course);
+            }
+        } else {
+            //연결된 coursedetails 먼저 삭제 (연관관계사용) 수정
+            List<Course> courseList = courseRepository.findAllByTripAndDayAfter(trip, modifiedDays);
+            for (Course course : courseList) {
+                courseDetailSpotRepository.deleteAllByCourse(course);
+                courseDetailRestRepository.deleteAllByCourse(course);
+                courseDetailAccReposiotry.deleteAllByCourse(course);
+            }
+            courseRepository.deleteByTripAndDayAfter(trip, modifiedDays);
+        }
+
+        return ResponseDto.success(NULL);
+    }
+
+    @Transactional
     public ResponseDto<?> deleteTrip(Long id, HttpServletRequest request) {
 
         Trip trip = isPresentTrip(id);
