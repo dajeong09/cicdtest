@@ -270,6 +270,94 @@ public class TripService {
         return ResponseDto.success(tripResponseDtoList);
     }
 
+    public ResponseDto<?> getPublicTripInfo(Long id) {
+        //내가 쓴 것 까지 포함? or not  아니면 따로 표시할 수 있는 속성 추가?
+
+        Member member = tokenProvider.getMemberFromAuthentication();
+
+        Trip trip = isPresentTrip(id);
+        if(null == trip || trip.getIsHidden() || !trip.getIsPublic()) {
+            return ResponseDto.fail(TRIP_NOT_FOUND);
+        }
+
+        List<Course> courseList = courseRepository.findAllByTrip(trip);
+        List<CourseResponseDto> courseResponseDtoList = new ArrayList<>();
+
+
+        for (Course course : courseList) {
+            List<CourseDetailResponseDto> courseDetailResponseDtoList = new ArrayList<>();
+
+            List<CourseDetailSpot> courseDetailSpotList = courseDetailSpotRepository.findAllByCourse(course);
+            for(CourseDetailSpot courseDetailSpot : courseDetailSpotList) {
+                courseDetailResponseDtoList.add(CourseDetailResponseDto.builder()
+                        .detailOrder(courseDetailSpot.getDetailOrder())
+                        .detailId(courseDetailSpot.getId())
+                        .category("관광지")
+                        .latitude(courseDetailSpot.getTouristSpot().getLatitude())
+                        .longitude(courseDetailSpot.getTouristSpot().getLongitude())
+                        .name(courseDetailSpot.getTouristSpot().getName()).build()
+                );
+            }
+
+            List<CourseDetailRest> courseDetailRestList = courseDetailRestRepository.findAllByCourse(course);
+            for(CourseDetailRest courseDetailRest : courseDetailRestList) {
+                courseDetailResponseDtoList.add(CourseDetailResponseDto.builder()
+                        .detailOrder(courseDetailRest.getDetailOrder())
+                        .detailId(courseDetailRest.getId())
+                        .category("맛집")
+                        .latitude(courseDetailRest.getRestaurant().getLatitude())
+                        .longitude(courseDetailRest.getRestaurant().getLongitude())
+                        .name(courseDetailRest.getRestaurant().getName()).build()
+                );
+            }
+
+            List<CourseDetailAcc> courseDetailAccList = courseDetailAccReposiotry.findAllByCourse(course);
+            for(CourseDetailAcc courseDetailAcc : courseDetailAccList) {
+                courseDetailResponseDtoList.add(CourseDetailResponseDto.builder()
+                        .detailOrder(courseDetailAcc.getDetailOrder())
+                        .detailId(courseDetailAcc.getId())
+                        .category("숙소")
+                        .latitude(courseDetailAcc.getAccommodation().getLatitude())
+                        .longitude(courseDetailAcc.getAccommodation().getLongitude())
+                        .name(courseDetailAcc.getAccommodation().getName()).build()
+                );
+            }
+
+            courseResponseDtoList.add(CourseResponseDto.builder()
+                    .courseId(course.getId())
+                    .day(course.getDay())
+                    .courseDetails(courseDetailResponseDtoList)
+                    .build());
+        }
+
+        TripResponseDto tripResponseDto;
+
+        if(null != member) {
+            boolean isBookmarked = false;
+            TripBookmark findTripBookmark = tripBookmarkRepository.findByMemberAndTrip(member, trip);
+            if (null != findTripBookmark) {
+                isBookmarked = true;
+            }
+            tripResponseDto = TripResponseDto.builder()
+                    .id(trip.getId())
+                    .title(trip.getTitle())
+                    .isPublic(trip.getIsPublic())
+                    .startAt(trip.getStartAt().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")))
+                    .endAt(trip.getEndAt().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")))
+                    .isBookmarked(isBookmarked)
+                    .courses(courseResponseDtoList).build();
+        } else {
+            tripResponseDto = TripResponseDto.builder()
+                    .id(trip.getId())
+                    .title(trip.getTitle())
+                    .isPublic(trip.getIsPublic())
+                    .startAt(trip.getStartAt().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")))
+                    .endAt(trip.getEndAt().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")))
+                    .courses(courseResponseDtoList).build();
+        }
+        return ResponseDto.success(tripResponseDto);
+    }
+
     @Transactional
     public ResponseDto<?> createCourse(CourseRequestDto courseRequestDto, HttpServletRequest request) {
         //숙소 합치기

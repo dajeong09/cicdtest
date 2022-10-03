@@ -40,6 +40,11 @@ public class TripController {
         return tripService.getPublicTrips();
     }
 
+    @GetMapping("/trip/{id}")
+    public ResponseDto<?> getPublicTripInfo(@PathVariable Long id) {
+        return tripService.getPublicTripInfo(id);
+    }
+
     @PostMapping("/auth/trip/course")
     public ResponseDto<?> createCourse(@RequestBody CourseRequestDto courseRequestDto, HttpServletRequest request) {
         return tripService.createCourse(courseRequestDto, request);
