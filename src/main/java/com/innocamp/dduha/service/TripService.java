@@ -4,7 +4,6 @@ import com.innocamp.dduha.dto.ResponseDto;
 import com.innocamp.dduha.dto.request.CourseDetailRequestDto;
 import com.innocamp.dduha.dto.request.CourseRequestDto;
 import com.innocamp.dduha.dto.request.TripRequestDto;
-import com.innocamp.dduha.dto.response.CourseAccommodationResponseDto;
 import com.innocamp.dduha.dto.response.CourseDetailResponseDto;
 import com.innocamp.dduha.dto.response.CourseResponseDto;
 import com.innocamp.dduha.dto.response.TripResponseDto;
@@ -123,7 +122,7 @@ public class TripService {
         return ResponseDto.success(tripResponseDtoList);
     }
 
-    public ResponseDto<?> getTripInfo(Long id, HttpServletRequest request) {
+    public ResponseDto<?> getMyTripInfo(Long id, HttpServletRequest request) {
 
         Trip trip = isPresentTrip(id);
         if(null == trip || trip.getIsHidden()) {
@@ -149,37 +148,47 @@ public class TripService {
 
         for (Course course : courseList) {
             List<CourseDetailResponseDto> courseDetailResponseDtoList = new ArrayList<>();
+
             List<CourseDetailSpot> courseDetailSpotList = courseDetailSpotRepository.findAllByCourse(course);
             for(CourseDetailSpot courseDetailSpot : courseDetailSpotList) {
                 courseDetailResponseDtoList.add(CourseDetailResponseDto.builder()
                         .detailOrder(courseDetailSpot.getDetailOrder())
+                        .detailId(courseDetailSpot.getId())
                         .category("관광지")
-                        .id(courseDetailSpot.getTouristSpot().getId())
+                        .latitude(courseDetailSpot.getTouristSpot().getLatitude())
+                        .longitude(courseDetailSpot.getTouristSpot().getLongitude())
                         .name(courseDetailSpot.getTouristSpot().getName()).build()
                 );
             }
+
             List<CourseDetailRest> courseDetailRestList = courseDetailRestRepository.findAllByCourse(course);
             for(CourseDetailRest courseDetailRest : courseDetailRestList) {
                 courseDetailResponseDtoList.add(CourseDetailResponseDto.builder()
                         .detailOrder(courseDetailRest.getDetailOrder())
+                        .detailId(courseDetailRest.getId())
                         .category("맛집")
-                        .id(courseDetailRest.getRestaurant().getId())
+                        .latitude(courseDetailRest.getRestaurant().getLatitude())
+                        .longitude(courseDetailRest.getRestaurant().getLongitude())
                         .name(courseDetailRest.getRestaurant().getName()).build()
                 );
             }
 
-            CourseDetailAcc courseDetailAcc = courseDetailAccReposiotry.findCourseDetailAccByCourse(course);
-            CourseAccommodationResponseDto accommodation = null;
-            if (null != courseDetailAcc) {
-                accommodation = CourseAccommodationResponseDto.builder()
-                        .id(courseDetailAcc.getId())
-                        .name(courseDetailAcc.getAccommodation().getName()).build();
+            List<CourseDetailAcc> courseDetailAccList = courseDetailAccReposiotry.findAllByCourse(course);
+            for(CourseDetailAcc courseDetailAcc : courseDetailAccList) {
+                courseDetailResponseDtoList.add(CourseDetailResponseDto.builder()
+                        .detailOrder(courseDetailAcc.getDetailOrder())
+                        .detailId(courseDetailAcc.getId())
+                        .category("숙소")
+                        .latitude(courseDetailAcc.getAccommodation().getLatitude())
+                        .longitude(courseDetailAcc.getAccommodation().getLongitude())
+                        .name(courseDetailAcc.getAccommodation().getName()).build()
+                );
             }
+
             courseResponseDtoList.add(CourseResponseDto.builder()
-                            .courseId(course.getId())
-                            .day(course.getDay())
-                            .courseDetails(courseDetailResponseDtoList)
-                            .accommodation(accommodation)
+                    .courseId(course.getId())
+                    .day(course.getDay())
+                    .courseDetails(courseDetailResponseDtoList)
                     .build());
         }
 
@@ -263,7 +272,7 @@ public class TripService {
 
     @Transactional
     public ResponseDto<?> createCourse(CourseRequestDto courseRequestDto, HttpServletRequest request) {
-
+        //숙소 합치기
         if (!tokenProvider.validateToken(request.getHeader("Refresh-Token"))) {
             return ResponseDto.fail(INVALID_TOKEN);
         }

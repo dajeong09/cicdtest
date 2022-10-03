@@ -27,7 +27,7 @@ public class TripController {
 
     @GetMapping("/auth/trip/{id}")
     public ResponseDto<?> getTripInfo(@PathVariable Long id,  HttpServletRequest request) {
-        return tripService.getTripInfo(id, request);
+        return tripService.getMyTripInfo(id, request);
     }
 
     @DeleteMapping("/auth/trip/{id}")
