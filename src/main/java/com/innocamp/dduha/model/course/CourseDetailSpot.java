@@ -36,4 +36,8 @@ public class CourseDetailSpot {
     public void advanceOrder() {
         this.detailOrder--;
     }
+
+    public void changeOrder(int detailOrder) {
+        this.detailOrder = detailOrder;
+    }
 }

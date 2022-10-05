@@ -51,7 +51,7 @@ public class TripController {
     }
 
     @PostMapping("/auth/trip/course")
-    public ResponseDto<?> createCourse(@RequestBody CourseRequestDto courseRequestDto, HttpServletRequest request) {
-        return tripService.createCourse(courseRequestDto, request);
+    public ResponseDto<?> saveCourseDetailOrder(@RequestBody CourseRequestDto courseRequestDto, HttpServletRequest request) {
+        return tripService.saveCourseDetailOrder(courseRequestDto, request);
     }
 }

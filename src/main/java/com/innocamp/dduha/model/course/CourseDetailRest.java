@@ -37,4 +37,8 @@ public class CourseDetailRest {
         this.detailOrder--;
     }
 
+    public void changeOrder(int detailOrder) {
+        this.detailOrder = detailOrder;
+    }
+
 }

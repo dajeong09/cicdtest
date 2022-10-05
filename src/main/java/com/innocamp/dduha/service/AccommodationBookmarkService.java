@@ -5,6 +5,7 @@ import com.innocamp.dduha.dto.response.BookmarkResponseDto;
 import com.innocamp.dduha.model.Member;
 import com.innocamp.dduha.model.accommodation.Accommodation;
 import com.innocamp.dduha.model.bookmark.AccommodationBookmark;
+import com.innocamp.dduha.repository.accommodation.AccommodationRepository;
 import com.innocamp.dduha.repository.bookmark.AccommodationBookmarkRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,15 +13,17 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import javax.servlet.http.HttpServletRequest;
 
+import java.util.Optional;
+
 import static com.innocamp.dduha.exception.ErrorCode.*;
 
 @Service
 @RequiredArgsConstructor
 public class AccommodationBookmarkService {
 
-    private final MemberService memberService;
+    private final AccommodationRepository accommodationRepository;
     private final AccommodationBookmarkRepository accommodationBookmarkRepository;
-    private final TripService tripService;
+    private final MemberService memberService;
 
     public ResponseDto<?> createAccommodationBookmark(@PathVariable Long id, HttpServletRequest request) {
         if (null == request.getHeader("Authorization")) {
@@ -30,7 +33,7 @@ public class AccommodationBookmarkService {
         if (null == member) {
             return ResponseDto.fail(INVALID_TOKEN);
         }
-        Accommodation accommodation = tripService.isPresentAccommodation(id);
+        Accommodation accommodation = isPresentAccommodation(id);
         if (null == accommodation) {
             return ResponseDto.fail(ACCOMMODATION_NOT_FOUND);
         }
@@ -50,6 +53,11 @@ public class AccommodationBookmarkService {
         return ResponseDto.success(BookmarkResponseDto.builder()
                 .isBookmarked(true)
                 .build());
+    }
+
+    public Accommodation isPresentAccommodation(Long id) {
+        Optional<Accommodation> optionalAccommodation = accommodationRepository.findById(id);
+        return optionalAccommodation.orElse(null);
     }
 
 }
