@@ -17,6 +17,7 @@ public enum ErrorCode {
     MEMBER_NOT_FOUND("MEMBER_NOT_FOUND", "회원정보를 찾을 수 없습니다."),
     INVALID_PASSWORD("INVALID_PASSWORD", "비밀번호를 찾을 수 없습니다."),
     NEED_LOGIN("NEED_LOGIN", "로그인이 필요합니다"),
+    USED_PASSWORD("USED_PASSWORD", "기존 비밀번호와 일치합니다."),
 
     // 토큰 관련 오류
     NULL_TOKEN("NULL_TOKEN", "JWT 토큰을 찾지 못하였습니다."),

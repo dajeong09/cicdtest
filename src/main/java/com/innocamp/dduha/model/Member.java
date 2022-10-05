@@ -1,7 +1,6 @@
 package com.innocamp.dduha.model;
 
 
-import com.innocamp.dduha.dto.request.MemberRequestDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -40,9 +39,9 @@ public class Member {
         return passwordEncoder.matches(password, this.password);
     }
 
-    public void modify(MemberRequestDto memberRequestDto,PasswordEncoder passwordEncoder) {
-        this.nickname = memberRequestDto.getNickname();
-        this.password = passwordEncoder.encode(memberRequestDto.getPassword());
+    public void modify(String nickname, String password) {
+        this.nickname = nickname;
+        this.password = password;
     }
 
 }

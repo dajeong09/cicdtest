@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.innocamp.dduha.dto.ResponseDto;
 import com.innocamp.dduha.dto.request.LoginRequestDto;
 import com.innocamp.dduha.dto.request.MemberRequestDto;
+import com.innocamp.dduha.dto.request.ModifyMemberRequestDto;
 import com.innocamp.dduha.service.GoogleService;
 import com.innocamp.dduha.service.KakaoService;
 import com.innocamp.dduha.service.MemberService;
@@ -55,7 +56,7 @@ public class MemberController {
 
     // 회원 정보 수정
     @PutMapping("/auth/member/modify")
-    public ResponseDto<?> modifyMember(@RequestBody MemberRequestDto requestDto, HttpServletRequest request) {
+    public ResponseDto<?> modifyMember(@RequestBody ModifyMemberRequestDto requestDto, HttpServletRequest request) {
         return memberService.modifyMember(requestDto, request);
     }
 
