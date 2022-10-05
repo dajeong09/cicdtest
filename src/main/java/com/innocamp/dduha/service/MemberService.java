@@ -3,6 +3,7 @@ package com.innocamp.dduha.service;
 import com.innocamp.dduha.dto.ResponseDto;
 import com.innocamp.dduha.dto.request.LoginRequestDto;
 import com.innocamp.dduha.dto.request.MemberRequestDto;
+import com.innocamp.dduha.dto.request.ModifyMemberRequestDto;
 import com.innocamp.dduha.jwt.TokenDto;
 import com.innocamp.dduha.jwt.TokenProvider;
 import com.innocamp.dduha.model.Authority;
@@ -122,7 +123,7 @@ public class MemberService {
 
     // 회원 정보 수정
     @Transactional
-    public ResponseDto<?> modifyMember(@RequestBody MemberRequestDto requestDto, HttpServletRequest request) {
+    public ResponseDto<?> modifyMember(@RequestBody ModifyMemberRequestDto requestDto, HttpServletRequest request) {
         if (null == request.getHeader("Authorization")) {
             return ResponseDto.fail(MEMBER_NOT_FOUND);
         }
@@ -130,12 +131,21 @@ public class MemberService {
         if (null == member) {
             return ResponseDto.fail(INVALID_TOKEN);
         }
-
-        member.modify(requestDto,passwordEncoder);
+        String password = member.getPassword();
+        String currentPassword = requestDto.getCurrentPassword();
+        if (currentPassword != null) {
+            if (!member.validatePassword(passwordEncoder, currentPassword)) {
+                return ResponseDto.fail(INVALID_PASSWORD);
+            }
+            if (member.getPassword().equals(requestDto.getNewPassword())) {
+                return ResponseDto.fail(USED_PASSWORD);
+            }
+            password = passwordEncoder.encode(requestDto.getNewPassword());
+        }
+        member.modify(requestDto.getNickname(),password);
         memberRepository.save(member);
-        return ResponseDto.success(member);
+        return ResponseDto.success(NULL);
     }
-
     @Transactional
     public Member isPresentMember(String email) {
         Optional<Member> optionalMember = memberRepository.findByEmail(email);
