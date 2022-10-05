@@ -9,14 +9,11 @@ import com.innocamp.dduha.dto.response.CourseResponseDto;
 import com.innocamp.dduha.dto.response.TripResponseDto;
 import com.innocamp.dduha.jwt.TokenProvider;
 import com.innocamp.dduha.model.*;
-import com.innocamp.dduha.model.accommodation.Accommodation;
 import com.innocamp.dduha.model.bookmark.TripBookmark;
 import com.innocamp.dduha.model.course.Course;
 import com.innocamp.dduha.model.course.CourseDetailAcc;
 import com.innocamp.dduha.model.course.CourseDetailRest;
 import com.innocamp.dduha.model.course.CourseDetailSpot;
-import com.innocamp.dduha.model.restaurant.Restaurant;
-import com.innocamp.dduha.model.touristspot.TouristSpot;
 import com.innocamp.dduha.repository.accommodation.AccommodationRepository;
 import com.innocamp.dduha.repository.coursedetail.CourseDetailAccReposiotry;
 import com.innocamp.dduha.repository.coursedetail.CourseDetailRestRepository;
@@ -34,9 +31,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static com.innocamp.dduha.exception.ErrorCode.*;
 
@@ -47,12 +42,9 @@ public class TripService {
 
     private final TripRepository tripRepository;
     private final CourseRepository courseRepository;
-    private final TouristSpotRepository touristSpotRepository;
     private final CourseDetailSpotRepository courseDetailSpotRepository;
-    private final RestaurantRepository restaurantRepository;
     private final CourseDetailRestRepository courseDetailRestRepository;
-    private final AccommodationRepository accommodationRepository;
-    private final CourseDetailAccReposiotry courseDetailAccReposiotry;
+    private final CourseDetailAccReposiotry courseDetailAccRepository;
     private final TripBookmarkRepository tripBookmarkRepository;
 
 
@@ -173,7 +165,7 @@ public class TripService {
                 );
             }
 
-            List<CourseDetailAcc> courseDetailAccList = courseDetailAccReposiotry.findAllByCourse(course);
+            List<CourseDetailAcc> courseDetailAccList = courseDetailAccRepository.findAllByCourse(course);
             for(CourseDetailAcc courseDetailAcc : courseDetailAccList) {
                 courseDetailResponseDtoList.add(CourseDetailResponseDto.builder()
                         .detailOrder(courseDetailAcc.getDetailOrder())
@@ -183,6 +175,10 @@ public class TripService {
                         .longitude(courseDetailAcc.getAccommodation().getLongitude())
                         .name(courseDetailAcc.getAccommodation().getName()).build()
                 );
+            }
+            if(!courseDetailResponseDtoList.isEmpty()) {
+                //다른 방법 고민해 보기
+                courseDetailResponseDtoList.sort(new CourseDetailComparator());
             }
 
             courseResponseDtoList.add(CourseResponseDto.builder()
@@ -243,7 +239,7 @@ public class TripService {
             for (Course course : courseList) {
                 courseDetailSpotRepository.deleteAllByCourse(course);
                 courseDetailRestRepository.deleteAllByCourse(course);
-                courseDetailAccReposiotry.deleteAllByCourse(course);
+                courseDetailAccRepository.deleteAllByCourse(course);
             }
             courseRepository.deleteByTripAndDayAfter(trip, modifiedDays);
         }
@@ -358,7 +354,7 @@ public class TripService {
                 );
             }
 
-            List<CourseDetailAcc> courseDetailAccList = courseDetailAccReposiotry.findAllByCourse(course);
+            List<CourseDetailAcc> courseDetailAccList = courseDetailAccRepository.findAllByCourse(course);
             for(CourseDetailAcc courseDetailAcc : courseDetailAccList) {
                 courseDetailResponseDtoList.add(CourseDetailResponseDto.builder()
                         .detailOrder(courseDetailAcc.getDetailOrder())
@@ -406,7 +402,7 @@ public class TripService {
     }
 
     @Transactional
-    public ResponseDto<?> createCourse(CourseRequestDto courseRequestDto, HttpServletRequest request) {
+    public ResponseDto<?> saveCourseDetailOrder(CourseRequestDto courseRequestDto, HttpServletRequest request) {
         //숙소 합치기
         if (!tokenProvider.validateToken(request.getHeader("Refresh-Token"))) {
             return ResponseDto.fail(INVALID_TOKEN);
@@ -426,46 +422,32 @@ public class TripService {
             return ResponseDto.fail(NOT_AUTHORIZED);
         }
 
-        //코스에 이미 연결된 데이터가 있는지 확인 or 초기화
-        courseDetailRestRepository.deleteAllByCourse(course);
-        courseDetailSpotRepository.deleteAllByCourse(course);
-        courseDetailAccReposiotry.deleteAllByCourse(course);
+        //코스에 이미 연결된 데이터가 있는지 확인 or 초기화 (순서만 바꾸기로 해서 필요 없음)
+//        courseDetailRestRepository.deleteAllByCourse(course);
+//        courseDetailSpotRepository.deleteAllByCourse(course);
+//        courseDetailAccReposiotry.deleteAllByCourse(course);
 
-
-        int order = 0;
-        for(CourseDetailRequestDto requestDto : courseRequestDto.getCourseDetails()) {
-            order++;
-            switch (requestDto.getCategory()) {
+        for (CourseDetailRequestDto courseDetailRequestDto : courseRequestDto.getCourseDetails()) {
+            switch (courseDetailRequestDto.getCategory()) {
                 case "관광지":
-                    TouristSpot touristSpot = isPresentTouristSpot(requestDto.getDetailId());
-                    CourseDetailSpot courseDetailSpot = CourseDetailSpot.builder()
-                            .course(course)
-                            .touristSpot(touristSpot)
-                            .detailOrder(order).build();
+                    CourseDetailSpot courseDetailSpot = isPresentCourseDetailSpot(courseDetailRequestDto.getDetailId());
+                    courseDetailSpot.changeOrder(courseDetailRequestDto.getDetailOrder());
                     courseDetailSpotRepository.save(courseDetailSpot);
                     break;
                 case "맛집":
-                    Restaurant restaurant = isPresentRestaurant(requestDto.getDetailId());
-                    CourseDetailRest courseDetailRest = CourseDetailRest.builder()
-                            .course(course)
-                            .restaurant(restaurant)
-                            .detailOrder(order).build();
+                    CourseDetailRest courseDetailRest = isPresentCourseDetailRest(courseDetailRequestDto.getDetailId());
+                    courseDetailRest.changeOrder(courseDetailRequestDto.getDetailOrder());
                     courseDetailRestRepository.save(courseDetailRest);
                     break;
-                default:
+                case "숙소":
+                    CourseDetailAcc courseDetailAcc = isPresentCourseDetailAcc(courseDetailRequestDto.getDetailId());
+                    courseDetailAcc.changeOrder(courseDetailRequestDto.getDetailOrder());
+                    courseDetailAccRepository.save(courseDetailAcc);
                     break;
-
+                default:
+                    return ResponseDto.fail(INVALID_CATEGORY);
             }
         }
-        Accommodation accommodation;
-        if (courseRequestDto.getAccId() != null) {
-            accommodation = isPresentAccommodation(courseRequestDto.getAccId());
-            CourseDetailAcc courseDetailAcc = CourseDetailAcc.builder()
-                    .course(course)
-                    .accommodation(accommodation).build();
-            courseDetailAccReposiotry.save(courseDetailAcc);
-        }
-
 
         return ResponseDto.success(NULL);
     }
@@ -480,19 +462,27 @@ public class TripService {
         return optionalCourse.orElse(null);
     }
 
-    public Restaurant isPresentRestaurant(Long id) {
-        Optional<Restaurant> optionalRestaurant = restaurantRepository.findById(id);
-        return optionalRestaurant.orElse(null);
+    public CourseDetailSpot isPresentCourseDetailSpot(Long id) {
+        Optional<CourseDetailSpot> optionalCourseDetailSpot = courseDetailSpotRepository.findById(id);
+        return optionalCourseDetailSpot.orElse(null);
     }
 
-    public TouristSpot isPresentTouristSpot(Long id) {
-        Optional<TouristSpot> optionalTouristSpot = touristSpotRepository.findById(id);
-        return optionalTouristSpot.orElse(null);
+    public CourseDetailRest isPresentCourseDetailRest(Long id) {
+        Optional<CourseDetailRest> optionalCourseDetailRest = courseDetailRestRepository.findById(id);
+        return optionalCourseDetailRest.orElse(null);
     }
 
-    public Accommodation isPresentAccommodation(Long id) {
-        Optional<Accommodation> optionalAccommodation = accommodationRepository.findById(id);
-        return optionalAccommodation.orElse(null);
+    public CourseDetailAcc isPresentCourseDetailAcc(Long id) {
+        Optional<CourseDetailAcc> optionalCourseDetailAcc = courseDetailAccRepository.findById(id);
+        return optionalCourseDetailAcc.orElse(null);
     }
 
+}
+
+class CourseDetailComparator implements Comparator<CourseDetailResponseDto> {
+
+    @Override
+    public int compare(CourseDetailResponseDto o1, CourseDetailResponseDto o2) {
+        return o1.getDetailOrder() - o2.getDetailOrder();
+    }
 }
