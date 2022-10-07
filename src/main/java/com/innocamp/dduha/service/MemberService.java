@@ -123,7 +123,7 @@ public class MemberService {
 
     // 회원 정보 수정
     @Transactional
-    public ResponseDto<?> modifyMember(@RequestBody ModifyMemberRequestDto requestDto, HttpServletRequest request) {
+    public ResponseDto<?> modifyMember(@RequestBody ModifyMemberRequestDto requestDto, HttpServletRequest request, HttpServletResponse response) {
         if (null == request.getHeader("Authorization")) {
             return ResponseDto.fail(MEMBER_NOT_FOUND);
         }
@@ -142,8 +142,23 @@ public class MemberService {
             }
             password = passwordEncoder.encode(requestDto.getNewPassword());
         }
+
         member.modify(requestDto.getNickname(),password);
         memberRepository.save(member);
+
+        RefreshToken refreshToken = isPresentRefreshToken(member);
+        if (null == refreshToken) {
+            return ResponseDto.fail(REFRESH_TOKEN_NOT_FOUND);
+        }
+
+        refreshTokenRepository.delete(refreshToken);
+
+        TokenDto tokenDto = tokenProvider.generateTokenDto(member);
+        response.addHeader("Authorization", "Bearer " + tokenDto.getAccessToken());
+        response.addHeader("Refresh-Token", tokenDto.getRefreshToken());
+        response.addHeader("Access-Token-Expire-Time", tokenDto.getAccessTokenExpiresIn().toString());
+
+
         return ResponseDto.success(NULL);
     }
     @Transactional
