@@ -14,15 +14,12 @@ import com.innocamp.dduha.model.course.Course;
 import com.innocamp.dduha.model.course.CourseDetailAcc;
 import com.innocamp.dduha.model.course.CourseDetailRest;
 import com.innocamp.dduha.model.course.CourseDetailSpot;
-import com.innocamp.dduha.repository.accommodation.AccommodationRepository;
 import com.innocamp.dduha.repository.coursedetail.CourseDetailAccReposiotry;
 import com.innocamp.dduha.repository.coursedetail.CourseDetailRestRepository;
 import com.innocamp.dduha.repository.coursedetail.CourseDetailSpotRepository;
 import com.innocamp.dduha.repository.CourseRepository;
 import com.innocamp.dduha.repository.TripRepository;
 import com.innocamp.dduha.repository.bookmark.TripBookmarkRepository;
-import com.innocamp.dduha.repository.restaurant.RestaurantRepository;
-import com.innocamp.dduha.repository.touristspot.TouristSpotRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -417,10 +414,10 @@ public class TripService {
         if(null == course) {
             return ResponseDto.fail(COURSE_NOT_FOUND);
         }
-
-        if(!course.getTrip().getMember().getId().equals(member.getId())) {
-            return ResponseDto.fail(NOT_AUTHORIZED);
-        }
+//
+//        if(!course.getTrip().getMember().getId().equals(member.getId())) {
+//            return ResponseDto.fail(NOT_AUTHORIZED);
+//        }
 
         //코스에 이미 연결된 데이터가 있는지 확인 or 초기화 (순서만 바꾸기로 해서 필요 없음)
 //        courseDetailRestRepository.deleteAllByCourse(course);
