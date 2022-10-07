@@ -25,6 +25,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.servlet.http.HttpServletResponse;
 
+import static com.innocamp.dduha.exception.ErrorCode.NULL;
+
 @Service
 @RequiredArgsConstructor
 public class GoogleService {
@@ -52,7 +54,7 @@ public class GoogleService {
 
         Member member = memberRepository.findMemberByEmail(googleUser.getEmail());
 
-        if (member == null){
+        if (member == null) {
             String[] str = googleUser.getEmail().split("@");
             member = Member.builder()
                     .nickname(str[0]) // 구글에 닉네임 정보 없어서 대체함
@@ -61,18 +63,18 @@ public class GoogleService {
                     .authority(Authority.ROLE_MEMBER)
                     .provider("GOOGLE")
                     .build();
-            Member savedMember = memberRepository.save(member);
-            return ResponseDto.success(savedMember.getId() + " ," + savedMember.getNickname()); // 다시 닉네임으로 넣어주기
-        }else{
-            TokenDto tokenDto = tokenProvider.generateTokenDto(member);
-            response.addHeader("Authorization", "Bearer " + tokenDto.getAccessToken());
-            response.addHeader("Refresh-Token", tokenDto.getRefreshToken());
-            response.addHeader("Access-Token-Expire-Time", tokenDto.getAccessTokenExpiresIn().toString());
-
-            return ResponseDto.success(tokenDto.getAccessToken());
+            member = memberRepository.save(member);
         }
+        TokenDto tokenDto = tokenProvider.generateTokenDto(member);
+        response.addHeader("Authorization", "Bearer " + tokenDto.getAccessToken());
+        response.addHeader("Refresh-Token", tokenDto.getRefreshToken());
+        response.addHeader("Access-Token-Expire-Time", tokenDto.getAccessTokenExpiresIn().toString());
+
+        return ResponseDto.success(NULL);
+
     }
-    public GoogleLoginDto findGoogleUser(String code){
+
+    public GoogleLoginDto findGoogleUser(String code) {
         // HTTP 통신을 위해 RestTemplate 활용
         RestTemplate restTemplate = new RestTemplate();
         GoogleLoginRequestDto requestParams = GoogleLoginRequestDto.builder()
@@ -104,16 +106,14 @@ public class GoogleService {
 
             String resultJson = restTemplate.getForObject(requestUrl, String.class);
 
-            if(resultJson != null) {
-               return objectMapper.readValue(resultJson, new TypeReference<>() {
+            if (resultJson != null) {
+                return objectMapper.readValue(resultJson, new TypeReference<>() {
                 });
 
-            }
-            else {
+            } else {
                 throw new Exception("Google OAuth failed!");
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 

@@ -57,7 +57,7 @@ public class KakaoService {
 
 
         // 3. 처음 접속한 회원일 경우, 회원 가입 요청
-        if (member == null){
+        if (member == null) {
             member = Member.builder()
                     .nickname(kakaoUserInfo.getNickname())
                     .email(kakaoUserInfo.getEmail())
@@ -65,17 +65,14 @@ public class KakaoService {
                     .authority(Authority.ROLE_MEMBER)
                     .provider("KAKAO")
                     .build();
-            Member savedMember = memberRepository.save(member);
-            return ResponseDto.success(savedMember.getId() + " ," + savedMember.getNickname());
-        }else{
-            TokenDto tokenDto = tokenProvider.generateTokenDto(member);
-            response.addHeader("Authorization", "Bearer " + tokenDto.getAccessToken());
-            response.addHeader("Refresh-Token", tokenDto.getRefreshToken());
-            response.addHeader("Access-Token-Expire-Time", tokenDto.getAccessTokenExpiresIn().toString());
-
-            return ResponseDto.success(tokenDto.getAccessToken());
+            member = memberRepository.save(member);
         }
+        TokenDto tokenDto = tokenProvider.generateTokenDto(member);
+        response.addHeader("Authorization", "Bearer " + tokenDto.getAccessToken());
+        response.addHeader("Refresh-Token", tokenDto.getRefreshToken());
+        response.addHeader("Access-Token-Expire-Time", tokenDto.getAccessTokenExpiresIn().toString());
 
+        return ResponseDto.success(NULL);
     }
 
     private String getAccessToken(String code) throws JsonProcessingException {
@@ -145,7 +142,7 @@ public class KakaoService {
                 .get("email").asText();
 
 
-        System.out.println("카카오 사용자 정보: " + id + ", " + nickname + ", "+ email);
+        System.out.println("카카오 사용자 정보: " + id + ", " + nickname + ", " + email);
         return new OauthUserDto(id, nickname, email);
     }
 
