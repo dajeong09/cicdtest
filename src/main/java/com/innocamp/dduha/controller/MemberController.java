@@ -56,8 +56,8 @@ public class MemberController {
 
     // 회원 정보 수정
     @PutMapping("/auth/member/modify")
-    public ResponseDto<?> modifyMember(@RequestBody ModifyMemberRequestDto requestDto, HttpServletRequest request) {
-        return memberService.modifyMember(requestDto, request);
+    public ResponseDto<?> modifyMember(@RequestBody ModifyMemberRequestDto requestDto, HttpServletRequest request, HttpServletResponse response) {
+        return memberService.modifyMember(requestDto, request, response);
     }
 
     // 카카오 로그인
