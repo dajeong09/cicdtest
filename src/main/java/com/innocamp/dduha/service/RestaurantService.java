@@ -46,10 +46,36 @@ public class RestaurantService {
 
         if (null != member) {
             for (Restaurant restaurant : restaurantList) {
+                boolean hasNearbyStation = false;
                 boolean isBookmarked = false;
+                List<RestaurantNearby> restaurantNearbyList = restaurantNearbyRepository.findAllByRestaurant(restaurant);
+                if (restaurantNearbyList.size() > 0) {
+                    hasNearbyStation = true;
+                }
                 RestaurantBookmark findRestaurantBookmark = restaurantBookmarkRepository.findByMemberAndRestaurant(member, restaurant);
                 if (null != findRestaurantBookmark) {
                     isBookmarked = true;
+                }
+
+                restaurantResponseDtoList.add(
+                        RestaurantResponseDto.builder()
+                                .id(restaurant.getId())
+                                .name(restaurant.getName())
+                                .description(restaurant.getDescription())
+                                .likeNum(restaurant.getLikeNum())
+                                .region(restaurant.getRegion())
+                                .thumbnailUrl(restaurant.getThumbnailUrl())
+                                .hasNearStation(hasNearbyStation)
+                                .isBookmarked(isBookmarked)
+                                .build()
+                );
+            }
+        } else {
+            for (Restaurant restaurant : restaurantList) {
+                boolean hasNearbyStation = false;
+                List<RestaurantNearby> restaurantNearbyList = restaurantNearbyRepository.findAllByRestaurant(restaurant);
+                if (restaurantNearbyList.size() > 0) {
+                    hasNearbyStation = true;
                 }
                 restaurantResponseDtoList.add(
                         RestaurantResponseDto.builder()
@@ -59,20 +85,7 @@ public class RestaurantService {
                                 .likeNum(restaurant.getLikeNum())
                                 .region(restaurant.getRegion())
                                 .thumbnailUrl(restaurant.getThumbnailUrl())
-                                .isBookmarked(isBookmarked)
-                                .build()
-                );
-            }
-        } else {
-            for (Restaurant restaurant : restaurantList) {
-                restaurantResponseDtoList.add(
-                        RestaurantResponseDto.builder()
-                                .id(restaurant.getId())
-                                .name(restaurant.getName())
-                                .description(restaurant.getDescription())
-                                .likeNum(restaurant.getLikeNum())
-                                .region(restaurant.getRegion())
-                                .thumbnailUrl(restaurant.getThumbnailUrl())
+                                .hasNearStation(hasNearbyStation)
                                 .build()
                 );
             }

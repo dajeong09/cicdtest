@@ -47,10 +47,36 @@ public class TouristSpotService {
 
         if (null != member) {
             for (TouristSpot touristSpot : touristSpotList) {
+                boolean hasNearbyStation = false;
                 boolean isBookmarked = false;
+                List<TouristSpotNearby> touristSpotNearbyList = touristSpotNearbyRepository.findAllByTouristSpot(touristSpot);
+                if (touristSpotNearbyList.size() > 0) {
+                    hasNearbyStation = true;
+                }
                 TouristSpotBookmark findTouristSpotBookmark = touristSpotBookmarkRepository.findByMemberAndTouristSpot(member, touristSpot);
                 if (null != findTouristSpotBookmark) {
                     isBookmarked = true;
+                }
+
+                touristSpotResponseDtoList.add(
+                        TouristSpotResponseDto.builder()
+                                .id(touristSpot.getId())
+                                .name(touristSpot.getName())
+                                .description(touristSpot.getDescription())
+                                .likeNum(touristSpot.getLikeNum())
+                                .region(touristSpot.getRegion())
+                                .thumbnailUrl(touristSpot.getThumbnailUrl())
+                                .hasNearStation(hasNearbyStation)
+                                .isBookmarked(isBookmarked)
+                                .build()
+                );
+            }
+        } else {
+            for (TouristSpot touristSpot : touristSpotList) {
+                boolean hasNearbyStation = false;
+                List<TouristSpotNearby> touristSpotNearbyList = touristSpotNearbyRepository.findAllByTouristSpot(touristSpot);
+                if (touristSpotNearbyList.size() > 0) {
+                    hasNearbyStation = true;
                 }
                 touristSpotResponseDtoList.add(
                         TouristSpotResponseDto.builder()
@@ -60,20 +86,7 @@ public class TouristSpotService {
                                 .likeNum(touristSpot.getLikeNum())
                                 .region(touristSpot.getRegion())
                                 .thumbnailUrl(touristSpot.getThumbnailUrl())
-                                .isBookmarked(isBookmarked)
-                                .build()
-                );
-            }
-        } else {
-            for (TouristSpot touristSpot : touristSpotList) {
-                touristSpotResponseDtoList.add(
-                        TouristSpotResponseDto.builder()
-                                .id(touristSpot.getId())
-                                .name(touristSpot.getName())
-                                .description(touristSpot.getDescription())
-                                .likeNum(touristSpot.getLikeNum())
-                                .region(touristSpot.getRegion())
-                                .thumbnailUrl(touristSpot.getThumbnailUrl())
+                                .hasNearStation(hasNearbyStation)
                                 .build()
                 );
             }
