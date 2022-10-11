@@ -41,7 +41,7 @@ public class Trip extends Timestamped{
     @Column(nullable = false)
     private Boolean isHidden;
 
-    @OneToMany(fetch = FetchType.LAZY) //, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "trip", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Course> courses;
 
     @JoinColumn(name = "member_id", nullable = false)

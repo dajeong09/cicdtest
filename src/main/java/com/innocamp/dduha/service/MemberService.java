@@ -161,6 +161,19 @@ public class MemberService {
 
         return ResponseDto.success(NULL);
     }
+
+    // 회원 탈퇴
+    @Transactional
+    public ResponseDto<?> deleteMember() {
+        Member member = tokenProvider.getMemberFromAuthentication();
+        RefreshToken refreshToken = isPresentRefreshToken(member);
+        if (refreshToken != null) {
+            refreshTokenRepository.delete(refreshToken);
+        }
+        memberRepository.delete(member);
+        return ResponseDto.success(NULL);
+    }
+
     @Transactional
     public Member isPresentMember(String email) {
         Optional<Member> optionalMember = memberRepository.findByEmail(email);
@@ -180,5 +193,4 @@ public class MemberService {
         }
         return tokenProvider.getMemberFromAuthentication();
     }
-
 }
