@@ -23,4 +23,14 @@ public class CourseController {
     public ResponseDto<?> removeCourseDetail(@RequestBody CourseDetailRequestDto courseDetailRequestDto, HttpServletRequest request) {
         return courseService.removeCourseDetail(courseDetailRequestDto, request);
     }
+
+    @GetMapping("/course/bookmark")
+    public ResponseDto<?> getBookmarkList() {
+        return courseService.getBookmarkList();
+    }
+
+    @GetMapping("/course/nearby")
+    public ResponseDto<?> getNearbyList(@RequestParam(value="latitude") double latitude, @RequestParam(value="longitude") double longitude) {
+        return courseService.getNearbyList(latitude, longitude);
+    }
 }
