@@ -60,6 +60,12 @@ public class MemberController {
         return memberService.modifyMember(requestDto, request, response);
     }
 
+    // 회원 탈퇴
+    @DeleteMapping("/auth/member/delete")
+    public ResponseDto<?> deleteMember() {
+        return memberService.deleteMember();
+    }
+
     // 카카오 로그인
     @GetMapping("/oauth/kakao")
     public ResponseDto<?> kakaoLogin(@RequestParam(name = "code") String code, HttpServletResponse response)
