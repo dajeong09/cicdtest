@@ -363,6 +363,11 @@ public class TripService {
                 );
             }
 
+            if(!courseDetailResponseDtoList.isEmpty()) {
+                //다른 방법 고민해 보기
+                courseDetailResponseDtoList.sort(new CourseDetailComparator());
+            }
+
             courseResponseDtoList.add(CourseResponseDto.builder()
                     .courseId(course.getId())
                     .day(course.getDay())

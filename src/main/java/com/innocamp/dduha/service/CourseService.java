@@ -2,9 +2,14 @@ package com.innocamp.dduha.service;
 
 import com.innocamp.dduha.dto.ResponseDto;
 import com.innocamp.dduha.dto.request.CourseDetailRequestDto;
+import com.innocamp.dduha.dto.response.CourseNearbyResponseDto;
+import com.innocamp.dduha.dto.response.PlaceResponseDto;
 import com.innocamp.dduha.jwt.TokenProvider;
 import com.innocamp.dduha.model.Member;
 import com.innocamp.dduha.model.accommodation.Accommodation;
+import com.innocamp.dduha.model.bookmark.AccommodationBookmark;
+import com.innocamp.dduha.model.bookmark.RestaurantBookmark;
+import com.innocamp.dduha.model.bookmark.TouristSpotBookmark;
 import com.innocamp.dduha.model.course.Course;
 import com.innocamp.dduha.model.course.CourseDetailAcc;
 import com.innocamp.dduha.model.course.CourseDetailRest;
@@ -13,6 +18,9 @@ import com.innocamp.dduha.model.restaurant.Restaurant;
 import com.innocamp.dduha.model.touristspot.TouristSpot;
 import com.innocamp.dduha.repository.CourseRepository;
 import com.innocamp.dduha.repository.accommodation.AccommodationRepository;
+import com.innocamp.dduha.repository.bookmark.AccommodationBookmarkRepository;
+import com.innocamp.dduha.repository.bookmark.RestaurantBookmarkRepository;
+import com.innocamp.dduha.repository.bookmark.TouristSpotBookmarkRepository;
 import com.innocamp.dduha.repository.coursedetail.CourseDetailAccReposiotry;
 import com.innocamp.dduha.repository.coursedetail.CourseDetailRestRepository;
 import com.innocamp.dduha.repository.coursedetail.CourseDetailSpotRepository;
@@ -24,6 +32,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -40,6 +50,9 @@ public class CourseService {
     private final CourseDetailSpotRepository courseDetailSpotRepository;
     private final CourseDetailRestRepository courseDetailRestRepository;
     private final CourseDetailAccReposiotry courseDetailAccRepository;
+    private final TouristSpotBookmarkRepository touristSpotBookmarkRepository;
+    private final RestaurantBookmarkRepository restaurantBookmarkRepository;
+    private final AccommodationBookmarkRepository accommodationBookmarkRepository;
 
     private final TokenProvider tokenProvider;
 
@@ -225,6 +238,192 @@ public class CourseService {
         return ResponseDto.success(NULL);
     }
 
+    public ResponseDto<?> getBookmarkList() {
+
+        Member member = tokenProvider.getMemberFromAuthentication();
+
+        List<PlaceResponseDto> bookmarkedPlaceResponseDtoList = new ArrayList<>();
+        List<TouristSpotBookmark> touristSpotBookmarkList = touristSpotBookmarkRepository.findAllByMember(member);
+        for (TouristSpotBookmark touristSpotBookmark : touristSpotBookmarkList) {
+            bookmarkedPlaceResponseDtoList.add(
+                    PlaceResponseDto.builder()
+                            .id(touristSpotBookmark.getTouristSpot().getId())
+                            .category("관광지")
+                            .name(touristSpotBookmark.getTouristSpot().getName())
+                            .description(touristSpotBookmark.getTouristSpot().getDescription())
+                            .likeNum(touristSpotBookmark.getTouristSpot().getLikeNum())
+                            .region(touristSpotBookmark.getTouristSpot().getRegion())
+                            .thumbnailUrl(touristSpotBookmark.getTouristSpot().getThumbnailUrl())
+                            .isBookmarked(true)
+                            .build()
+            );
+        }
+        List<RestaurantBookmark> restaurantBookmarkList = restaurantBookmarkRepository.findAllByMember(member);
+        for (RestaurantBookmark restaurantBookmark : restaurantBookmarkList) {
+            bookmarkedPlaceResponseDtoList.add(
+                    PlaceResponseDto.builder()
+                            .id(restaurantBookmark.getRestaurant().getId())
+                            .category("맛집")
+                            .name(restaurantBookmark.getRestaurant().getName())
+                            .description(restaurantBookmark.getRestaurant().getDescription())
+                            .likeNum(restaurantBookmark.getRestaurant().getLikeNum())
+                            .region(restaurantBookmark.getRestaurant().getRegion())
+                            .thumbnailUrl(restaurantBookmark.getRestaurant().getThumbnailUrl())
+                            .isBookmarked(true)
+                            .build()
+            );
+        }
+        List<AccommodationBookmark> accommodationBookmarkList = accommodationBookmarkRepository.findAllByMember(member);
+        for (AccommodationBookmark accommodationBookmark : accommodationBookmarkList) {
+            bookmarkedPlaceResponseDtoList.add(
+                    PlaceResponseDto.builder()
+                            .id(accommodationBookmark.getAccommodation().getId())
+                            .category("숙소")
+                            .name(accommodationBookmark.getAccommodation().getName())
+                            .description(accommodationBookmark.getAccommodation().getDescription())
+                            .likeNum(accommodationBookmark.getAccommodation().getLikeNum())
+                            .region(accommodationBookmark.getAccommodation().getRegion())
+                            .thumbnailUrl(accommodationBookmark.getAccommodation().getThumbnailUrl())
+                            .isBookmarked(true)
+                            .build()
+            );
+        }
+
+        return ResponseDto.success(bookmarkedPlaceResponseDtoList);
+    }
+
+    public ResponseDto<?> getNearbyList(double latitude, double longitude) {
+
+        Member member = tokenProvider.getMemberFromAuthentication();
+
+        double differ = 0.0201;
+        List<TouristSpot> touristSpotList = touristSpotRepository.findAllByLatitudeBetweenAndLongitudeBetween(latitude-differ,latitude+differ,longitude-differ,longitude+differ);
+        List<Restaurant> restaurantList = restaurantRepository.findAllByLatitudeBetweenAndLongitudeBetween(latitude-differ,latitude+differ,longitude-differ,longitude+differ);
+
+        List<CourseNearbyResponseDto> courseNearbyResponseDtoList = new ArrayList<>();
+
+        if (null != member) {
+            boolean isBookmarked;
+            for (TouristSpot touristSpot : touristSpotList) {
+                isBookmarked = false;
+                TouristSpotBookmark findTouristSpotBookmark = touristSpotBookmarkRepository.findByMemberAndTouristSpot(member, touristSpot);
+                if (null != findTouristSpotBookmark) {
+                    isBookmarked = true;
+                }
+                double newLatitude = touristSpot.getLatitude();
+                double newLongitude = touristSpot.getLongitude();
+                double theta = longitude - newLongitude;
+                double dist = Math.sin(deg2rad(latitude)) * Math.sin(deg2rad(newLatitude)) + Math.cos(deg2rad(latitude)) * Math.cos(deg2rad(newLatitude)) * Math.cos(deg2rad(theta));
+                dist = Math.acos(dist);
+                dist = rad2deg(dist);
+                dist = dist * 60 * 1.1515 * 1609.344;
+                System.out.println("[" + touristSpot.getName() + "] 까지 거리: " + Math.round(dist / 5) * 5 + "m");
+                if (dist < 5000 && touristSpot.getLatitude() != latitude) {
+                    courseNearbyResponseDtoList.add(CourseNearbyResponseDto.builder()
+                                    .id(touristSpot.getId())
+                                    .category("관광지")
+                                    .name(touristSpot.getName())
+                                    .description(touristSpot.getDescription())
+                                    .likeNum(touristSpot.getLikeNum())
+                                    .region(touristSpot.getRegion())
+                                    .thumbnailUrl(touristSpot.getThumbnailUrl())
+                                    .isBookmarked(isBookmarked)
+                                    .distance((int)Math.round(dist / 5) * 5)
+                                    .build());
+                }
+            }
+            for (Restaurant restaurant : restaurantList) {
+                isBookmarked = false;
+                RestaurantBookmark findRestaurantBookmark = restaurantBookmarkRepository.findByMemberAndRestaurant(member, restaurant);
+                if (null != findRestaurantBookmark) {
+                    isBookmarked = true;
+                }
+                double newLatitude = restaurant.getLatitude();
+                double newLongitude = restaurant.getLongitude();
+                double theta = longitude - newLongitude;
+                double dist = Math.sin(deg2rad(latitude)) * Math.sin(deg2rad(newLatitude)) + Math.cos(deg2rad(latitude)) * Math.cos(deg2rad(newLatitude)) * Math.cos(deg2rad(theta));
+                dist = Math.acos(dist);
+                dist = rad2deg(dist);
+                dist = dist * 60 * 1.1515 * 1609.344;
+                System.out.println("[" + restaurant.getName() + "] 까지 거리: " + Math.round(dist / 5) * 5 + "m");
+                if (dist < 5000 && restaurant.getLatitude() != latitude) {
+                    courseNearbyResponseDtoList.add(CourseNearbyResponseDto.builder()
+                            .id(restaurant.getId())
+                            .category("맛집")
+                            .name(restaurant.getName())
+                            .description(restaurant.getDescription())
+                            .likeNum(restaurant.getLikeNum())
+                            .region(restaurant.getRegion())
+                            .thumbnailUrl(restaurant.getThumbnailUrl())
+                            .isBookmarked(isBookmarked)
+                            .distance((int)Math.round(dist / 5) * 5)
+                            .build());
+                }
+            }
+        } else {
+            for (TouristSpot touristSpot : touristSpotList) {
+                double newLatitude = touristSpot.getLatitude();
+                double newLongitude = touristSpot.getLongitude();
+                double theta = longitude - newLongitude;
+                double dist = Math.sin(deg2rad(latitude)) * Math.sin(deg2rad(newLatitude)) + Math.cos(deg2rad(latitude)) * Math.cos(deg2rad(newLatitude)) * Math.cos(deg2rad(theta));
+                dist = Math.acos(dist);
+                dist = rad2deg(dist);
+                dist = dist * 60 * 1.1515 * 1609.344;
+                System.out.println("[" + touristSpot.getName() + "] 까지 거리: " + Math.round(dist / 5) * 5 + "m");
+                if (dist < 5000 && touristSpot.getLatitude() != latitude) {
+                    courseNearbyResponseDtoList.add(CourseNearbyResponseDto.builder()
+                            .id(touristSpot.getId())
+                            .category("관광지")
+                            .name(touristSpot.getName())
+                            .description(touristSpot.getDescription())
+                            .likeNum(touristSpot.getLikeNum())
+                            .region(touristSpot.getRegion())
+                            .thumbnailUrl(touristSpot.getThumbnailUrl())
+                            .distance((int)Math.round(dist / 5) * 5)
+                            .build());
+                }
+            }
+            for (Restaurant restaurant : restaurantList) {
+                double newLatitude = restaurant.getLatitude();
+                double newLongitude = restaurant.getLongitude();
+                double theta = longitude - newLongitude;
+                double dist = Math.sin(deg2rad(latitude)) * Math.sin(deg2rad(newLatitude)) + Math.cos(deg2rad(latitude)) * Math.cos(deg2rad(newLatitude)) * Math.cos(deg2rad(theta));
+                dist = Math.acos(dist);
+                dist = rad2deg(dist);
+                dist = dist * 60 * 1.1515 * 1609.344;
+                System.out.println("[" + restaurant.getName() + "] 까지 거리: " + Math.round(dist / 5) * 5 + "m");
+                if (dist < 5000 && restaurant.getLatitude() != latitude) {
+                    courseNearbyResponseDtoList.add(CourseNearbyResponseDto.builder()
+                            .id(restaurant.getId())
+                            .category("맛집")
+                            .name(restaurant.getName())
+                            .description(restaurant.getDescription())
+                            .likeNum(restaurant.getLikeNum())
+                            .region(restaurant.getRegion())
+                            .thumbnailUrl(restaurant.getThumbnailUrl())
+                            .distance((int)Math.round(dist / 5) * 5)
+                            .build());
+                }
+            }
+        }
+
+        if(!courseNearbyResponseDtoList.isEmpty()) {
+            //다른 방법 고민해 보기
+            courseNearbyResponseDtoList.sort(new DistanceComparator());
+        }
+
+        List<CourseNearbyResponseDto> courseNearbyResponseDtoListTop5 = new ArrayList<>();
+        for (int i = 0; i < courseNearbyResponseDtoList.size(); i++) {
+            if (i == 5) {
+                break;
+            }
+            courseNearbyResponseDtoListTop5.add(courseNearbyResponseDtoList.get(i));
+
+        }
+        return ResponseDto.success(courseNearbyResponseDtoListTop5);
+
+    }
+
 
     public Course isPresentCourse(Long id) {
         Optional<Course> optionalCourse = courseRepository.findById(id);
@@ -261,5 +460,19 @@ public class CourseService {
         return optionalCourseDetailAcc.orElse(null);
     }
 
+    public static double deg2rad(double deg) {
+        return (deg * Math.PI / 180.0);
+    }
 
+    public static double rad2deg(double rad) {
+        return (rad * 180 / Math.PI);
+    }
+}
+
+class DistanceComparator implements Comparator<CourseNearbyResponseDto> {
+
+    @Override
+    public int compare(CourseNearbyResponseDto o1, CourseNearbyResponseDto o2) {
+        return o1.getDistance() - o2.getDistance();
+    }
 }

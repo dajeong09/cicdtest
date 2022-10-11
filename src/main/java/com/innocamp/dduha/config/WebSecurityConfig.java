@@ -60,6 +60,7 @@ public class WebSecurityConfig {
                 .antMatchers("/restaurant/**").permitAll()
                 .antMatchers("/accommodation/**").permitAll()
                 .antMatchers("/trip/**").permitAll()
+                .antMatchers("/course/**").permitAll()
                 .anyRequest().authenticated()
 
                 .and()

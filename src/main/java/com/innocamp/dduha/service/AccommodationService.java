@@ -47,10 +47,36 @@ public class AccommodationService {
 
         if (null != member) {
             for (Accommodation accommodation : accommodationList) {
+                boolean hasNearbyStation = false;
                 boolean isBookmarked = false;
+                List<AccommodationNearby> accommodationNearbyList = accommodationNearbyRepository.findAllByAccommodation(accommodation);
+                if (accommodationNearbyList.size() > 0) {
+                    hasNearbyStation = true;
+                }
                 AccommodationBookmark accommodationBookmark = accommodationBookmarkRepository.findByMemberAndAccommodation(member, accommodation);
                 if (null != accommodationBookmark) {
                     isBookmarked = true;
+                }
+
+                accommodationResponseDtoList.add(
+                        AccommodationResponseDto.builder()
+                                .id(accommodation.getId())
+                                .name(accommodation.getName())
+                                .description(accommodation.getDescription())
+                                .likeNum(accommodation.getLikeNum())
+                                .region(accommodation.getRegion())
+                                .thumbnailUrl(accommodation.getThumbnailUrl())
+                                .hasNearStation(hasNearbyStation)
+                                .isBookmarked(isBookmarked)
+                                .build()
+                );
+            }
+        } else {
+            for (Accommodation accommodation : accommodationList) {
+                boolean hasNearbyStation = false;
+                List<AccommodationNearby> accommodationNearbyList = accommodationNearbyRepository.findAllByAccommodation(accommodation);
+                if (accommodationNearbyList.size() > 0) {
+                    hasNearbyStation = true;
                 }
                 accommodationResponseDtoList.add(
                         AccommodationResponseDto.builder()
@@ -60,20 +86,7 @@ public class AccommodationService {
                                 .likeNum(accommodation.getLikeNum())
                                 .region(accommodation.getRegion())
                                 .thumbnailUrl(accommodation.getThumbnailUrl())
-                                .isBookmarked(isBookmarked)
-                                .build()
-                );
-            }
-        } else {
-            for (Accommodation accommodation : accommodationList) {
-                accommodationResponseDtoList.add(
-                        AccommodationResponseDto.builder()
-                                .id(accommodation.getId())
-                                .name(accommodation.getName())
-                                .description(accommodation.getDescription())
-                                .likeNum(accommodation.getLikeNum())
-                                .region(accommodation.getRegion())
-                                .thumbnailUrl(accommodation.getThumbnailUrl())
+                                .hasNearStation(hasNearbyStation)
                                 .build()
                 );
             }

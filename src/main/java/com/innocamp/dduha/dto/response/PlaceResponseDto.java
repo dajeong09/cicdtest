@@ -5,8 +5,9 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class AccommodationResponseDto {
+public class PlaceResponseDto {
     private Long id;
+    private String category;
     private String name;
     private String description;
     private int likeNum;
