@@ -405,7 +405,7 @@ public class TripService {
 
     @Transactional
     public ResponseDto<?> saveCourseDetailOrder(CourseRequestDto courseRequestDto, HttpServletRequest request) {
-        //숙소 합치기
+
         if (!tokenProvider.validateToken(request.getHeader("Refresh-Token"))) {
             return ResponseDto.fail(INVALID_TOKEN);
         }
@@ -419,30 +419,34 @@ public class TripService {
         if(null == course) {
             return ResponseDto.fail(COURSE_NOT_FOUND);
         }
-//
-//        if(!course.getTrip().getMember().getId().equals(member.getId())) {
-//            return ResponseDto.fail(NOT_AUTHORIZED);
-//        }
 
-        //코스에 이미 연결된 데이터가 있는지 확인 or 초기화 (순서만 바꾸기로 해서 필요 없음)
-//        courseDetailRestRepository.deleteAllByCourse(course);
-//        courseDetailSpotRepository.deleteAllByCourse(course);
-//        courseDetailAccReposiotry.deleteAllByCourse(course);
+        if(course.getTrip().getMember().getId() != member.getId()) {
+            return ResponseDto.fail(NOT_AUTHORIZED);
+        }
 
         for (CourseDetailRequestDto courseDetailRequestDto : courseRequestDto.getCourseDetails()) {
             switch (courseDetailRequestDto.getCategory()) {
                 case "관광지":
                     CourseDetailSpot courseDetailSpot = isPresentCourseDetailSpot(courseDetailRequestDto.getDetailId());
+                    if(courseDetailSpot.getCourse().getId() != course.getId()) {
+                        return ResponseDto.fail(NOT_AUTHORIZED);
+                    }
                     courseDetailSpot.changeOrder(courseDetailRequestDto.getDetailOrder());
                     courseDetailSpotRepository.save(courseDetailSpot);
                     break;
                 case "맛집":
                     CourseDetailRest courseDetailRest = isPresentCourseDetailRest(courseDetailRequestDto.getDetailId());
+                    if(courseDetailRest.getCourse().getId() != course.getId()) {
+                        return ResponseDto.fail(NOT_AUTHORIZED);
+                    }
                     courseDetailRest.changeOrder(courseDetailRequestDto.getDetailOrder());
                     courseDetailRestRepository.save(courseDetailRest);
                     break;
                 case "숙소":
                     CourseDetailAcc courseDetailAcc = isPresentCourseDetailAcc(courseDetailRequestDto.getDetailId());
+                    if(courseDetailAcc.getCourse().getId() != course.getId()) {
+                        return ResponseDto.fail(NOT_AUTHORIZED);
+                    }
                     courseDetailAcc.changeOrder(courseDetailRequestDto.getDetailOrder());
                     courseDetailAccRepository.save(courseDetailAcc);
                     break;
