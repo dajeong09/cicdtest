@@ -9,5 +9,5 @@ import java.util.List;
 @Getter
 public class TideResponseDto {
     private String date;
-    private List<String> tide;
+    private List<TideDetailResponseDto> tide;
 }
