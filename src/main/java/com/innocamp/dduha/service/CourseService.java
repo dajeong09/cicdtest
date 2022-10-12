@@ -255,6 +255,7 @@ public class CourseService {
                             .region(touristSpotBookmark.getTouristSpot().getRegion())
                             .thumbnailUrl(touristSpotBookmark.getTouristSpot().getThumbnailUrl())
                             .isBookmarked(true)
+                            .createdAt(touristSpotBookmark.getCreatedAt())
                             .build()
             );
         }
@@ -270,6 +271,7 @@ public class CourseService {
                             .region(restaurantBookmark.getRestaurant().getRegion())
                             .thumbnailUrl(restaurantBookmark.getRestaurant().getThumbnailUrl())
                             .isBookmarked(true)
+                            .createdAt(restaurantBookmark.getCreatedAt())
                             .build()
             );
         }
@@ -285,8 +287,13 @@ public class CourseService {
                             .region(accommodationBookmark.getAccommodation().getRegion())
                             .thumbnailUrl(accommodationBookmark.getAccommodation().getThumbnailUrl())
                             .isBookmarked(true)
+                            .createdAt(accommodationBookmark.getCreatedAt())
                             .build()
             );
+        }
+
+        if(!bookmarkedPlaceResponseDtoList.isEmpty()) {
+            bookmarkedPlaceResponseDtoList.sort(new DateComparator());
         }
 
         return ResponseDto.success(bookmarkedPlaceResponseDtoList);
@@ -469,6 +476,13 @@ public class CourseService {
     }
 }
 
+class DateComparator implements Comparator<PlaceResponseDto> {
+
+    @Override
+    public int compare(PlaceResponseDto o1, PlaceResponseDto o2) {
+        return o2.getCreatedAt().getNano() - o1.getCreatedAt().getNano();
+    }
+}
 class DistanceComparator implements Comparator<CourseNearbyResponseDto> {
 
     @Override

@@ -2,6 +2,7 @@ package com.innocamp.dduha.model.bookmark;
 
 
 import com.innocamp.dduha.model.Member;
+import com.innocamp.dduha.model.Timestamped;
 import com.innocamp.dduha.model.touristspot.TouristSpot;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,7 +16,7 @@ import javax.persistence.*;
 @NoArgsConstructor
 @Getter
 @Builder
-public class TouristSpotBookmark {
+public class TouristSpotBookmark extends Timestamped {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

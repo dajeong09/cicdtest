@@ -3,6 +3,8 @@ package com.innocamp.dduha.dto.response;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Builder
 public class PlaceResponseDto {
@@ -15,4 +17,5 @@ public class PlaceResponseDto {
     private String thumbnailUrl;
     private boolean hasNearStation;
     private boolean isBookmarked;
+    private LocalDateTime createdAt;
 }
