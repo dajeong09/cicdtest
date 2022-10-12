@@ -11,16 +11,17 @@ import com.innocamp.dduha.model.bookmark.TouristSpotBookmark;
 import com.innocamp.dduha.model.nearby.TouristSpotNearby;
 import com.innocamp.dduha.model.touristspot.TouristSpot;
 import com.innocamp.dduha.model.touristspot.TouristSpotImg;
-import com.innocamp.dduha.model.touristspot.TouristSpotReview;
+import com.innocamp.dduha.model.review.TouristSpotReview;
 import com.innocamp.dduha.repository.bookmark.TouristSpotBookmarkRepository;
 import com.innocamp.dduha.repository.nearby.TouristSpotNearbyRepository;
 import com.innocamp.dduha.repository.touristspot.TouristSpotImgRepository;
 import com.innocamp.dduha.repository.touristspot.TouristSpotRepository;
-import com.innocamp.dduha.repository.touristspot.TouristSpotReviewRepository;
+import com.innocamp.dduha.repository.review.TouristSpotReviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -115,14 +116,15 @@ public class TouristSpotService {
             );
         }
 
-        List<TouristSpotReview> touristSpotReviewList = touristSpotReviewRepository.findAllByTouristSpotOrderByReviewedAtDesc(touristSpot);
+        List<TouristSpotReview> touristSpotReviewList = touristSpotReviewRepository.findAllByTouristSpotOrderByCreatedAtDesc(touristSpot);
         List<ReviewResponseDto> touristSpotReviewResponseDtoList = new ArrayList<>();
         for (TouristSpotReview touristSpotReview : touristSpotReviewList) {
             touristSpotReviewResponseDtoList.add(
                     ReviewResponseDto.builder()
                             .id(touristSpotReview.getId())
-                            .reviewer(touristSpotReview.getReviewer())
-                            .review(touristSpotReview.getReview()).build()
+                            .reviewer(touristSpotReview.getMember().getNickname())
+                            .review(touristSpotReview.getReview())
+                            .reviewedAt(touristSpotReview.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))).build()
             );
         }
 

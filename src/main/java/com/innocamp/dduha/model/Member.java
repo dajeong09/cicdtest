@@ -5,6 +5,9 @@ import com.innocamp.dduha.model.bookmark.AccommodationBookmark;
 import com.innocamp.dduha.model.bookmark.RestaurantBookmark;
 import com.innocamp.dduha.model.bookmark.TouristSpotBookmark;
 import com.innocamp.dduha.model.bookmark.TripBookmark;
+import com.innocamp.dduha.model.review.AccommodationReview;
+import com.innocamp.dduha.model.review.RestaurantReview;
+import com.innocamp.dduha.model.review.TouristSpotReview;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -54,6 +57,16 @@ public class Member {
 
     @OneToMany(mappedBy = "member", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RestaurantBookmark> restaurantBookmarkList;
+
+    @OneToMany(mappedBy = "member", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TouristSpotReview> touristSpotReviewList;
+
+    @OneToMany(mappedBy = "member", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RestaurantReview> restaurantReviewList;
+
+    @OneToMany(mappedBy = "member", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AccommodationReview> accommodationReviewList;
+
 
     public boolean validatePassword(PasswordEncoder passwordEncoder, String password) {
         return passwordEncoder.matches(password, this.password);

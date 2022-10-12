@@ -171,8 +171,6 @@ public class CourseService {
                 if(null == courseDetailSpot) {
                     return ResponseDto.fail(DETAIL_NOT_FOUND);
                 }
-                System.out.println(courseDetailSpot.getCourse().getTrip().getMember().getId());
-                System.out.println(member.getId());
                 if(!courseDetailSpot.getCourse().getTrip().getMember().getId().equals(member.getId())) {
                     return ResponseDto.fail(NOT_AUTHORIZED);
                 }
