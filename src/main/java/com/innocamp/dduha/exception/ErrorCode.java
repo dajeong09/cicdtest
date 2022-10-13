@@ -18,6 +18,9 @@ public enum ErrorCode {
     INVALID_PASSWORD("INVALID_PASSWORD", "비밀번호를 찾을 수 없습니다."),
     NEED_LOGIN("NEED_LOGIN", "로그인이 필요합니다"),
     USED_PASSWORD("USED_PASSWORD", "기존 비밀번호와 일치합니다."),
+    ALREADY_REQUESTED_EMAIL("ALREADY_REQUESTED_EMAIL", "이미 요청한 이메일 입니다."),
+    EXPIRED_CODE("EXPIRED_CODE", "만료된 이메일 인증 링크입니다."),
+    INVALID_CODE("EXPIRED_CODE", "유효하지 않은 이메일 인증 링크입니다."),
 
     // 토큰 관련 오류
     NULL_TOKEN("NULL_TOKEN", "JWT 토큰을 찾지 못하였습니다."),

@@ -3,8 +3,11 @@ package com.innocamp.dduha.service;
 import com.innocamp.dduha.dto.ResponseDto;
 import com.innocamp.dduha.dto.request.EmailRequestDto;
 import com.innocamp.dduha.dto.response.EmailResponseDto;
+import com.innocamp.dduha.exception.ErrorCode;
 import com.innocamp.dduha.model.EmailEncode;
+import com.innocamp.dduha.model.Member;
 import com.innocamp.dduha.repository.EmailEncodeRepository;
+import com.innocamp.dduha.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.MailException;
@@ -15,9 +18,12 @@ import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
+import javax.transaction.Transactional;
 import java.io.UnsupportedEncodingException;
 import java.security.SecureRandom;
+import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.Optional;
 
 import static com.innocamp.dduha.exception.ErrorCode.NULL;
 
@@ -26,6 +32,7 @@ import static com.innocamp.dduha.exception.ErrorCode.NULL;
 public class EmailService {
     private final JavaMailSender emailSender;
     private final EmailEncodeRepository emailEncodeRepository;
+    private final MemberRepository memberRepository;
 
     @Value("${naver.mail-address}")
     private String NaverMailAddress;
@@ -83,6 +90,17 @@ public class EmailService {
 
     // 이메일 전송
     public ResponseDto<?> sendSimpleMessage(EmailRequestDto requestDto) throws Exception {
+        Optional<Member> optionalMember = memberRepository.findByEmail(requestDto.getEmail());
+        if (null != optionalMember) {
+            return ResponseDto.fail(ErrorCode.DUPLICATE_EMAIL);
+        }
+        EmailEncode emailEncode = isPresentEmailEncodeByEmail(requestDto.getEmail());
+        if (emailEncode.getCreatedAt().isBefore(LocalDateTime.now().plusDays(1))) {
+            return  ResponseDto.fail(ErrorCode.ALREADY_REQUESTED_EMAIL);
+        } else {
+            emailEncodeRepository.delete(emailEncode);
+        }
+        // 요청 만료시간, 저장 만료시간 정하기
         String code = saveCode(requestDto);
         MimeMessage message = createMessage(requestDto.getEmail(),code);
         try {
@@ -96,10 +114,31 @@ public class EmailService {
 
     // RandomCode를 이용해 이메일 주소 확인
     public ResponseDto<?> getEmail(String code) {
-        EmailEncode emailEncode = emailEncodeRepository.findEmailEncodeByRandomCode(code);
+
+        EmailEncode emailEncode = isPresentEmailEncodeByCode(code);
+        if (null == emailEncode) {
+            return ResponseDto.fail(ErrorCode.INVALID_CODE);
+        }
+
+        if (emailEncode.getCreatedAt().isAfter(LocalDateTime.now().plusDays(1))) {
+            return ResponseDto.fail(ErrorCode.EXPIRED_CODE);
+        }
+
         EmailResponseDto emailResponseDto = EmailResponseDto.builder()
                 .email(emailEncode.getEmail())
                 .build();
         return ResponseDto.success(emailResponseDto);
+    }
+
+    @Transactional
+    public EmailEncode isPresentEmailEncodeByEmail(String email) {
+        Optional<EmailEncode> optionalEmailEncode = emailEncodeRepository.findByEmail(email);
+        return optionalEmailEncode.orElse(null);
+    }
+
+    @Transactional
+    public EmailEncode isPresentEmailEncodeByCode(String code) {
+        Optional<EmailEncode> optionalEmailEncode = emailEncodeRepository.findByRandomCode(code);
+        return optionalEmailEncode.orElse(null);
     }
 }
