@@ -39,6 +39,9 @@ dependencies {
     // Google
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client:2.6.2'
 
+    // 이메일 인증
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+
 }
 
 tasks.named('test') {
