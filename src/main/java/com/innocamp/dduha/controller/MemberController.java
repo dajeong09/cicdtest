@@ -2,14 +2,8 @@ package com.innocamp.dduha.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.innocamp.dduha.dto.ResponseDto;
-import com.innocamp.dduha.dto.request.EmailRequestDto;
-import com.innocamp.dduha.dto.request.LoginRequestDto;
-import com.innocamp.dduha.dto.request.MemberRequestDto;
-import com.innocamp.dduha.dto.request.ModifyMemberRequestDto;
-import com.innocamp.dduha.service.EmailService;
-import com.innocamp.dduha.service.GoogleService;
-import com.innocamp.dduha.service.KakaoService;
-import com.innocamp.dduha.service.MemberService;
+import com.innocamp.dduha.dto.request.*;
+import com.innocamp.dduha.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,6 +20,7 @@ public class MemberController {
 
     private final GoogleService googleService;
     private final EmailService emailService;
+    private final PasswordService passwordService;
 
     // 회원가입
     @PostMapping("/member/signup")
@@ -100,6 +95,18 @@ public class MemberController {
     @GetMapping("/member/email")
     public ResponseDto<?> getEmail(@RequestParam(value = "code") String code) {
         return emailService.getEmail(code);
+    }
+
+    // 이메일로 비밀번호 재설정 링크 전송
+    @PostMapping("/member/findPassword")
+    public ResponseDto<?> findPassword(@RequestBody PasswordRequestDto requestDto) throws Exception {
+        return passwordService.sendSimpleMessage(requestDto);
+    }
+
+    // RandomCode를 이용해 이메일 확인
+    @GetMapping("/member/password")
+    public ResponseDto<?> getPasswordEmail(@RequestParam(value = "code") String code) {
+        return passwordService.getEmail(code);
     }
 
 }
