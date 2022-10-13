@@ -164,9 +164,14 @@ public class MemberService {
 
     // 회원 탈퇴
     @Transactional
-    public ResponseDto<?> deleteMember() {
+    public ResponseDto<?> deleteMember(MemberRequestDto requestDto) {
         Member member = tokenProvider.getMemberFromAuthentication();
         RefreshToken refreshToken = isPresentRefreshToken(member);
+
+        if (!member.validatePassword(passwordEncoder, requestDto.getPassword())) {
+            return ResponseDto.fail(INVALID_PASSWORD);
+        }
+
         if (refreshToken != null) {
             refreshTokenRepository.delete(refreshToken);
         }

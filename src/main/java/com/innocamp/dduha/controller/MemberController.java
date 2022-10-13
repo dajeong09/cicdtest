@@ -62,8 +62,8 @@ public class MemberController {
 
     // 회원 탈퇴
     @DeleteMapping("/auth/member/delete")
-    public ResponseDto<?> deleteMember() {
-        return memberService.deleteMember();
+    public ResponseDto<?> deleteMember(@RequestBody MemberRequestDto requestDto) {
+        return memberService.deleteMember(requestDto);
     }
 
     // 카카오 로그인
