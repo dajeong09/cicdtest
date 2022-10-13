@@ -2,9 +2,11 @@ package com.innocamp.dduha.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.innocamp.dduha.dto.ResponseDto;
+import com.innocamp.dduha.dto.request.EmailRequestDto;
 import com.innocamp.dduha.dto.request.LoginRequestDto;
 import com.innocamp.dduha.dto.request.MemberRequestDto;
 import com.innocamp.dduha.dto.request.ModifyMemberRequestDto;
+import com.innocamp.dduha.service.EmailService;
 import com.innocamp.dduha.service.GoogleService;
 import com.innocamp.dduha.service.KakaoService;
 import com.innocamp.dduha.service.MemberService;
@@ -23,6 +25,7 @@ public class MemberController {
     private final KakaoService kakaoService;
 
     private final GoogleService googleService;
+    private final EmailService emailService;
 
     // 회원가입
     @PostMapping("/member/signup")
@@ -85,6 +88,18 @@ public class MemberController {
     public ResponseDto<?> googleLogin(@RequestParam(value = "code") String code,
                                               HttpServletResponse response) {
         return googleService.googleLogin(code, response);
+    }
+
+    // 이메일로 회원가입 링크 전송
+    @PostMapping("/member/emailConfirm")
+    public ResponseDto<?> emailConfirm(@RequestBody EmailRequestDto requestDto) throws Exception{
+        return emailService.sendSimpleMessage(requestDto);
+    }
+
+    // RandomCode를 이용해 이메일 확인
+    @GetMapping("/member/email")
+    public ResponseDto<?> getEmail(@RequestParam(value = "code") String code) {
+        return emailService.getEmail(code);
     }
 
 }
