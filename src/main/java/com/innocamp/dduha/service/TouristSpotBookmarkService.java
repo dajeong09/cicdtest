@@ -38,7 +38,7 @@ public class TouristSpotBookmarkService {
         }
         TouristSpot touristSpot = isPresentTouristSpot(spotId);
         if (null == touristSpot) {
-            return ResponseDto.fail(SPOT_NOT_FOUND);
+            return ResponseDto.fail(TOURISTSPOT_NOT_FOUND);
         }
         TouristSpotBookmark checkBookmark = touristSpotBookmarkRepository.findByMemberAndTouristSpot(member, touristSpot);
         if (null != checkBookmark) {

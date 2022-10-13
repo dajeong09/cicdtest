@@ -9,18 +9,19 @@ import com.innocamp.dduha.jwt.TokenProvider;
 import com.innocamp.dduha.model.Member;
 import com.innocamp.dduha.model.accommodation.Accommodation;
 import com.innocamp.dduha.model.accommodation.AccommodationImg;
-import com.innocamp.dduha.model.accommodation.AccommodationReview;
+import com.innocamp.dduha.model.review.AccommodationReview;
 import com.innocamp.dduha.model.bookmark.AccommodationBookmark;
 import com.innocamp.dduha.model.nearby.AccommodationNearby;
 import com.innocamp.dduha.repository.accommodation.AccommodationImgRepository;
 import com.innocamp.dduha.repository.accommodation.AccommodationRepository;
-import com.innocamp.dduha.repository.accommodation.AccommodationReviewRepository;
+import com.innocamp.dduha.repository.review.AccommodationReviewRepository;
 import com.innocamp.dduha.repository.bookmark.AccommodationBookmarkRepository;
 import com.innocamp.dduha.repository.nearby.AccommodationNearbyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -117,14 +118,15 @@ public class AccommodationService {
             );
         }
 
-        List<AccommodationReview> accommodationReviewList = accommodationReviewRepository.findAllByAccommodationOrderByReviewedAtDesc(accommodation);
+        List<AccommodationReview> accommodationReviewList = accommodationReviewRepository.findAllByAccommodationOrderByCreatedAtDesc(accommodation);
         List<ReviewResponseDto> reviewResponseDtoList = new ArrayList<>();
         for (AccommodationReview accommodationReview : accommodationReviewList) {
             reviewResponseDtoList.add(
                     ReviewResponseDto.builder()
                             .id(accommodationReview.getId())
-                            .reviewer(accommodationReview.getReviewer())
-                            .review(accommodationReview.getReview()).build()
+                            .reviewer(accommodationReview.getMember().getNickname())
+                            .review(accommodationReview.getReview())
+                            .reviewedAt(accommodationReview.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))).build()
             );
         }
 

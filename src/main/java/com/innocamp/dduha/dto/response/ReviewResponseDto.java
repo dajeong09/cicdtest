@@ -10,4 +10,5 @@ public class ReviewResponseDto {
     private Long id;
     private String reviewer;
     private String review;
+    private String reviewedAt;
 }

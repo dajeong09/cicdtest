@@ -11,16 +11,17 @@ import com.innocamp.dduha.model.bookmark.RestaurantBookmark;
 import com.innocamp.dduha.model.nearby.RestaurantNearby;
 import com.innocamp.dduha.model.restaurant.Restaurant;
 import com.innocamp.dduha.model.restaurant.RestaurantImg;
-import com.innocamp.dduha.model.restaurant.RestaurantReview;
+import com.innocamp.dduha.model.review.RestaurantReview;
 import com.innocamp.dduha.repository.bookmark.RestaurantBookmarkRepository;
 import com.innocamp.dduha.repository.nearby.RestaurantNearbyRepository;
 import com.innocamp.dduha.repository.restaurant.RestaurantImgRepository;
 import com.innocamp.dduha.repository.restaurant.RestaurantRepository;
-import com.innocamp.dduha.repository.restaurant.RestaurantReviewRepository;
+import com.innocamp.dduha.repository.review.RestaurantReviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -116,14 +117,15 @@ public class RestaurantService {
             );
         }
 
-        List<RestaurantReview> restaurantReviewList = restaurantReviewRepository.findAllByRestaurantOrderByReviewedAtDesc(restaurant);
+        List<RestaurantReview> restaurantReviewList = restaurantReviewRepository.findAllByRestaurantOrderByCreatedAtDesc(restaurant);
         List<ReviewResponseDto> reviewResponseDtoList = new ArrayList<>();
         for (RestaurantReview restaurantReview : restaurantReviewList) {
             reviewResponseDtoList.add(
                     ReviewResponseDto.builder()
                             .id(restaurantReview.getId())
-                            .reviewer(restaurantReview.getReviewer())
-                            .review(restaurantReview.getReview()).build()
+                            .reviewer(restaurantReview.getMember().getNickname())
+                            .review(restaurantReview.getReview())
+                            .reviewedAt(restaurantReview.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))).build()
             );
         }
 

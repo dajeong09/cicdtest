@@ -33,17 +33,16 @@ public enum ErrorCode {
     DETAIL_NOT_FOUND("DETAIL_NOT_FOUND", "해당 상세 정보를 찾을 수 없습니다."),
 
     // TouristSpot(관광지) 관련 오류
-    SPOT_NOT_FOUND("SPOT_NOT_FOUND", "해당 관광지를 찾을 수 없습니다."),
+    TOURISTSPOT_NOT_FOUND("TOURISTSPOT_NOT_FOUND", "해당 관광지를 찾을 수 없습니다."),
 
     // Accommodation(숙소) 관련 오류
     ACCOMMODATION_NOT_FOUND("ACCOMMODATION_NOT_FOUND", "해당 숙소를 찾을 수 없습니다."),
 
-    //Favorite(즐겨찾기) 관련 오류
-//    DUPLICATE_LIKES("DUPLICATE_LIKES", "이미 좋아요를 눌렀습니다."),
-//    LIKES_NOT_FOUND("FAVORITE_NOT_FOUND", "아직 좋아요를 누르지 않았습니다."),
-
     // Restaurant(맛집) 관련 오류
     RESTAURANT_NOT_FOUND("RESTAURANT_NOT_FOUND", "해당 맛집을 찾을 수 없습니다."),
+
+    // Review(리뷰) 관련 오류
+    REVIEW_NOT_FOUND("REVIEW_NOT_FOUND", "해당 리뷰를 찾을 수 없습니다."),
 
     // Course(코스) 관련 오류
     INVALID_CATEGORY("INVALID_CATEGORY", "잘못된 분류 입니다."),

@@ -1,5 +1,8 @@
-package com.innocamp.dduha.model.accommodation;
+package com.innocamp.dduha.model.review;
 
+import com.innocamp.dduha.model.Member;
+import com.innocamp.dduha.model.Timestamped;
+import com.innocamp.dduha.model.accommodation.Accommodation;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -13,22 +16,24 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @Getter
 @Builder
-public class AccommodationReview {
+public class AccommodationReview extends Timestamped {
 
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     private Long id;
 
     @Column(nullable = false)
-    private String reviewer;
-
-    @Column(nullable = false)
     private String review;
 
-    @Column(nullable = false)
-    private LocalDate reviewedAt;
+    @JoinColumn(name = "member_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Member member;
 
     @JoinColumn(name = "acc_id", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
     private Accommodation accommodation;
+
+    public void update(String review) {
+        this.review = review;
+    }
 }
