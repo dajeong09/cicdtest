@@ -9,6 +9,7 @@ import com.innocamp.dduha.jwt.TokenProvider;
 import com.innocamp.dduha.model.Authority;
 import com.innocamp.dduha.model.Member;
 import com.innocamp.dduha.model.RefreshToken;
+import com.innocamp.dduha.repository.EmailEncodeRepository;
 import com.innocamp.dduha.repository.MemberRepository;
 import com.innocamp.dduha.repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +36,8 @@ public class MemberService {
 
     private final TokenProvider tokenProvider;
 
+    private final EmailEncodeRepository emailEncodeRepository;
+
 
     //회원 가입
     @Transactional
@@ -47,6 +50,8 @@ public class MemberService {
                 .authority(Authority.ROLE_MEMBER)
                 .build();
         memberRepository.save(member);
+
+        emailEncodeRepository.deleteByEmail(requestDto.getEmail());
 
         return ResponseDto.success(NULL);
 
@@ -164,9 +169,14 @@ public class MemberService {
 
     // 회원 탈퇴
     @Transactional
-    public ResponseDto<?> deleteMember() {
+    public ResponseDto<?> deleteMember(MemberRequestDto requestDto) {
         Member member = tokenProvider.getMemberFromAuthentication();
         RefreshToken refreshToken = isPresentRefreshToken(member);
+
+        if (!member.validatePassword(passwordEncoder, requestDto.getPassword())) {
+            return ResponseDto.fail(INVALID_PASSWORD);
+        }
+
         if (refreshToken != null) {
             refreshTokenRepository.delete(refreshToken);
         }
