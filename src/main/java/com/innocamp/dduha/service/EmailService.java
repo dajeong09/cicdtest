@@ -61,7 +61,7 @@ public class EmailService {
                 '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
                 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
                 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-                '!', '@', '#', '$', '%', '^', '&'};
+                '!', '@', '#', '$', '%', '&'};
 
         StringBuilder sb = new StringBuilder();
         SecureRandom sr = new SecureRandom();
@@ -91,13 +91,13 @@ public class EmailService {
     // 이메일 전송
     public ResponseDto<?> sendSimpleMessage(EmailRequestDto requestDto) throws Exception {
         Optional<Member> optionalMember = memberRepository.findByEmail(requestDto.getEmail());
-        if (null != optionalMember) {
+        if (!optionalMember.isEmpty()) {
             return ResponseDto.fail(ErrorCode.DUPLICATE_EMAIL);
         }
         EmailEncode emailEncode = isPresentEmailEncodeByEmail(requestDto.getEmail());
-        if (emailEncode.getCreatedAt().isBefore(LocalDateTime.now().plusDays(1))) {
+        if (emailEncode != null && emailEncode.getCreatedAt().plusDays(1).isAfter(LocalDateTime.now())) {
             return  ResponseDto.fail(ErrorCode.ALREADY_REQUESTED_EMAIL);
-        } else {
+        } else if (emailEncode != null) {
             emailEncodeRepository.delete(emailEncode);
         }
         // 요청 만료시간, 저장 만료시간 정하기
@@ -120,7 +120,7 @@ public class EmailService {
             return ResponseDto.fail(ErrorCode.INVALID_CODE);
         }
 
-        if (emailEncode.getCreatedAt().isAfter(LocalDateTime.now().plusDays(1))) {
+        if (emailEncode.getCreatedAt().plusDays(1).isBefore(LocalDateTime.now())) {
             return ResponseDto.fail(ErrorCode.EXPIRED_CODE);
         }
 
