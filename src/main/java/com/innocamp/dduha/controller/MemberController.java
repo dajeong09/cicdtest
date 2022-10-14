@@ -28,18 +28,6 @@ public class MemberController {
         return memberService.signup(requestDto);
     }
 
-    // 이메일 중복 검사
-    @PostMapping("/member/emailcheck")
-    public ResponseDto<?> emailCheck(@RequestBody MemberRequestDto requestDto) {
-        return memberService.emailCheck(requestDto);
-    }
-
-    // 닉네임 중복 검사
-    @PostMapping("/member/nicknamecheck")
-    public ResponseDto<?> nicknameCheck(@RequestBody MemberRequestDto requestDto) {
-        return memberService.nicknameCheck(requestDto);
-    }
-
     // 로그인
     @PostMapping("/member/login")
     public ResponseDto<?> login(@RequestBody LoginRequestDto requestDto, HttpServletResponse response) {

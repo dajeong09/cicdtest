@@ -43,12 +43,18 @@ public class MemberService {
     @Transactional
     public ResponseDto<?> signup(MemberRequestDto requestDto) {
 
-        Member member = Member.builder()
+        Member member = isPresentMemberByNickname(requestDto.getNickname());
+        if (null != member) {
+            return ResponseDto.fail(DUPLICATE_NICKNAME);
+        }
+
+        member = Member.builder()
                 .email(requestDto.getEmail())
                 .nickname(requestDto.getNickname())
                 .password(passwordEncoder.encode(requestDto.getPassword()))
                 .authority(Authority.ROLE_MEMBER)
                 .build();
+
         memberRepository.save(member);
 
         emailEncodeRepository.deleteByEmail(requestDto.getEmail());
@@ -57,36 +63,11 @@ public class MemberService {
 
     }
 
-    //이메일 중복 검사
-//    @Transactional
-    public ResponseDto<?> emailCheck(MemberRequestDto requestDto) {
-
-        Member member = isPresentMember(requestDto.getEmail());
-        if (member != null) {
-            return ResponseDto.fail(DUPLICATE_EMAIL);
-        }
-
-        return ResponseDto.success(NULL);
-
-    }
-
-    // 닉네임 중복 검사
-    @Transactional
-    public ResponseDto<?> nicknameCheck(MemberRequestDto requestDto) {
-
-        Optional<Member> member = memberRepository.findByNickname(requestDto.getNickname());
-        if (member.isPresent()) {
-            return ResponseDto.fail(DUPLICATE_NICKNAME);
-        }
-
-        return ResponseDto.success(NULL);
-
-    }
 
     // 로그인
     @Transactional
     public ResponseDto<?> login(LoginRequestDto requestDto, HttpServletResponse response) {
-        Member member = isPresentMember(requestDto.getEmail());
+        Member member = isPresentMemberByEmail(requestDto.getEmail());
         if (null == member) {
             return ResponseDto.fail(MEMBER_NOT_FOUND);
         }
@@ -185,8 +166,14 @@ public class MemberService {
     }
 
     @Transactional
-    public Member isPresentMember(String email) {
+    public Member isPresentMemberByEmail(String email) {
         Optional<Member> optionalMember = memberRepository.findByEmail(email);
+        return optionalMember.orElse(null);
+    }
+
+    @Transactional
+    public Member isPresentMemberByNickname(String nickname) {
+        Optional<Member> optionalMember = memberRepository.findByNickname(nickname);
         return optionalMember.orElse(null);
     }
 
