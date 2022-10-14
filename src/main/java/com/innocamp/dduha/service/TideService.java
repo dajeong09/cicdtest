@@ -40,8 +40,9 @@ public class TideService {
                                     .code(dataDetails[2].substring(dataDetails[2].indexOf(":")+1)).build());
                 }
                 tideResponseDtoList.add(TideResponseDto.builder()
-                        .date(date)
-                        .tide(tideDetailResponseDtoList).build());
+                                .observatory(tide.getObservatory())
+                                .date(date)
+                                .tide(tideDetailResponseDtoList).build());
             }
         }
 
