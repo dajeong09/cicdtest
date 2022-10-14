@@ -77,4 +77,8 @@ public class Member {
         this.password = password;
     }
 
+    public void resetPassword(PasswordEncoder passwordEncoder, String password) {
+        this.password = passwordEncoder.encode(password);
+    }
+
 }

@@ -99,14 +99,13 @@ public class MemberController {
 
     // 이메일로 비밀번호 재설정 링크 전송
     @PostMapping("/member/findPassword")
-    public ResponseDto<?> findPassword(@RequestBody PasswordRequestDto requestDto) throws Exception {
+    public ResponseDto<?> findPassword(@RequestBody EmailRequestDto requestDto) throws Exception {
         return passwordService.sendSimpleMessage(requestDto);
     }
 
-    // RandomCode를 이용해 이메일 확인
-    @GetMapping("/member/password")
-    public ResponseDto<?> getPasswordEmail(@RequestParam(value = "code") String code) {
-        return passwordService.getEmail(code);
+    // 비밀번호 재설정
+    @PostMapping("/member/resetPassword")
+    public ResponseDto<?> resetPassword(@RequestBody PasswordRequestDto requestDto) {
+        return passwordService.resetPassword(requestDto);
     }
-
 }
