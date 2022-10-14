@@ -4,7 +4,6 @@ import com.innocamp.dduha.dto.ResponseDto;
 import com.innocamp.dduha.dto.request.EmailRequestDto;
 import com.innocamp.dduha.dto.request.PasswordRequestDto;
 import com.innocamp.dduha.exception.ErrorCode;
-import com.innocamp.dduha.model.EmailEncode;
 import com.innocamp.dduha.model.Member;
 import com.innocamp.dduha.model.PasswordEncode;
 import com.innocamp.dduha.repository.EmailEncodeRepository;
@@ -37,7 +36,6 @@ public class PasswordService {
     private final PasswordEncodeRepository passwordEncodeRepository;
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
-    private final EmailEncodeRepository emailEncodeRepository;
 
 
     @Value("${naver.mail-address}")
@@ -100,15 +98,14 @@ public class PasswordService {
         if (optionalMember.isEmpty()) {
             return ResponseDto.fail(ErrorCode.EMAIL_NOT_FOUND);
         }
-        EmailEncode emailEncode = isPresentEmailEncodeByEmail(requestDto.getEmail());
-        if (emailEncode != null && emailEncode.getCreatedAt().plusDays(1).isAfter(LocalDateTime.now())) {
-            return  ResponseDto.fail(ErrorCode.ALREADY_REQUESTED_EMAIL);
-        } else if (emailEncode != null) {
-            emailEncodeRepository.delete(emailEncode);
+        PasswordEncode passwordEncode = isPresentPasswordEncodeByEmail(requestDto.getEmail());
+        if (passwordEncode != null && passwordEncode.getCreatedAt().plusDays(1).isAfter(LocalDateTime.now())) {
+            return ResponseDto.fail(ErrorCode.ALREADY_REQUESTED_EMAIL);
+        } else if (passwordEncode != null) {
+            passwordEncodeRepository.delete(passwordEncode);
         }
-
         String code = saveCode(requestDto);
-        MimeMessage message = createMessage(requestDto.getEmail(),code);
+        MimeMessage message = createMessage(requestDto.getEmail(), code);
         try {
             emailSender.send(message);
         } catch (MailException es) {
@@ -119,8 +116,16 @@ public class PasswordService {
     }
 
     // 비밀번호 재설정
+    @Transactional
     public ResponseDto<?> resetPassword(PasswordRequestDto requestDto) {
-        PasswordEncode passwordEncode = passwordEncodeRepository.findPasswordEncodeByRandomCode(requestDto.getCode());
+        PasswordEncode passwordEncode = isPresentPasswordByRandomCode(requestDto.getCode());
+        if (null == passwordEncode) {
+            return ResponseDto.fail(INVALID_RANDOM_CODE);
+        }
+        if (passwordEncode.getCreatedAt().plusDays(1).isBefore(LocalDateTime.now())) {
+            passwordEncodeRepository.delete(passwordEncode);
+            return ResponseDto.fail(ErrorCode.EXPIRED_CODE);
+        }
         String email = passwordEncode.getEmail();
         Member member = memberRepository.findMemberByEmail(email);
 
@@ -131,13 +136,21 @@ public class PasswordService {
         member.resetPassword(passwordEncoder, requestDto.getPassword());
         memberRepository.save(member);
 
+        passwordEncodeRepository.delete(passwordEncode);
+
         return ResponseDto.success(NULL);
     }
 
     @Transactional
-    public EmailEncode isPresentEmailEncodeByEmail(String email) {
-        Optional<EmailEncode> optionalEmailEncode = emailEncodeRepository.findByEmail(email);
-        return optionalEmailEncode.orElse(null);
+    public PasswordEncode isPresentPasswordEncodeByEmail(String email) {
+        Optional<PasswordEncode> optionalPasswordEncode = passwordEncodeRepository.findPasswordEncodeByEmail(email);
+        return optionalPasswordEncode.orElse(null);
+    }
+
+    @Transactional
+    public PasswordEncode isPresentPasswordByRandomCode(String code) {
+        Optional<PasswordEncode> optionalPasswordEncode = passwordEncodeRepository.findPasswordEncodeByRandomCode(code);
+        return optionalPasswordEncode.orElse(null);
     }
 
 }
