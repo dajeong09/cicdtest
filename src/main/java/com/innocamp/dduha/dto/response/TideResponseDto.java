@@ -8,6 +8,7 @@ import java.util.List;
 @Builder
 @Getter
 public class TideResponseDto {
+    private String observatory;
     private String date;
     private List<TideDetailResponseDto> tide;
 }
