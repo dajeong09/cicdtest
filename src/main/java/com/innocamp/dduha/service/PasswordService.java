@@ -120,11 +120,11 @@ public class PasswordService {
     public ResponseDto<?> resetPassword(PasswordRequestDto requestDto) {
         PasswordEncode passwordEncode = isPresentPasswordByRandomCode(requestDto.getCode());
         if (null == passwordEncode) {
-            return ResponseDto.fail(INVALID_RANDOM_CODE);
+            return ResponseDto.fail(INVALID_CODE);
         }
         if (passwordEncode.getCreatedAt().plusDays(1).isBefore(LocalDateTime.now())) {
             passwordEncodeRepository.delete(passwordEncode);
-            return ResponseDto.fail(ErrorCode.EXPIRED_CODE);
+            return ResponseDto.fail(EXPIRED_CODE);
         }
         String email = passwordEncode.getEmail();
         Member member = memberRepository.findMemberByEmail(email);
