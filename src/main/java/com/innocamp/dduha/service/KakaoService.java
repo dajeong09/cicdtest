@@ -55,11 +55,16 @@ public class KakaoService {
 
         Member member = memberRepository.findMemberByEmail(kakaoUserInfo.getEmail());
 
+        String kNickname = kakaoUserInfo.getNickname()+"_k1";
+        while (memberRepository.findByNickname(kNickname).isPresent()) {
+            String[] strings = kNickname.split("_k");
+            kNickname = strings[0]+"_k"+ (Integer.parseInt(strings[1])+1);
+        }
 
         // 3. 처음 접속한 회원일 경우, 회원 가입 요청
         if (member == null) {
             member = Member.builder()
-                    .nickname(kakaoUserInfo.getNickname())
+                    .nickname(kNickname)
                     .email(kakaoUserInfo.getEmail())
                     .password("7ZqM7JuQ6rCA7J6F65qc67KF7ZWY7Jqw6rmM7J6F64uI64uk")
                     .authority(Authority.ROLE_MEMBER)

@@ -54,10 +54,17 @@ public class GoogleService {
 
         Member member = memberRepository.findMemberByEmail(googleUser.getEmail());
 
+        String[] str = googleUser.getEmail().split("@");
+        String gNickname = str[0]+"_g1";
+        while (memberRepository.findByNickname(gNickname).isPresent()) {
+            String[] strings = gNickname.split("_g");
+            gNickname = strings[0]+"_g"+ (Integer.parseInt(strings[1])+1);
+        }
+
         if (member == null) {
-            String[] str = googleUser.getEmail().split("@");
+
             member = Member.builder()
-                    .nickname(str[0]) // 구글에 닉네임 정보 없어서 대체함
+                    .nickname(gNickname) // 구글에 닉네임 정보 없어서 대체함
                     .email(googleUser.getEmail())
                     .password("7ZqM7JuQ6rCA7J6F65qc67KF7ZWY7Jqw6rmM7J6F64uI64uk")
                     .authority(Authority.ROLE_MEMBER)
