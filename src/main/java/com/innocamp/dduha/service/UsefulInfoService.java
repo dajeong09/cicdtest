@@ -17,47 +17,23 @@ public class UsefulInfoService {
 
     private final UsefulInfoRepository usefulInfoRepository;
 
-    public ResponseDto<?> getUsefulInfo() {
-        List<UsefulInfo> usefulInfoList = usefulInfoRepository.findAll();
+    public ResponseDto<?> getUsefulInfo(String category) {
+
+        List<UsefulInfo> usefulInfoList = usefulInfoRepository.findAllByCategory(category);
 
         List<UsefulInfoResponseDto> usefulInfoResponseDtoList = new ArrayList<>();
-        List<InfoResponseDto> publicInfoResponseDtoList = new ArrayList<>();
-        List<InfoResponseDto> bagInfoResponseDtoList = new ArrayList<>();
-        List<InfoResponseDto> taxiInfoResponseDtoList = new ArrayList<>();
+        List<InfoResponseDto> infoResponseDtoList = new ArrayList<>();
 
         for (UsefulInfo usefulInfo : usefulInfoList) {
-            switch (usefulInfo.getCategory()) {
-                case "대중교통":
-                    publicInfoResponseDtoList.add(InfoResponseDto.builder()
-                            .name(usefulInfo.getName())
-                            .address(usefulInfo.getAddress()).build());
-                    break;
-                case "짐배달":
-                    bagInfoResponseDtoList.add(InfoResponseDto.builder()
-                            .name(usefulInfo.getName())
-                            .address(usefulInfo.getAddress())
-                            .build());
-                    break;
-                case "콜택시":
-                    taxiInfoResponseDtoList.add(InfoResponseDto.builder()
+            infoResponseDtoList.add(InfoResponseDto.builder()
                             .region(usefulInfo.getRegion())
                             .name(usefulInfo.getName())
                             .address(usefulInfo.getAddress()).build());
-                    break;
-                default:
-                    break;
-            }
         }
 
         usefulInfoResponseDtoList.add(UsefulInfoResponseDto.builder()
-                .category("대중교통")
-                .info(publicInfoResponseDtoList).build());
-        usefulInfoResponseDtoList.add(UsefulInfoResponseDto.builder()
-                .category("짐배달")
-                .info(bagInfoResponseDtoList).build());
-        usefulInfoResponseDtoList.add(UsefulInfoResponseDto.builder()
-                .category("콜택시")
-                .info(taxiInfoResponseDtoList).build());
+                .category(category)
+                .info(infoResponseDtoList).build());
 
         return ResponseDto.success(usefulInfoResponseDtoList);
     }

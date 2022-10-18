@@ -478,7 +478,7 @@ class DateComparator implements Comparator<PlaceResponseDto> {
 
     @Override
     public int compare(PlaceResponseDto o1, PlaceResponseDto o2) {
-        return o2.getCreatedAt().getNano() - o1.getCreatedAt().getNano();
+        return o2.getCreatedAt().compareTo(o1.getCreatedAt());
     }
 }
 class DistanceComparator implements Comparator<CourseNearbyResponseDto> {
