@@ -4,7 +4,6 @@ import com.innocamp.dduha.dto.ResponseDto;
 import com.innocamp.dduha.dto.response.*;
 import com.innocamp.dduha.jwt.TokenProvider;
 import com.innocamp.dduha.model.Member;
-import com.innocamp.dduha.model.accommodation.Accommodation;
 import com.innocamp.dduha.model.bookmark.RestaurantBookmark;
 import com.innocamp.dduha.model.nearby.RestaurantNearby;
 import com.innocamp.dduha.model.restaurant.Restaurant;
@@ -21,8 +20,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +38,8 @@ public class RestaurantService {
     private final RestaurantNearbyRepository restaurantNearbyRepository;
 
     private final TokenProvider tokenProvider;
+
+    @Transactional(readOnly = true)
     public ResponseDto<?> getRestaurantList(int page, String region) {
 
         // 사용자 검증 추가 필요

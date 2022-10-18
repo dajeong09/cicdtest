@@ -20,8 +20,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +39,7 @@ public class AccommodationService {
 
     private final TokenProvider tokenProvider;
 
+    @Transactional(readOnly = true)
     public ResponseDto<?> getAccommodationList(int page, String region) {
 
         Member member = tokenProvider.getMemberFromAuthentication();
