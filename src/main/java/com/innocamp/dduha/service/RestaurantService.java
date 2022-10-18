@@ -42,7 +42,6 @@ public class RestaurantService {
     @Transactional(readOnly = true)
     public ResponseDto<?> getRestaurantList(int page, String region) {
 
-        // 사용자 검증 추가 필요
         Member member = tokenProvider.getMemberFromAuthentication();
 
         Sort sort = Sort.by("likeNum").descending();

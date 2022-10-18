@@ -14,11 +14,6 @@ public class GoogleLoginDto {
     private String email;
     private String emailVerified;
     private String atHash;
-//    private String name;
-//    private String picture;
-//    private String givenName;
-//    private String familyName;
-//    private String locale;
     private String iat;
     private String exp;
     private String kid;

@@ -130,7 +130,7 @@ public class AccommodationService {
 
         List<AccommodationNearby> accommodationNearbyList = accommodationNearbyRepository.findAllByAccommodation(accommodation);
         List<BusStationResponseDto> busStationResponseDtoList = new ArrayList<>();
-        for(AccommodationNearby accommodationNearby : accommodationNearbyList) {
+        for (AccommodationNearby accommodationNearby : accommodationNearbyList) {
             busStationResponseDtoList.add(
                     BusStationResponseDto.builder()
                             .stationName(accommodationNearby.getBusStation().getStationName())

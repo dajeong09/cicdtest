@@ -6,7 +6,6 @@ import com.innocamp.dduha.dto.request.PasswordRequestDto;
 import com.innocamp.dduha.exception.ErrorCode;
 import com.innocamp.dduha.model.Member;
 import com.innocamp.dduha.model.PasswordEncode;
-import com.innocamp.dduha.repository.EmailEncodeRepository;
 import com.innocamp.dduha.repository.MemberRepository;
 import com.innocamp.dduha.repository.PasswordEncodeRepository;
 import lombok.RequiredArgsConstructor;

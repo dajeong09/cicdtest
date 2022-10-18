@@ -19,8 +19,6 @@ import com.innocamp.dduha.repository.touristspot.TouristSpotRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import javax.servlet.http.HttpServletRequest;
-
 import java.util.Optional;
 
 import static com.innocamp.dduha.exception.ErrorCode.*;
@@ -37,16 +35,9 @@ public class ReviewService {
     private final AccommodationRepository accommodationRepository;
     private final AccommodationReviewRepository accommodationReviewRepository;
 
-    public ResponseDto<?> createReview(String category, Long id, ReviewRequestDto requestDto, HttpServletRequest request) {
-
-        if (!tokenProvider.validateToken(request.getHeader("Refresh-Token"))) {
-            return ResponseDto.fail(INVALID_TOKEN);
-        }
+    public ResponseDto<?> createReview(String category, Long id, ReviewRequestDto requestDto) {
 
         Member member = tokenProvider.getMemberFromAuthentication();
-        if (null == member) {
-            return ResponseDto.fail(MEMBER_NOT_FOUND);
-        }
 
         switch (category) {
             case "touristspot":
@@ -95,16 +86,9 @@ public class ReviewService {
         return ResponseDto.success(NULL);
     }
 
-    public ResponseDto<?> updateReview(String category, Long id, ReviewRequestDto requestDto, HttpServletRequest request) {
-
-        if (!tokenProvider.validateToken(request.getHeader("Refresh-Token"))) {
-            return ResponseDto.fail(INVALID_TOKEN);
-        }
+    public ResponseDto<?> updateReview(String category, Long id, ReviewRequestDto requestDto) {
 
         Member member = tokenProvider.getMemberFromAuthentication();
-        if (null == member) {
-            return ResponseDto.fail(MEMBER_NOT_FOUND);
-        }
 
         switch (category) {
             case "touristspot":
@@ -147,16 +131,9 @@ public class ReviewService {
         return ResponseDto.success(NULL);
     }
 
-    public ResponseDto deleteReview(String category, Long id, HttpServletRequest request) {
-
-        if (!tokenProvider.validateToken(request.getHeader("Refresh-Token"))) {
-            return ResponseDto.fail(INVALID_TOKEN);
-        }
+    public ResponseDto<?> deleteReview(String category, Long id) {
 
         Member member = tokenProvider.getMemberFromAuthentication();
-        if (null == member) {
-            return ResponseDto.fail(MEMBER_NOT_FOUND);
-        }
 
         switch (category) {
             case "touristspot":

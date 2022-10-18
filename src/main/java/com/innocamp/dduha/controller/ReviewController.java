@@ -6,8 +6,6 @@ import com.innocamp.dduha.service.ReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
-
 @RestController
 @RequiredArgsConstructor
 public class ReviewController {
@@ -15,20 +13,17 @@ public class ReviewController {
     private final ReviewService reviewService;
 
     @PostMapping("/auth/{category}/review/{id}")
-    public ResponseDto<?> createReview(@PathVariable String category, @PathVariable Long id,
-                                       @RequestBody ReviewRequestDto requestDto, HttpServletRequest request) {
-        return reviewService.createReview(category, id, requestDto, request);
+    public ResponseDto<?> createReview(@PathVariable String category, @PathVariable Long id, @RequestBody ReviewRequestDto requestDto) {
+        return reviewService.createReview(category, id, requestDto);
     }
 
     @PutMapping("/auth/{category}/review/{id}")
-    public ResponseDto updateReview(@PathVariable String category, @PathVariable Long id,
-                                    @RequestBody ReviewRequestDto requestDto, HttpServletRequest request) {
-        return reviewService.updateReview(category, id, requestDto, request);
+    public ResponseDto<?> updateReview(@PathVariable String category, @PathVariable Long id, @RequestBody ReviewRequestDto requestDto) {
+        return reviewService.updateReview(category, id, requestDto);
     }
 
     @DeleteMapping("/auth/{category}/review/{id}")
-    public ResponseDto deleteeview(@PathVariable String category, @PathVariable Long id,
-                                    HttpServletRequest request) {
-        return reviewService.deleteReview(category, id, request);
+    public ResponseDto<?> deleteReview(@PathVariable String category, @PathVariable Long id) {
+        return reviewService.deleteReview(category, id);
     }
 }

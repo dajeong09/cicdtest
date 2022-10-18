@@ -2,6 +2,7 @@ package com.innocamp.dduha.service;
 
 import com.innocamp.dduha.dto.ResponseDto;
 import com.innocamp.dduha.dto.response.*;
+import com.innocamp.dduha.jwt.TokenProvider;
 import com.innocamp.dduha.model.Member;
 import com.innocamp.dduha.model.bookmark.AccommodationBookmark;
 import com.innocamp.dduha.model.bookmark.RestaurantBookmark;
@@ -14,12 +15,9 @@ import com.innocamp.dduha.repository.bookmark.TripBookmarkRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import javax.servlet.http.HttpServletRequest;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.innocamp.dduha.exception.ErrorCode.*;
 
 @Service
 @RequiredArgsConstructor
@@ -29,19 +27,12 @@ public class MyPageService {
     private final TouristSpotBookmarkRepository touristSpotBookmarkRepository;
     private final RestaurantBookmarkRepository restaurantBookmarkRepository;
     private final AccommodationBookmarkRepository accommodationBookmarkRepository;
-
-    private final MemberService memberService;
+    private final TokenProvider tokenProvider;
 
     // 내가 즐겨찾기한 각 목록 조회(즐겨찾기 개수)
-    public ResponseDto<?> getMyBookmarkedList(HttpServletRequest request) {
+    public ResponseDto<?> getMyBookmarkedList() {
 
-        if (null == request.getHeader("Authorization")) {
-            return ResponseDto.fail(MEMBER_NOT_FOUND);
-        }
-        Member member = memberService.validateMember(request);
-        if (null == member) {
-            return ResponseDto.fail(INVALID_TOKEN);
-        }
+        Member member = tokenProvider.getMemberFromAuthentication();
 
         int tripBookmarkNum = tripBookmarkRepository.countTripBookmarkByMember(member);
         int touristSpotBookmarkNum = touristSpotBookmarkRepository.countTouristSpotBookmarkByMember(member);
@@ -58,15 +49,9 @@ public class MyPageService {
     }
 
     // 내가 즐겨찾기한 관광지 조회
-    public ResponseDto<?> getMyTouristSpotBookmark(HttpServletRequest request) {
+    public ResponseDto<?> getMyTouristSpotBookmark() {
 
-        if (null == request.getHeader("Authorization")) {
-            return ResponseDto.fail(MEMBER_NOT_FOUND);
-        }
-        Member member = memberService.validateMember(request);
-        if (null == member) {
-            return ResponseDto.fail(INVALID_TOKEN);
-        }
+        Member member = tokenProvider.getMemberFromAuthentication();
 
         List<TouristSpotBookmark> touristSpotBookmarkList = touristSpotBookmarkRepository.findAllByMember(member);
         List<TouristSpotResponseDto> touristSpotResponseDtoList = new ArrayList<>();
@@ -89,14 +74,10 @@ public class MyPageService {
 
 
     //내가 즐겨찾기한 맛집 조회
-    public ResponseDto<?> getMyRestaurantBookmark(HttpServletRequest request) {
-        if (null == request.getHeader("Authorization")) {
-            return ResponseDto.fail(MEMBER_NOT_FOUND);
-        }
-        Member member = memberService.validateMember(request);
-        if (null == member) {
-            return ResponseDto.fail(INVALID_TOKEN);
-        }
+    public ResponseDto<?> getMyRestaurantBookmark() {
+
+        Member member = tokenProvider.getMemberFromAuthentication();
+
         List<RestaurantBookmark> restaurantBookmarkList = restaurantBookmarkRepository.findAllByMember(member);
         List<RestaurantResponseDto> RestaurantResponseDtoList = new ArrayList<>();
 
@@ -117,14 +98,10 @@ public class MyPageService {
     }
 
     //내가 즐겨찾기한 숙소 조회
-    public ResponseDto<?> getMyAccommodationBookmark(HttpServletRequest request) {
-        if (null == request.getHeader("Authorization")) {
-            return ResponseDto.fail(MEMBER_NOT_FOUND);
-        }
-        Member member = memberService.validateMember(request);
-        if (null == member) {
-            return ResponseDto.fail(INVALID_TOKEN);
-        }
+    public ResponseDto<?> getMyAccommodationBookmark() {
+
+        Member member = tokenProvider.getMemberFromAuthentication();
+
         List<AccommodationBookmark> accommodationBoookmarkList = accommodationBookmarkRepository.findAllByMember(member);
         List<AccommodationResponseDto> AccommodationResponseDtoList = new ArrayList<>();
 
@@ -145,14 +122,10 @@ public class MyPageService {
     }
 
     //내가 즐겨찾기한 일정 조회
-    public ResponseDto<?> getMyTripBookmark(HttpServletRequest request) {
-        if (null == request.getHeader("Authorization")) {
-            return ResponseDto.fail(MEMBER_NOT_FOUND);
-        }
-        Member member = memberService.validateMember(request);
-        if (null == member) {
-            return ResponseDto.fail(INVALID_TOKEN);
-        }
+    public ResponseDto<?> getMyTripBookmark() {
+
+        Member member = tokenProvider.getMemberFromAuthentication();
+
         List<TripBookmark> tripBookmarkList = tripBookmarkRepository.findAllByMember(member);
         List<TripResponseDto> TripResponseDtoList = new ArrayList<>();
 

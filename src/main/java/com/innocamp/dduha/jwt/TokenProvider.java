@@ -2,9 +2,7 @@ package com.innocamp.dduha.jwt;
 
 import com.innocamp.dduha.model.Authority;
 import com.innocamp.dduha.model.Member;
-import com.innocamp.dduha.model.RefreshToken;
 import com.innocamp.dduha.model.UserDetailsImpl;
-import com.innocamp.dduha.repository.RefreshTokenRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -24,19 +22,11 @@ import java.util.Date;
 public class TokenProvider {
 
     private static final String AUTHORITIES_KEY = "auth";
-
     private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24;            //1일
-
-    private static final long REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24 * 7;     //7일
-
     private final Key key;
 
-    private final RefreshTokenRepository refreshTokenRepository;
 
-
-    public TokenProvider(@Value("${jwt.secret}") String secretKey,
-                         RefreshTokenRepository refreshTokenRepository) {
-        this.refreshTokenRepository = refreshTokenRepository;
+    public TokenProvider(@Value("${jwt.secret}") String secretKey) {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         this.key = Keys.hmacShaKeyFor(keyBytes);
     }
@@ -46,29 +36,15 @@ public class TokenProvider {
 
         Date accessTokenExpiresIn = new Date(now + ACCESS_TOKEN_EXPIRE_TIME);
         String accessToken = Jwts.builder()
-                .setSubject(member.getEmail() + ":" + member.getNickname() + ":" +  member.getProvider())
+                .setSubject(member.getEmail() + ":" + member.getNickname() + ":" + member.getProvider())
                 .claim(AUTHORITIES_KEY, Authority.ROLE_MEMBER.toString())
                 .setExpiration(accessTokenExpiresIn)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
 
-        String refreshToken = Jwts.builder()
-                .setExpiration(new Date(now + REFRESH_TOKEN_EXPIRE_TIME))
-                .signWith(key, SignatureAlgorithm.HS256)
-                .compact();
-
-        RefreshToken refreshTokenObject = RefreshToken.builder()
-                .id(member.getId())
-                .member(member)
-                .value(refreshToken)
-                .build();
-
-        refreshTokenRepository.save(refreshTokenObject);
-
         return TokenDto.builder()
                 .accessToken(accessToken)
                 .accessTokenExpiresIn(accessTokenExpiresIn.getTime())
-                .refreshToken(refreshToken)
                 .build();
 
     }
@@ -97,8 +73,6 @@ public class TokenProvider {
         }
         return false;
     }
-
-
 
 
 }

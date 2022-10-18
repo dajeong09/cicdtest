@@ -8,16 +8,12 @@ import com.innocamp.dduha.jwt.TokenDto;
 import com.innocamp.dduha.jwt.TokenProvider;
 import com.innocamp.dduha.model.Authority;
 import com.innocamp.dduha.model.Member;
-import com.innocamp.dduha.model.RefreshToken;
 import com.innocamp.dduha.repository.EmailEncodeRepository;
 import com.innocamp.dduha.repository.MemberRepository;
-import com.innocamp.dduha.repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 import java.util.Optional;
@@ -29,13 +25,8 @@ import static com.innocamp.dduha.exception.ErrorCode.*;
 public class MemberService {
 
     private final MemberRepository memberRepository;
-
-    private final RefreshTokenRepository refreshTokenRepository;
-
     private final PasswordEncoder passwordEncoder;
-
     private final TokenProvider tokenProvider;
-
     private final EmailEncodeRepository emailEncodeRepository;
 
 
@@ -78,45 +69,18 @@ public class MemberService {
 
         TokenDto tokenDto = tokenProvider.generateTokenDto(member);
         response.addHeader("Authorization", "Bearer " + tokenDto.getAccessToken());
-        response.addHeader("Refresh-Token", tokenDto.getRefreshToken());
         response.addHeader("Access-Token-Expire-Time", tokenDto.getAccessTokenExpiresIn().toString());
 
         return ResponseDto.success(NULL);
 
     }
 
-    // 로그 아웃
-    @Transactional
-    public ResponseDto<?> logout(HttpServletRequest request) {
-        if (!tokenProvider.validateToken(request.getHeader("Refresh-Token"))) {
-            return ResponseDto.fail(INVALID_TOKEN);
-        }
-
-        Member member = tokenProvider.getMemberFromAuthentication();
-        if (null == member) {
-            return ResponseDto.fail(MEMBER_NOT_FOUND);
-        }
-
-        RefreshToken refreshToken = isPresentRefreshToken(member);
-        if (null == refreshToken) {
-            return ResponseDto.fail(REFRESH_TOKEN_NOT_FOUND);
-        }
-
-        refreshTokenRepository.delete(refreshToken);
-        return ResponseDto.success(NULL);
-
-    }
-
     // 회원 정보 수정
     @Transactional
-    public ResponseDto<?> modifyMember(@RequestBody ModifyMemberRequestDto requestDto, HttpServletRequest request, HttpServletResponse response) {
-        if (null == request.getHeader("Authorization")) {
-            return ResponseDto.fail(MEMBER_NOT_FOUND);
-        }
-        Member member = validateMember(request);
-        if (null == member) {
-            return ResponseDto.fail(INVALID_TOKEN);
-        }
+    public ResponseDto<?> modifyMember(ModifyMemberRequestDto requestDto, HttpServletResponse response) {
+
+        Member member = tokenProvider.getMemberFromAuthentication();
+
         String password = member.getPassword();
         String currentPassword = requestDto.getCurrentPassword();
         if (currentPassword != null) {
@@ -129,21 +93,12 @@ public class MemberService {
             password = passwordEncoder.encode(requestDto.getNewPassword());
         }
 
-        member.modify(requestDto.getNickname(),password);
+        member.modify(requestDto.getNickname(), password);
         memberRepository.save(member);
-
-        RefreshToken refreshToken = isPresentRefreshToken(member);
-        if (null == refreshToken) {
-            return ResponseDto.fail(REFRESH_TOKEN_NOT_FOUND);
-        }
-
-        refreshTokenRepository.delete(refreshToken);
 
         TokenDto tokenDto = tokenProvider.generateTokenDto(member);
         response.addHeader("Authorization", "Bearer " + tokenDto.getAccessToken());
-        response.addHeader("Refresh-Token", tokenDto.getRefreshToken());
         response.addHeader("Access-Token-Expire-Time", tokenDto.getAccessTokenExpiresIn().toString());
-
 
         return ResponseDto.success(NULL);
     }
@@ -151,16 +106,13 @@ public class MemberService {
     // 회원 탈퇴
     @Transactional
     public ResponseDto<?> deleteMember(MemberRequestDto requestDto) {
+
         Member member = tokenProvider.getMemberFromAuthentication();
-        RefreshToken refreshToken = isPresentRefreshToken(member);
 
         if (!member.validatePassword(passwordEncoder, requestDto.getPassword())) {
             return ResponseDto.fail(INVALID_PASSWORD);
         }
 
-        if (refreshToken != null) {
-            refreshTokenRepository.delete(refreshToken);
-        }
         memberRepository.delete(member);
         return ResponseDto.success(NULL);
     }
@@ -177,17 +129,4 @@ public class MemberService {
         return optionalMember.orElse(null);
     }
 
-    @Transactional
-    public RefreshToken isPresentRefreshToken(Member member) {
-        Optional<RefreshToken> optionalRefreshToken = refreshTokenRepository.findByMember(member);
-        return optionalRefreshToken.orElse(null);
-    }
-
-    @Transactional
-    public Member validateMember(HttpServletRequest request) {
-        if (!tokenProvider.validateToken(request.getHeader("Refresh-Token"))) {
-            return null;
-        }
-        return tokenProvider.getMemberFromAuthentication();
-    }
 }
