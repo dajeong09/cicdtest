@@ -30,8 +30,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.servlet.http.HttpServletRequest;
-
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -57,35 +55,28 @@ public class CourseService {
     private final TokenProvider tokenProvider;
 
     @Transactional
-    public ResponseDto<?> addCourseDetail(CourseDetailRequestDto requestDto, HttpServletRequest request) {
-
-        if (!tokenProvider.validateToken(request.getHeader("Refresh-Token"))) {
-            return ResponseDto.fail(INVALID_TOKEN);
-        }
+    public ResponseDto<?> addCourseDetail(CourseDetailRequestDto requestDto) {
 
         Member member = tokenProvider.getMemberFromAuthentication();
-        if (null == member) {
-            return ResponseDto.fail(MEMBER_NOT_FOUND);
-        }
 
         Course course = isPresentCourse(requestDto.getCourseId());
         if (null == course) {
             return ResponseDto.fail(COURSE_NOT_FOUND);
         }
 
-        if(!course.getTrip().getMember().getId().equals(member.getId())) {
+        if (!course.getTrip().getMember().getId().equals(member.getId())) {
             return ResponseDto.fail(NOT_AUTHORIZED);
         }
 
         int detailOrder = courseDetailAccRepository.countAllByCourse(course) +
-            courseDetailSpotRepository.countAllByCourse(course) +
-            courseDetailRestRepository.countAllByCourse(course) + 1;
+                courseDetailSpotRepository.countAllByCourse(course) +
+                courseDetailRestRepository.countAllByCourse(course) + 1;
 
         if (detailOrder > 10) {
             ResponseDto.fail(EXCEED_MAX_PLACES);
         }
 
-        if(requestDto.getDetailOrder() != 0) {
+        if (requestDto.getDetailOrder() != 0) {
 
             detailOrder = requestDto.getDetailOrder();
 
@@ -152,26 +143,19 @@ public class CourseService {
     }
 
     @Transactional
-    public ResponseDto<?> removeCourseDetail (CourseDetailRequestDto courseDetailRequestDto, HttpServletRequest request) {
-
-        if (!tokenProvider.validateToken(request.getHeader("Refresh-Token"))) {
-            return ResponseDto.fail(INVALID_TOKEN);
-        }
+    public ResponseDto<?> removeCourseDetail(CourseDetailRequestDto courseDetailRequestDto) {
 
         Member member = tokenProvider.getMemberFromAuthentication();
-        if (null == member) {
-            return ResponseDto.fail(MEMBER_NOT_FOUND);
-        }
 
         Course course = null;
         int detailOrder = 0;
         switch (courseDetailRequestDto.getCategory()) {
             case "관광지":
                 CourseDetailSpot courseDetailSpot = isCourseDetailSpot(courseDetailRequestDto.getDetailId());
-                if(null == courseDetailSpot) {
+                if (null == courseDetailSpot) {
                     return ResponseDto.fail(DETAIL_NOT_FOUND);
                 }
-                if(!courseDetailSpot.getCourse().getTrip().getMember().getId().equals(member.getId())) {
+                if (!courseDetailSpot.getCourse().getTrip().getMember().getId().equals(member.getId())) {
                     return ResponseDto.fail(NOT_AUTHORIZED);
                 }
                 courseDetailSpotRepository.delete(courseDetailSpot);
@@ -180,10 +164,10 @@ public class CourseService {
                 break;
             case "맛집":
                 CourseDetailRest courseDetailRest = isCourseDetailRest(courseDetailRequestDto.getDetailId());
-                if(null == courseDetailRest) {
+                if (null == courseDetailRest) {
                     return ResponseDto.fail(DETAIL_NOT_FOUND);
                 }
-                if(!courseDetailRest.getCourse().getTrip().getMember().getId().equals(member.getId())) {
+                if (!courseDetailRest.getCourse().getTrip().getMember().getId().equals(member.getId())) {
                     return ResponseDto.fail(NOT_AUTHORIZED);
                 }
                 courseDetailRestRepository.delete(courseDetailRest);
@@ -192,10 +176,10 @@ public class CourseService {
                 break;
             case "숙소":
                 CourseDetailAcc courseDetailAcc = isCourseDetailAcc(courseDetailRequestDto.getDetailId());
-                if(null == courseDetailAcc) {
+                if (null == courseDetailAcc) {
                     return ResponseDto.fail(DETAIL_NOT_FOUND);
                 }
-                if(!courseDetailAcc.getCourse().getTrip().getMember().getId().equals(member.getId())) {
+                if (!courseDetailAcc.getCourse().getTrip().getMember().getId().equals(member.getId())) {
                     return ResponseDto.fail(NOT_AUTHORIZED);
                 }
                 courseDetailAccRepository.delete(courseDetailAcc);
@@ -290,7 +274,7 @@ public class CourseService {
             );
         }
 
-        if(!bookmarkedPlaceResponseDtoList.isEmpty()) {
+        if (!bookmarkedPlaceResponseDtoList.isEmpty()) {
             bookmarkedPlaceResponseDtoList.sort(new DateComparator());
         }
 
@@ -302,8 +286,8 @@ public class CourseService {
         Member member = tokenProvider.getMemberFromAuthentication();
 
         double differ = 0.0201;
-        List<TouristSpot> touristSpotList = touristSpotRepository.findAllByLatitudeBetweenAndLongitudeBetween(latitude-differ,latitude+differ,longitude-differ,longitude+differ);
-        List<Restaurant> restaurantList = restaurantRepository.findAllByLatitudeBetweenAndLongitudeBetween(latitude-differ,latitude+differ,longitude-differ,longitude+differ);
+        List<TouristSpot> touristSpotList = touristSpotRepository.findAllByLatitudeBetweenAndLongitudeBetween(latitude - differ, latitude + differ, longitude - differ, longitude + differ);
+        List<Restaurant> restaurantList = restaurantRepository.findAllByLatitudeBetweenAndLongitudeBetween(latitude - differ, latitude + differ, longitude - differ, longitude + differ);
 
         List<CourseNearbyResponseDto> courseNearbyResponseDtoList = new ArrayList<>();
 
@@ -325,16 +309,16 @@ public class CourseService {
                 System.out.println("[" + touristSpot.getName() + "] 까지 거리: " + Math.round(dist / 5) * 5 + "m");
                 if (dist < 5000 && touristSpot.getLatitude() != latitude) {
                     courseNearbyResponseDtoList.add(CourseNearbyResponseDto.builder()
-                                    .id(touristSpot.getId())
-                                    .category("관광지")
-                                    .name(touristSpot.getName())
-                                    .description(touristSpot.getDescription())
-                                    .likeNum(touristSpot.getLikeNum())
-                                    .region(touristSpot.getRegion())
-                                    .thumbnailUrl(touristSpot.getThumbnailUrl())
-                                    .isBookmarked(isBookmarked)
-                                    .distance((int)Math.round(dist / 5) * 5)
-                                    .build());
+                            .id(touristSpot.getId())
+                            .category("관광지")
+                            .name(touristSpot.getName())
+                            .description(touristSpot.getDescription())
+                            .likeNum(touristSpot.getLikeNum())
+                            .region(touristSpot.getRegion())
+                            .thumbnailUrl(touristSpot.getThumbnailUrl())
+                            .isBookmarked(isBookmarked)
+                            .distance((int) Math.round(dist / 5) * 5)
+                            .build());
                 }
             }
             for (Restaurant restaurant : restaurantList) {
@@ -361,7 +345,7 @@ public class CourseService {
                             .region(restaurant.getRegion())
                             .thumbnailUrl(restaurant.getThumbnailUrl())
                             .isBookmarked(isBookmarked)
-                            .distance((int)Math.round(dist / 5) * 5)
+                            .distance((int) Math.round(dist / 5) * 5)
                             .build());
                 }
             }
@@ -384,7 +368,7 @@ public class CourseService {
                             .likeNum(touristSpot.getLikeNum())
                             .region(touristSpot.getRegion())
                             .thumbnailUrl(touristSpot.getThumbnailUrl())
-                            .distance((int)Math.round(dist / 5) * 5)
+                            .distance((int) Math.round(dist / 5) * 5)
                             .build());
                 }
             }
@@ -406,13 +390,13 @@ public class CourseService {
                             .likeNum(restaurant.getLikeNum())
                             .region(restaurant.getRegion())
                             .thumbnailUrl(restaurant.getThumbnailUrl())
-                            .distance((int)Math.round(dist / 5) * 5)
+                            .distance((int) Math.round(dist / 5) * 5)
                             .build());
                 }
             }
         }
 
-        if(!courseNearbyResponseDtoList.isEmpty()) {
+        if (!courseNearbyResponseDtoList.isEmpty()) {
             //다른 방법 고민해 보기
             courseNearbyResponseDtoList.sort(new DistanceComparator());
         }
@@ -481,6 +465,7 @@ class DateComparator implements Comparator<PlaceResponseDto> {
         return o2.getCreatedAt().compareTo(o1.getCreatedAt());
     }
 }
+
 class DistanceComparator implements Comparator<CourseNearbyResponseDto> {
 
     @Override

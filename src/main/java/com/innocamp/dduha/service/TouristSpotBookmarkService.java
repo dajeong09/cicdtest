@@ -2,6 +2,7 @@ package com.innocamp.dduha.service;
 
 import com.innocamp.dduha.dto.ResponseDto;
 import com.innocamp.dduha.dto.response.BookmarkResponseDto;
+import com.innocamp.dduha.jwt.TokenProvider;
 import com.innocamp.dduha.model.Member;
 import com.innocamp.dduha.model.bookmark.TouristSpotBookmark;
 import com.innocamp.dduha.model.touristspot.TouristSpot;
@@ -11,32 +12,25 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import java.util.Optional;
 
-import static com.innocamp.dduha.exception.ErrorCode.*;
+import static com.innocamp.dduha.exception.ErrorCode.TOURISTSPOT_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
 public class TouristSpotBookmarkService {
 
     private final TouristSpotRepository touristSpotRepository;
-
     private final TouristSpotBookmarkRepository touristSpotBookmarkRepository;
+    private final TokenProvider tokenProvider;
 
-    private final MemberService memberService;
 
+    public ResponseDto<?> createTouristSpotBookmark(@PathVariable Long id) {
 
-    public ResponseDto<?> createTouristSpotBookmark(@PathVariable Long spotId, HttpServletRequest request) {
-        if (null == request.getHeader("Authorization")) {
-            return ResponseDto.fail(MEMBER_NOT_FOUND);
-        }
-        Member member = memberService.validateMember(request); // 둘 중 하나만 해도 되지 않을까
-        if (null == member) {
-            return ResponseDto.fail(INVALID_TOKEN);
-        }
-        TouristSpot touristSpot = isPresentTouristSpot(spotId);
+        Member member = tokenProvider.getMemberFromAuthentication();
+
+        TouristSpot touristSpot = isPresentTouristSpot(id);
         if (null == touristSpot) {
             return ResponseDto.fail(TOURISTSPOT_NOT_FOUND);
         }

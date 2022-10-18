@@ -2,6 +2,7 @@ package com.innocamp.dduha.service;
 
 import com.innocamp.dduha.dto.ResponseDto;
 import com.innocamp.dduha.dto.response.BookmarkResponseDto;
+import com.innocamp.dduha.jwt.TokenProvider;
 import com.innocamp.dduha.model.Member;
 import com.innocamp.dduha.model.bookmark.RestaurantBookmark;
 import com.innocamp.dduha.model.restaurant.Restaurant;
@@ -10,29 +11,24 @@ import com.innocamp.dduha.repository.restaurant.RestaurantRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import java.util.Optional;
 
-import static com.innocamp.dduha.exception.ErrorCode.*;
+import static com.innocamp.dduha.exception.ErrorCode.RESTAURANT_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
 public class RestaurantBookmarkService {
     private final RestaurantRepository restaurantRepository;
     private final RestaurantBookmarkRepository restaurantBookmarkRepository;
-    private final MemberService memberService;
+    private final TokenProvider tokenProvider;
 
     @Transactional
-    public ResponseDto<?> createRestaurantBookmark(Long restId, HttpServletRequest request) {
-        if (null == request.getHeader("Authorization")) {
-            return ResponseDto.fail(MEMBER_NOT_FOUND);
-        }
-        Member member = memberService.validateMember(request);
-        if (null == member) {
-            return ResponseDto.fail(INVALID_TOKEN);
-        }
-        Restaurant restaurant = isPresentRestaurant(restId);
+    public ResponseDto<?> createRestaurantBookmark(Long id) {
+
+        Member member = tokenProvider.getMemberFromAuthentication();
+
+        Restaurant restaurant = isPresentRestaurant(id);
         if (null == restaurant) {
             return ResponseDto.fail(RESTAURANT_NOT_FOUND);
         }

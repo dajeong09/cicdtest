@@ -40,7 +40,6 @@ public class AccommodationService {
 
     public ResponseDto<?> getAccommodationList() {
 
-        // 사용자 검증 추가 필요
         Member member = tokenProvider.getMemberFromAuthentication();
 
         List<Accommodation> accommodationList = accommodationRepository.findAll();
@@ -110,7 +109,7 @@ public class AccommodationService {
 
         List<AccommodationNearby> accommodationNearbyList = accommodationNearbyRepository.findAllByAccommodation(accommodation);
         List<BusStationResponseDto> busStationResponseDtoList = new ArrayList<>();
-        for(AccommodationNearby accommodationNearby : accommodationNearbyList) {
+        for (AccommodationNearby accommodationNearby : accommodationNearbyList) {
             busStationResponseDtoList.add(
                     BusStationResponseDto.builder()
                             .stationName(accommodationNearby.getBusStation().getStationName())

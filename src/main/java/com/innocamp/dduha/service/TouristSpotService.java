@@ -40,7 +40,6 @@ public class TouristSpotService {
 
     public ResponseDto<?> getTouristSpotList() {
 
-        // 유효한 사용자라는 가정 하에 로그인 상태 확인 (추후 수정) __ 로그인이 안 되어 있으면 null
         Member member = tokenProvider.getMemberFromAuthentication();
 
         List<TouristSpot> touristSpotList = touristSpotRepository.findAll();
@@ -96,7 +95,7 @@ public class TouristSpotService {
     }
 
     public ResponseDto<?> getTouristSpotDetail(Long id) {
-        // 유효한 사용자라는 가정 하에 로그인 상태 확인 (추후 수정) __ 로그인이 안 되어 있으면 null
+
         Member member = tokenProvider.getMemberFromAuthentication();
 
         TouristSpot touristSpot = isPresentTouristSpot(id);
@@ -108,7 +107,7 @@ public class TouristSpotService {
 
         List<TouristSpotNearby> touristSpotNearbyList = touristSpotNearbyRepository.findAllByTouristSpot(touristSpot);
         List<BusStationResponseDto> busStationResponseDtoList = new ArrayList<>();
-        for(TouristSpotNearby touristSpotNearby : touristSpotNearbyList) {
+        for (TouristSpotNearby touristSpotNearby : touristSpotNearbyList) {
             busStationResponseDtoList.add(
                     BusStationResponseDto.builder()
                             .stationName(touristSpotNearby.getBusStation().getStationName())

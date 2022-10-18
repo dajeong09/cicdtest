@@ -16,28 +16,28 @@ public class TripController {
     private final TripService tripService;
 
     @PostMapping("/auth/trip")
-    public ResponseDto<?> createTrip(@RequestBody TripRequestDto requestDto, HttpServletRequest request) {
-        return tripService.createTrip(requestDto, request);
+    public ResponseDto<?> createTrip(@RequestBody TripRequestDto requestDto) {
+        return tripService.createTrip(requestDto);
     }
 
     @GetMapping("/auth/trip")
-    public ResponseDto<?> getMyTrips(HttpServletRequest request) {  //사용자 검증 후 변경
-      return tripService.getMyTrips(request);
+    public ResponseDto<?> getMyTrips() {  //사용자 검증 후 변경
+      return tripService.getMyTrips();
     }
 
     @GetMapping("/auth/trip/{id}")
-    public ResponseDto<?> getMyTripInfo(@PathVariable Long id,  HttpServletRequest request) {
-        return tripService.getMyTripInfo(id, request);
+    public ResponseDto<?> getMyTripInfo(@PathVariable Long id) {
+        return tripService.getMyTripInfo(id);
     }
 
     @PutMapping("/auth/trip/{id}")
-    public ResponseDto<?> modifyMyTrip(@PathVariable Long id, @RequestBody TripRequestDto requestDto, HttpServletRequest request) {
-        return tripService.modifyMyTrip(id, requestDto, request);
+    public ResponseDto<?> modifyMyTrip(@PathVariable Long id, @RequestBody TripRequestDto requestDto) {
+        return tripService.modifyMyTrip(id, requestDto);
     }
 
     @DeleteMapping("/auth/trip/{id}")
-    public ResponseDto<?> deleteTrip(@PathVariable Long id, HttpServletRequest request) {
-        return tripService.deleteTrip(id, request);
+    public ResponseDto<?> deleteTrip(@PathVariable Long id) {
+        return tripService.deleteTrip(id);
     }
 
     @GetMapping("/trip")
@@ -51,7 +51,7 @@ public class TripController {
     }
 
     @PostMapping("/auth/trip/course")
-    public ResponseDto<?> saveCourseDetailOrder(@RequestBody CourseRequestDto courseRequestDto, HttpServletRequest request) {
-        return tripService.saveCourseDetailOrder(courseRequestDto, request);
+    public ResponseDto<?> saveCourseDetailOrder(@RequestBody CourseRequestDto courseRequestDto) {
+        return tripService.saveCourseDetailOrder(courseRequestDto);
     }
 }

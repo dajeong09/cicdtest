@@ -8,27 +8,30 @@ import com.innocamp.dduha.dto.response.CourseDetailResponseDto;
 import com.innocamp.dduha.dto.response.CourseResponseDto;
 import com.innocamp.dduha.dto.response.TripResponseDto;
 import com.innocamp.dduha.jwt.TokenProvider;
-import com.innocamp.dduha.model.*;
+import com.innocamp.dduha.model.Member;
+import com.innocamp.dduha.model.Trip;
 import com.innocamp.dduha.model.bookmark.TripBookmark;
 import com.innocamp.dduha.model.course.Course;
 import com.innocamp.dduha.model.course.CourseDetailAcc;
 import com.innocamp.dduha.model.course.CourseDetailRest;
 import com.innocamp.dduha.model.course.CourseDetailSpot;
-import com.innocamp.dduha.repository.coursedetail.CourseDetailAccReposiotry;
-import com.innocamp.dduha.repository.coursedetail.CourseDetailRestRepository;
-import com.innocamp.dduha.repository.coursedetail.CourseDetailSpotRepository;
 import com.innocamp.dduha.repository.CourseRepository;
 import com.innocamp.dduha.repository.TripRepository;
 import com.innocamp.dduha.repository.bookmark.TripBookmarkRepository;
+import com.innocamp.dduha.repository.coursedetail.CourseDetailAccReposiotry;
+import com.innocamp.dduha.repository.coursedetail.CourseDetailRestRepository;
+import com.innocamp.dduha.repository.coursedetail.CourseDetailSpotRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 
 import static com.innocamp.dduha.exception.ErrorCode.*;
 
@@ -43,21 +46,12 @@ public class TripService {
     private final CourseDetailRestRepository courseDetailRestRepository;
     private final CourseDetailAccReposiotry courseDetailAccRepository;
     private final TripBookmarkRepository tripBookmarkRepository;
-
-
     private final TokenProvider tokenProvider;
 
     @Transactional
-    public ResponseDto<?> createTrip(TripRequestDto requestDto, HttpServletRequest request) {
-
-        if (!tokenProvider.validateToken(request.getHeader("Refresh-Token"))) {
-            return ResponseDto.fail(INVALID_TOKEN);
-        }
+    public ResponseDto<?> createTrip(TripRequestDto requestDto) {
 
         Member member = tokenProvider.getMemberFromAuthentication();
-        if (null == member) {
-            return ResponseDto.fail(MEMBER_NOT_FOUND);
-        }
 
         LocalDate startAt = LocalDate.parse(requestDto.getStartAt(), DateTimeFormatter.ofPattern("yyyy/MM/dd"));
         LocalDate endAt = LocalDate.parse(requestDto.getEndAt(), DateTimeFormatter.ofPattern("yyyy/MM/dd"));
@@ -73,7 +67,7 @@ public class TripService {
 
         Trip savedTrip = tripRepository.save(trip);
 
-        for(int i = 1; i <= ChronoUnit.DAYS.between(startAt,endAt)+1; i++) {
+        for (int i = 1; i <= ChronoUnit.DAYS.between(startAt, endAt) + 1; i++) {
             Course course = Course.builder()
                     .day(i)
                     .trip(trip)
@@ -84,18 +78,11 @@ public class TripService {
         return ResponseDto.success(savedTrip.getId());
     }
 
-    public ResponseDto<?> getMyTrips(HttpServletRequest request) {
-
-        if (!tokenProvider.validateToken(request.getHeader("Refresh-Token"))) {
-            return ResponseDto.fail(INVALID_TOKEN);
-        }
+    public ResponseDto<?> getMyTrips() {
 
         Member member = tokenProvider.getMemberFromAuthentication();
-        if (null == member) {
-            return ResponseDto.fail(MEMBER_NOT_FOUND);
-        }
-        List<TripResponseDto> tripResponseDtoList = new ArrayList<>();
 
+        List<TripResponseDto> tripResponseDtoList = new ArrayList<>();
         List<Trip> tripList = tripRepository.findAllByMemberAndIsHidden(member, false);
 
         for (Trip trip : tripList) {
@@ -111,21 +98,14 @@ public class TripService {
         return ResponseDto.success(tripResponseDtoList);
     }
 
-    public ResponseDto<?> getMyTripInfo(Long id, HttpServletRequest request) {
+    public ResponseDto<?> getMyTripInfo(Long id) {
 
         Trip trip = isPresentTrip(id);
-        if(null == trip || trip.getIsHidden()) {
+        if (null == trip || trip.getIsHidden()) {
             return ResponseDto.fail(TRIP_NOT_FOUND);
         }
 
-        if (!tokenProvider.validateToken(request.getHeader("Refresh-Token"))) {
-            return ResponseDto.fail(INVALID_TOKEN);
-        }
-
         Member member = tokenProvider.getMemberFromAuthentication();
-        if (null == member) {
-            return ResponseDto.fail(MEMBER_NOT_FOUND);
-        }
 
         if (member.getId() != trip.getMember().getId()) {
             return ResponseDto.fail(NOT_AUTHORIZED);
@@ -139,7 +119,7 @@ public class TripService {
             List<CourseDetailResponseDto> courseDetailResponseDtoList = new ArrayList<>();
 
             List<CourseDetailSpot> courseDetailSpotList = courseDetailSpotRepository.findAllByCourse(course);
-            for(CourseDetailSpot courseDetailSpot : courseDetailSpotList) {
+            for (CourseDetailSpot courseDetailSpot : courseDetailSpotList) {
                 courseDetailResponseDtoList.add(CourseDetailResponseDto.builder()
                         .detailOrder(courseDetailSpot.getDetailOrder())
                         .detailId(courseDetailSpot.getId())
@@ -151,7 +131,7 @@ public class TripService {
             }
 
             List<CourseDetailRest> courseDetailRestList = courseDetailRestRepository.findAllByCourse(course);
-            for(CourseDetailRest courseDetailRest : courseDetailRestList) {
+            for (CourseDetailRest courseDetailRest : courseDetailRestList) {
                 courseDetailResponseDtoList.add(CourseDetailResponseDto.builder()
                         .detailOrder(courseDetailRest.getDetailOrder())
                         .detailId(courseDetailRest.getId())
@@ -163,7 +143,7 @@ public class TripService {
             }
 
             List<CourseDetailAcc> courseDetailAccList = courseDetailAccRepository.findAllByCourse(course);
-            for(CourseDetailAcc courseDetailAcc : courseDetailAccList) {
+            for (CourseDetailAcc courseDetailAcc : courseDetailAccList) {
                 courseDetailResponseDtoList.add(CourseDetailResponseDto.builder()
                         .detailOrder(courseDetailAcc.getDetailOrder())
                         .detailId(courseDetailAcc.getId())
@@ -173,7 +153,7 @@ public class TripService {
                         .name(courseDetailAcc.getAccommodation().getName()).build()
                 );
             }
-            if(!courseDetailResponseDtoList.isEmpty()) {
+            if (!courseDetailResponseDtoList.isEmpty()) {
                 //다른 방법 고민해 보기
                 courseDetailResponseDtoList.sort(new CourseDetailComparator());
             }
@@ -198,32 +178,25 @@ public class TripService {
     }
 
     @Transactional
-    public  ResponseDto<?> modifyMyTrip(Long id, TripRequestDto requestDto, HttpServletRequest request) {
+    public ResponseDto<?> modifyMyTrip(Long id, TripRequestDto requestDto) {
 
         Trip trip = isPresentTrip(id);
-        if(null == trip || trip.getIsHidden()) {
+        if (null == trip || trip.getIsHidden()) {
             return ResponseDto.fail(TRIP_NOT_FOUND);
         }
 
-        if (!tokenProvider.validateToken(request.getHeader("Refresh-Token"))) {
-            return ResponseDto.fail(INVALID_TOKEN);
-        }
-
         Member member = tokenProvider.getMemberFromAuthentication();
-        if (null == member) {
-            return ResponseDto.fail(MEMBER_NOT_FOUND);
-        }
 
         if (member.getId() != trip.getMember().getId()) {
             return ResponseDto.fail(NOT_AUTHORIZED);
         }
 
-        int originalDays = (int) ChronoUnit.DAYS.between(trip.getStartAt(), trip.getEndAt())+1;
+        int originalDays = (int) ChronoUnit.DAYS.between(trip.getStartAt(), trip.getEndAt()) + 1;
         trip.update(requestDto);
-        int modifiedDays = (int) ChronoUnit.DAYS.between(trip.getStartAt(), trip.getEndAt())+1;
+        int modifiedDays = (int) ChronoUnit.DAYS.between(trip.getStartAt(), trip.getEndAt()) + 1;
 
         if (originalDays < modifiedDays) {
-            for(int i = originalDays + 1; i <= modifiedDays; i++) {
+            for (int i = originalDays + 1; i <= modifiedDays; i++) {
                 Course course = Course.builder()
                         .day(i)
                         .trip(trip)
@@ -245,21 +218,14 @@ public class TripService {
     }
 
     @Transactional
-    public ResponseDto<?> deleteTrip(Long id, HttpServletRequest request) {
+    public ResponseDto<?> deleteTrip(Long id) {
 
         Trip trip = isPresentTrip(id);
-        if(null == trip) {
+        if (null == trip) {
             return ResponseDto.fail(TRIP_NOT_FOUND);
         }
 
-        if (!tokenProvider.validateToken(request.getHeader("Refresh-Token"))) {
-            return ResponseDto.fail(INVALID_TOKEN);
-        }
-
         Member member = tokenProvider.getMemberFromAuthentication();
-        if (null == member) {
-            return ResponseDto.fail(MEMBER_NOT_FOUND);
-        }
 
         if (member.getId() != trip.getMember().getId()) {
             return ResponseDto.fail(NOT_AUTHORIZED);
@@ -316,7 +282,7 @@ public class TripService {
         Member member = tokenProvider.getMemberFromAuthentication();
 
         Trip trip = isPresentTrip(id);
-        if(null == trip || trip.getIsHidden() || !trip.getIsPublic()) {
+        if (null == trip || trip.getIsHidden() || !trip.getIsPublic()) {
             return ResponseDto.fail(TRIP_NOT_FOUND);
         }
 
@@ -328,7 +294,7 @@ public class TripService {
             List<CourseDetailResponseDto> courseDetailResponseDtoList = new ArrayList<>();
 
             List<CourseDetailSpot> courseDetailSpotList = courseDetailSpotRepository.findAllByCourse(course);
-            for(CourseDetailSpot courseDetailSpot : courseDetailSpotList) {
+            for (CourseDetailSpot courseDetailSpot : courseDetailSpotList) {
                 courseDetailResponseDtoList.add(CourseDetailResponseDto.builder()
                         .detailOrder(courseDetailSpot.getDetailOrder())
                         .detailId(courseDetailSpot.getId())
@@ -340,7 +306,7 @@ public class TripService {
             }
 
             List<CourseDetailRest> courseDetailRestList = courseDetailRestRepository.findAllByCourse(course);
-            for(CourseDetailRest courseDetailRest : courseDetailRestList) {
+            for (CourseDetailRest courseDetailRest : courseDetailRestList) {
                 courseDetailResponseDtoList.add(CourseDetailResponseDto.builder()
                         .detailOrder(courseDetailRest.getDetailOrder())
                         .detailId(courseDetailRest.getId())
@@ -352,7 +318,7 @@ public class TripService {
             }
 
             List<CourseDetailAcc> courseDetailAccList = courseDetailAccRepository.findAllByCourse(course);
-            for(CourseDetailAcc courseDetailAcc : courseDetailAccList) {
+            for (CourseDetailAcc courseDetailAcc : courseDetailAccList) {
                 courseDetailResponseDtoList.add(CourseDetailResponseDto.builder()
                         .detailOrder(courseDetailAcc.getDetailOrder())
                         .detailId(courseDetailAcc.getId())
@@ -363,7 +329,7 @@ public class TripService {
                 );
             }
 
-            if(!courseDetailResponseDtoList.isEmpty()) {
+            if (!courseDetailResponseDtoList.isEmpty()) {
                 //다른 방법 고민해 보기
                 courseDetailResponseDtoList.sort(new CourseDetailComparator());
             }
@@ -377,7 +343,7 @@ public class TripService {
 
         TripResponseDto tripResponseDto;
 
-        if(null != member) {
+        if (null != member) {
             boolean isBookmarked = false;
             TripBookmark findTripBookmark = tripBookmarkRepository.findByMemberAndTrip(member, trip);
             if (null != findTripBookmark) {
@@ -404,23 +370,16 @@ public class TripService {
     }
 
     @Transactional
-    public ResponseDto<?> saveCourseDetailOrder(CourseRequestDto courseRequestDto, HttpServletRequest request) {
-
-        if (!tokenProvider.validateToken(request.getHeader("Refresh-Token"))) {
-            return ResponseDto.fail(INVALID_TOKEN);
-        }
+    public ResponseDto<?> saveCourseDetailOrder(CourseRequestDto courseRequestDto) {
 
         Member member = tokenProvider.getMemberFromAuthentication();
-        if (null == member) {
-            return ResponseDto.fail(MEMBER_NOT_FOUND);
-        }
 
         Course course = isPresentCourse(courseRequestDto.getCourseId());
-        if(null == course) {
+        if (null == course) {
             return ResponseDto.fail(COURSE_NOT_FOUND);
         }
 
-        if(course.getTrip().getMember().getId() != member.getId()) {
+        if (course.getTrip().getMember().getId() != member.getId()) {
             return ResponseDto.fail(NOT_AUTHORIZED);
         }
 
@@ -428,7 +387,7 @@ public class TripService {
             switch (courseDetailRequestDto.getCategory()) {
                 case "관광지":
                     CourseDetailSpot courseDetailSpot = isPresentCourseDetailSpot(courseDetailRequestDto.getDetailId());
-                    if(courseDetailSpot.getCourse().getId() != course.getId()) {
+                    if (courseDetailSpot.getCourse().getId() != course.getId()) {
                         return ResponseDto.fail(NOT_AUTHORIZED);
                     }
                     courseDetailSpot.changeOrder(courseDetailRequestDto.getDetailOrder());
@@ -436,7 +395,7 @@ public class TripService {
                     break;
                 case "맛집":
                     CourseDetailRest courseDetailRest = isPresentCourseDetailRest(courseDetailRequestDto.getDetailId());
-                    if(courseDetailRest.getCourse().getId() != course.getId()) {
+                    if (courseDetailRest.getCourse().getId() != course.getId()) {
                         return ResponseDto.fail(NOT_AUTHORIZED);
                     }
                     courseDetailRest.changeOrder(courseDetailRequestDto.getDetailOrder());
@@ -444,7 +403,7 @@ public class TripService {
                     break;
                 case "숙소":
                     CourseDetailAcc courseDetailAcc = isPresentCourseDetailAcc(courseDetailRequestDto.getDetailId());
-                    if(courseDetailAcc.getCourse().getId() != course.getId()) {
+                    if (courseDetailAcc.getCourse().getId() != course.getId()) {
                         return ResponseDto.fail(NOT_AUTHORIZED);
                     }
                     courseDetailAcc.changeOrder(courseDetailRequestDto.getDetailOrder());

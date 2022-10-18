@@ -37,9 +37,9 @@ public class RestaurantService {
 
     private final RestaurantBookmarkRepository restaurantBookmarkRepository;
     private final RestaurantNearbyRepository restaurantNearbyRepository;
+
     public ResponseDto<?> getRestaurantList() {
 
-        // 사용자 검증 추가 필요
         Member member = tokenProvider.getMemberFromAuthentication();
 
         List<Restaurant> restaurantList = restaurantRepository.findAll();
@@ -109,7 +109,7 @@ public class RestaurantService {
 
         List<RestaurantNearby> restaurantNearbyList = restaurantNearbyRepository.findAllByRestaurant(restaurant);
         List<BusStationResponseDto> busStationResponseDtoList = new ArrayList<>();
-        for(RestaurantNearby restaurantNearby : restaurantNearbyList) {
+        for (RestaurantNearby restaurantNearby : restaurantNearbyList) {
             busStationResponseDtoList.add(
                     BusStationResponseDto.builder()
                             .stationName(restaurantNearby.getBusStation().getStationName())

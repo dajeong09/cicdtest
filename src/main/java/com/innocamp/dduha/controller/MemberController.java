@@ -15,9 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 public class MemberController {
 
     private final MemberService memberService;
-
     private final KakaoService kakaoService;
-
     private final GoogleService googleService;
     private final EmailService emailService;
     private final PasswordService passwordService;
@@ -34,16 +32,10 @@ public class MemberController {
         return memberService.login(requestDto, response);
     }
 
-    // 로그 아웃
-    @PostMapping("/auth/member/logout")
-    public ResponseDto<?> logout(HttpServletRequest request) {
-        return memberService.logout(request);
-    }
-
     // 회원 정보 수정
     @PutMapping("/auth/member/modify")
-    public ResponseDto<?> modifyMember(@RequestBody ModifyMemberRequestDto requestDto, HttpServletRequest request, HttpServletResponse response) {
-        return memberService.modifyMember(requestDto, request, response);
+    public ResponseDto<?> modifyMember(@RequestBody ModifyMemberRequestDto requestDto, HttpServletResponse response) {
+        return memberService.modifyMember(requestDto, response);
     }
 
     // 회원 탈퇴

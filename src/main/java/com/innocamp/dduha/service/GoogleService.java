@@ -74,7 +74,6 @@ public class GoogleService {
         }
         TokenDto tokenDto = tokenProvider.generateTokenDto(member);
         response.addHeader("Authorization", "Bearer " + tokenDto.getAccessToken());
-        response.addHeader("Refresh-Token", tokenDto.getRefreshToken());
         response.addHeader("Access-Token-Expire-Time", tokenDto.getAccessTokenExpiresIn().toString());
 
         return ResponseDto.success(NULL);

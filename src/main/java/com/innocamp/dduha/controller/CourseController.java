@@ -6,8 +6,6 @@ import com.innocamp.dduha.service.CourseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
-
 @RestController
 @RequiredArgsConstructor
 public class CourseController {
@@ -15,13 +13,13 @@ public class CourseController {
     private final CourseService courseService;
 
     @PostMapping("/auth/course/details")
-    public ResponseDto<?> addCourseDetail(@RequestBody CourseDetailRequestDto courseDetailRequestDto, HttpServletRequest request) {
-        return courseService.addCourseDetail(courseDetailRequestDto, request);
+    public ResponseDto<?> addCourseDetail(@RequestBody CourseDetailRequestDto courseDetailRequestDto) {
+        return courseService.addCourseDetail(courseDetailRequestDto);
     }
 
     @DeleteMapping("/auth/course/details")
-    public ResponseDto<?> removeCourseDetail(@RequestBody CourseDetailRequestDto courseDetailRequestDto, HttpServletRequest request) {
-        return courseService.removeCourseDetail(courseDetailRequestDto, request);
+    public ResponseDto<?> removeCourseDetail(@RequestBody CourseDetailRequestDto courseDetailRequestDto) {
+        return courseService.removeCourseDetail(courseDetailRequestDto);
     }
 
     @GetMapping("/course/bookmark")
