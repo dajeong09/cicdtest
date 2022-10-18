@@ -1,10 +1,7 @@
 package com.innocamp.dduha.service;
 
 import com.innocamp.dduha.dto.ResponseDto;
-import com.innocamp.dduha.dto.response.AccommodationResponseDto;
-import com.innocamp.dduha.dto.response.BusStationResponseDto;
-import com.innocamp.dduha.dto.response.DetailResponseDto;
-import com.innocamp.dduha.dto.response.ReviewResponseDto;
+import com.innocamp.dduha.dto.response.*;
 import com.innocamp.dduha.jwt.TokenProvider;
 import com.innocamp.dduha.model.Member;
 import com.innocamp.dduha.model.accommodation.Accommodation;
@@ -18,9 +15,13 @@ import com.innocamp.dduha.repository.review.AccommodationReviewRepository;
 import com.innocamp.dduha.repository.bookmark.AccommodationBookmarkRepository;
 import com.innocamp.dduha.repository.nearby.AccommodationNearbyRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,15 +39,31 @@ public class AccommodationService {
 
     private final TokenProvider tokenProvider;
 
-    public ResponseDto<?> getAccommodationList() {
+    @Transactional(readOnly = true)
+    public ResponseDto<?> getAccommodationList(int page, String region) {
 
         Member member = tokenProvider.getMemberFromAuthentication();
 
-        List<Accommodation> accommodationList = accommodationRepository.findAll();
+        Sort sort = Sort.by("likeNum").descending();
+        Pageable pageable = PageRequest.of(page, 10, sort);
+        Page<Accommodation> accommodations;
+
+        if(region == null) {
+            accommodations = accommodationRepository.findAll(pageable);
+        } else {
+            if (region.equals("성산") || region.equals("우도")) {
+                accommodations = accommodationRepository.findByRegionOrRegion(pageable, "성산", "우도");
+            } else if (region.equals("구좌") || region.equals("조천")) {
+                accommodations = accommodationRepository.findByRegionOrRegion(pageable, "구좌", "조천");
+            } else {
+                accommodations = accommodationRepository.findByRegion(pageable, region);
+            }
+        }
+
         List<AccommodationResponseDto> accommodationResponseDtoList = new ArrayList<>();
 
         if (null != member) {
-            for (Accommodation accommodation : accommodationList) {
+            for (Accommodation accommodation : accommodations) {
                 boolean hasNearbyStation = false;
                 boolean isBookmarked = false;
                 List<AccommodationNearby> accommodationNearbyList = accommodationNearbyRepository.findAllByAccommodation(accommodation);
@@ -57,7 +74,6 @@ public class AccommodationService {
                 if (null != accommodationBookmark) {
                     isBookmarked = true;
                 }
-
                 accommodationResponseDtoList.add(
                         AccommodationResponseDto.builder()
                                 .id(accommodation.getId())
@@ -72,7 +88,7 @@ public class AccommodationService {
                 );
             }
         } else {
-            for (Accommodation accommodation : accommodationList) {
+            for (Accommodation accommodation : accommodations) {
                 boolean hasNearbyStation = false;
                 List<AccommodationNearby> accommodationNearbyList = accommodationNearbyRepository.findAllByAccommodation(accommodation);
                 if (accommodationNearbyList.size() > 0) {
@@ -91,8 +107,13 @@ public class AccommodationService {
                 );
             }
         }
-        return ResponseDto.success(accommodationResponseDtoList);
 
+
+        ListResponseDto listResponseDto = ListResponseDto.builder()
+                .totalPages(accommodations.getTotalPages())
+                .list(accommodationResponseDtoList).build();
+
+        return ResponseDto.success(listResponseDto);
     }
 
 
