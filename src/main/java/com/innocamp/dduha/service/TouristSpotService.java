@@ -1,10 +1,7 @@
 package com.innocamp.dduha.service;
 
 import com.innocamp.dduha.dto.ResponseDto;
-import com.innocamp.dduha.dto.response.BusStationResponseDto;
-import com.innocamp.dduha.dto.response.DetailResponseDto;
-import com.innocamp.dduha.dto.response.ReviewResponseDto;
-import com.innocamp.dduha.dto.response.TouristSpotResponseDto;
+import com.innocamp.dduha.dto.response.*;
 import com.innocamp.dduha.jwt.TokenProvider;
 import com.innocamp.dduha.model.Member;
 import com.innocamp.dduha.model.bookmark.TouristSpotBookmark;
@@ -18,9 +15,13 @@ import com.innocamp.dduha.repository.touristspot.TouristSpotImgRepository;
 import com.innocamp.dduha.repository.touristspot.TouristSpotRepository;
 import com.innocamp.dduha.repository.review.TouristSpotReviewRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,21 +34,37 @@ public class TouristSpotService {
     private final TouristSpotRepository touristSpotRepository;
     private final TouristSpotImgRepository touristSpotImgRepository;
     private final TouristSpotReviewRepository touristSpotReviewRepository;
-    private final TokenProvider tokenProvider;
-
     private final TouristSpotBookmarkRepository touristSpotBookmarkRepository;
     private final TouristSpotNearbyRepository touristSpotNearbyRepository;
 
-    public ResponseDto<?> getTouristSpotList() {
+    private final TokenProvider tokenProvider;
+
+    @Transactional(readOnly = true)
+    public ResponseDto<?> getTouristSpotList(int page, String region) {
 
         // 유효한 사용자라는 가정 하에 로그인 상태 확인 (추후 수정) __ 로그인이 안 되어 있으면 null
         Member member = tokenProvider.getMemberFromAuthentication();
 
-        List<TouristSpot> touristSpotList = touristSpotRepository.findAll();
+        Sort sort = Sort.by("likeNum").descending();
+        Pageable pageable = PageRequest.of(page, 10, sort);
+        Page<TouristSpot> touristSpots;
+
+        if(region == null) {
+            touristSpots = touristSpotRepository.findAll(pageable);
+        } else {
+            if (region.equals("성산") || region.equals("우도")) {
+                touristSpots = touristSpotRepository.findByRegionOrRegion(pageable, "성산", "우도");
+            } else if (region.equals("구좌") || region.equals("조천")) {
+                touristSpots = touristSpotRepository.findByRegionOrRegion(pageable, "구좌", "조천");
+            } else {
+                touristSpots = touristSpotRepository.findByRegion(pageable, region);
+            }
+        }
+
         List<TouristSpotResponseDto> touristSpotResponseDtoList = new ArrayList<>();
 
         if (null != member) {
-            for (TouristSpot touristSpot : touristSpotList) {
+            for (TouristSpot touristSpot : touristSpots) {
                 boolean hasNearbyStation = false;
                 boolean isBookmarked = false;
                 List<TouristSpotNearby> touristSpotNearbyList = touristSpotNearbyRepository.findAllByTouristSpot(touristSpot);
@@ -73,7 +90,7 @@ public class TouristSpotService {
                 );
             }
         } else {
-            for (TouristSpot touristSpot : touristSpotList) {
+            for (TouristSpot touristSpot : touristSpots) {
                 boolean hasNearbyStation = false;
                 List<TouristSpotNearby> touristSpotNearbyList = touristSpotNearbyRepository.findAllByTouristSpot(touristSpot);
                 if (touristSpotNearbyList.size() > 0) {
@@ -92,7 +109,12 @@ public class TouristSpotService {
                 );
             }
         }
-        return ResponseDto.success(touristSpotResponseDtoList);
+
+        ListResponseDto listResponseDto = ListResponseDto.builder()
+                .totalPages(touristSpots.getTotalPages())
+                .list(touristSpotResponseDtoList).build();
+
+        return ResponseDto.success(listResponseDto);
     }
 
     public ResponseDto<?> getTouristSpotDetail(Long id) {

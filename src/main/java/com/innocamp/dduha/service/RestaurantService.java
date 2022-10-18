@@ -1,10 +1,7 @@
 package com.innocamp.dduha.service;
 
 import com.innocamp.dduha.dto.ResponseDto;
-import com.innocamp.dduha.dto.response.BusStationResponseDto;
-import com.innocamp.dduha.dto.response.RestaurantResponseDto;
-import com.innocamp.dduha.dto.response.ReviewResponseDto;
-import com.innocamp.dduha.dto.response.DetailResponseDto;
+import com.innocamp.dduha.dto.response.*;
 import com.innocamp.dduha.jwt.TokenProvider;
 import com.innocamp.dduha.model.Member;
 import com.innocamp.dduha.model.bookmark.RestaurantBookmark;
@@ -18,9 +15,13 @@ import com.innocamp.dduha.repository.restaurant.RestaurantImgRepository;
 import com.innocamp.dduha.repository.restaurant.RestaurantRepository;
 import com.innocamp.dduha.repository.review.RestaurantReviewRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,20 +34,37 @@ public class RestaurantService {
     private final RestaurantRepository restaurantRepository;
     private final RestaurantReviewRepository restaurantReviewRepository;
     private final RestaurantImgRepository restaurantImgRepository;
-    private final TokenProvider tokenProvider;
-
     private final RestaurantBookmarkRepository restaurantBookmarkRepository;
     private final RestaurantNearbyRepository restaurantNearbyRepository;
-    public ResponseDto<?> getRestaurantList() {
+
+    private final TokenProvider tokenProvider;
+
+    @Transactional(readOnly = true)
+    public ResponseDto<?> getRestaurantList(int page, String region) {
 
         // 사용자 검증 추가 필요
         Member member = tokenProvider.getMemberFromAuthentication();
 
-        List<Restaurant> restaurantList = restaurantRepository.findAll();
+        Sort sort = Sort.by("likeNum").descending();
+        Pageable pageable = PageRequest.of(page, 10, sort);
+        Page<Restaurant> restaurants;
+
+        if(region == null) {
+            restaurants = restaurantRepository.findAll(pageable);
+        } else {
+            if (region.equals("성산") || region.equals("우도")) {
+                restaurants = restaurantRepository.findByRegionOrRegion(pageable, "성산", "우도");
+            } else if (region.equals("구좌") || region.equals("조천")) {
+                restaurants = restaurantRepository.findByRegionOrRegion(pageable, "구좌", "조천");
+            } else {
+                restaurants = restaurantRepository.findByRegion(pageable, region);
+            }
+        }
+
         List<RestaurantResponseDto> restaurantResponseDtoList = new ArrayList<>();
 
         if (null != member) {
-            for (Restaurant restaurant : restaurantList) {
+            for (Restaurant restaurant : restaurants) {
                 boolean hasNearbyStation = false;
                 boolean isBookmarked = false;
                 List<RestaurantNearby> restaurantNearbyList = restaurantNearbyRepository.findAllByRestaurant(restaurant);
@@ -72,7 +90,7 @@ public class RestaurantService {
                 );
             }
         } else {
-            for (Restaurant restaurant : restaurantList) {
+            for (Restaurant restaurant : restaurants) {
                 boolean hasNearbyStation = false;
                 List<RestaurantNearby> restaurantNearbyList = restaurantNearbyRepository.findAllByRestaurant(restaurant);
                 if (restaurantNearbyList.size() > 0) {
@@ -91,7 +109,12 @@ public class RestaurantService {
                 );
             }
         }
-        return ResponseDto.success(restaurantResponseDtoList);
+
+        ListResponseDto listResponseDto = ListResponseDto.builder()
+                .totalPages(restaurants.getTotalPages())
+                .list(restaurantResponseDtoList).build();
+
+        return ResponseDto.success(listResponseDto);
 
     }
 

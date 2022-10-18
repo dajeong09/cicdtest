@@ -5,6 +5,7 @@ import com.innocamp.dduha.service.AccommodationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 
@@ -15,8 +16,8 @@ public class AccommodationController {
     private final AccommodationService accommodationService;
 
     @GetMapping("/accommodation")
-    public ResponseDto<?> getAccommodationList() {
-        return accommodationService.getAccommodationList();
+    public ResponseDto<?> getAccommodationList(@RequestParam(value="page") int page, @RequestParam(value = "region", required = false) String region) {
+        return accommodationService.getAccommodationList(page, region);
     }
 
     @GetMapping("/accommodation/{id}")
