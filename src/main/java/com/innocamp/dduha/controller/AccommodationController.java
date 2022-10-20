@@ -16,8 +16,11 @@ public class AccommodationController {
     private final AccommodationService accommodationService;
 
     @GetMapping("/accommodation")
-    public ResponseDto<?> getAccommodationList(@RequestParam(value="page") int page, @RequestParam(value = "region", required = false) String region) {
-        return accommodationService.getAccommodationList(page, region);
+    public ResponseDto<?> getAccommodationList(
+            @RequestParam(value = "page") int page,
+            @RequestParam(value = "region", required = false) String region,
+            @RequestParam(value = "station", required = false) String station) {
+        return accommodationService.getAccommodationList(page, region, station);
     }
 
     @GetMapping("/accommodation/{id}")

@@ -40,27 +40,45 @@ public class TouristSpotService {
     private final TokenProvider tokenProvider;
 
     @Transactional(readOnly = true)
-    public ResponseDto<?> getTouristSpotList(int page, String region) {
+    public ResponseDto<?> getTouristSpotList(int page, String region, String station) {
 
         Member member = tokenProvider.getMemberFromAuthentication();
 
         Sort sort = Sort.by("likeNum").descending();
         Pageable pageable = PageRequest.of(page, 10, sort);
-        Page<TouristSpot> touristSpots;
 
-        if(region == null) {
-            touristSpots = touristSpotRepository.findAll(pageable);
+        Page<TouristSpot> touristSpots;
+        List<TouristSpotResponseDto> touristSpotResponseDtoList = new ArrayList<>();
+
+        if (station == null) {
+             touristSpots = touristSpotRepository.findAll(pageable);
+            if (region != null) {
+                if (region.equals("우도")) {
+                    touristSpots = touristSpotRepository.findByRegionOrRegionOrRegion(pageable, "성산", "우도", "표선");
+                } else if (region.equals("구좌")) {
+                    touristSpots = touristSpotRepository.findByRegionOrRegionOrRegion(pageable, "구좌", "조천", "비어있음");
+                } else if (region.equals("애월")) {
+                    touristSpots = touristSpotRepository.findByRegionOrRegionOrRegion(pageable, "애월", "한림", "비어있음");
+                } else {
+                    touristSpots = touristSpotRepository.findByRegion(pageable, region);
+                }
+            }
         } else {
-            if (region.equals("성산") || region.equals("우도")) {
-                touristSpots = touristSpotRepository.findByRegionOrRegion(pageable, "성산", "우도");
-            } else if (region.equals("구좌") || region.equals("조천")) {
-                touristSpots = touristSpotRepository.findByRegionOrRegion(pageable, "구좌", "조천");
-            } else {
-                touristSpots = touristSpotRepository.findByRegion(pageable, region);
+            touristSpots = touristSpotRepository.findByHasStation(pageable);
+            if(region != null) {
+                if (region.equals("우도")) {
+                    touristSpots = touristSpotRepository.findByHasStationAndRegion(pageable, "성산", "우도", "표선");
+                } else if (region.equals("구좌")) {
+                    touristSpots = touristSpotRepository.findByHasStationAndRegion(pageable, "구좌", "조천", "비어있음");
+                } else if (region.equals("애월")) {
+                    touristSpots = touristSpotRepository.findByHasStationAndRegion(pageable, "애월", "한림", "비어있음");
+                } else {
+                    touristSpots = touristSpotRepository.findByHasStationAndRegion(pageable, region, "비어있음", "비어있음");
+                }
             }
         }
 
-        List<TouristSpotResponseDto> touristSpotResponseDtoList = new ArrayList<>();
+
 
         if (null != member) {
             for (TouristSpot touristSpot : touristSpots) {
@@ -70,6 +88,7 @@ public class TouristSpotService {
                 if (touristSpotNearbyList.size() > 0) {
                     hasNearbyStation = true;
                 }
+
                 TouristSpotBookmark findTouristSpotBookmark = touristSpotBookmarkRepository.findByMemberAndTouristSpot(member, touristSpot);
                 if (null != findTouristSpotBookmark) {
                     isBookmarked = true;
@@ -95,6 +114,7 @@ public class TouristSpotService {
                 if (touristSpotNearbyList.size() > 0) {
                     hasNearbyStation = true;
                 }
+
                 touristSpotResponseDtoList.add(
                         TouristSpotResponseDto.builder()
                                 .id(touristSpot.getId())

@@ -40,27 +40,43 @@ public class RestaurantService {
     private final TokenProvider tokenProvider;
 
     @Transactional(readOnly = true)
-    public ResponseDto<?> getRestaurantList(int page, String region) {
+    public ResponseDto<?> getRestaurantList(int page, String region, String station) {
 
         Member member = tokenProvider.getMemberFromAuthentication();
 
         Sort sort = Sort.by("likeNum").descending();
         Pageable pageable = PageRequest.of(page, 10, sort);
-        Page<Restaurant> restaurants;
 
-        if(region == null) {
+        Page<Restaurant> restaurants;
+        List<RestaurantResponseDto> restaurantResponseDtoList = new ArrayList<>();
+
+        if (station == null) {
             restaurants = restaurantRepository.findAll(pageable);
+            if (region != null) {
+                if (region.equals("우도")) {
+                    restaurants = restaurantRepository.findByRegionOrRegionOrRegion(pageable, "성산", "우도", "표선");
+                } else if (region.equals("구좌")) {
+                    restaurants = restaurantRepository.findByRegionOrRegionOrRegion(pageable, "구좌", "조천", "비어있음");
+                } else if (region.equals("애월")) {
+                    restaurants = restaurantRepository.findByRegionOrRegionOrRegion(pageable, "애월", "한림", "비어있음");
+                } else {
+                    restaurants = restaurantRepository.findByRegion(pageable, region);
+                }
+            }
         } else {
-            if (region.equals("성산") || region.equals("우도")) {
-                restaurants = restaurantRepository.findByRegionOrRegion(pageable, "성산", "우도");
-            } else if (region.equals("구좌") || region.equals("조천")) {
-                restaurants = restaurantRepository.findByRegionOrRegion(pageable, "구좌", "조천");
-            } else {
-                restaurants = restaurantRepository.findByRegion(pageable, region);
+            restaurants = restaurantRepository.findByHasStation(pageable);
+            if(region != null) {
+                if (region.equals("우도")) {
+                    restaurants = restaurantRepository.findByHasStationAndRegion(pageable, "성산", "우도", "표선");
+                } else if (region.equals("구좌")) {
+                    restaurants = restaurantRepository.findByHasStationAndRegion(pageable, "구좌", "조천", "비어있음");
+                } else if (region.equals("애월")) {
+                    restaurants = restaurantRepository.findByHasStationAndRegion(pageable, "애월", "한림", "비어있음");
+                } else {
+                    restaurants = restaurantRepository.findByHasStationAndRegion(pageable, region, "비어있음", "비어있음");
+                }
             }
         }
-
-        List<RestaurantResponseDto> restaurantResponseDtoList = new ArrayList<>();
 
         if (null != member) {
             for (Restaurant restaurant : restaurants) {
@@ -74,7 +90,6 @@ public class RestaurantService {
                 if (null != findRestaurantBookmark) {
                     isBookmarked = true;
                 }
-
                 restaurantResponseDtoList.add(
                         RestaurantResponseDto.builder()
                                 .id(restaurant.getId())
@@ -114,7 +129,6 @@ public class RestaurantService {
                 .list(restaurantResponseDtoList).build();
 
         return ResponseDto.success(listResponseDto);
-
     }
 
 
