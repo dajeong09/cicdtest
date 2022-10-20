@@ -13,4 +13,6 @@ public interface AccommodationBookmarkRepository extends JpaRepository<Accommoda
     int countAccommodationBookmarkByMember(Member member);
 
     List<AccommodationBookmark> findAllByMember(Member member);
+
+    int countByAccommodation(Accommodation accommodation);
 }

@@ -90,12 +90,13 @@ public class AccommodationService {
                 if (null != accommodationBookmark) {
                     isBookmarked = true;
                 }
+                int bookmarkNum = accommodation.getLikeNum() + accommodationBookmarkRepository.countByAccommodation(accommodation);
                 accommodationResponseDtoList.add(
                         AccommodationResponseDto.builder()
                                 .id(accommodation.getId())
                                 .name(accommodation.getName())
                                 .description(accommodation.getDescription())
-                                .likeNum(accommodation.getLikeNum())
+                                .bookmarkNum(bookmarkNum)
                                 .region(accommodation.getRegion())
                                 .thumbnailUrl(accommodation.getThumbnailUrl())
                                 .hasNearStation(hasNearbyStation)
@@ -110,12 +111,13 @@ public class AccommodationService {
                 if (accommodationNearbyList.size() > 0) {
                     hasNearbyStation = true;
                 }
+                int bookmarkNum = accommodation.getLikeNum() + accommodationBookmarkRepository.countByAccommodation(accommodation);
                 accommodationResponseDtoList.add(
                         AccommodationResponseDto.builder()
                                 .id(accommodation.getId())
                                 .name(accommodation.getName())
                                 .description(accommodation.getDescription())
-                                .likeNum(accommodation.getLikeNum())
+                                .bookmarkNum(bookmarkNum)
                                 .region(accommodation.getRegion())
                                 .thumbnailUrl(accommodation.getThumbnailUrl())
                                 .hasNearStation(hasNearbyStation)
@@ -165,6 +167,8 @@ public class AccommodationService {
             );
         }
 
+        int bookmarkNum = accommodation.getLikeNum() + accommodationBookmarkRepository.countByAccommodation(accommodation);
+
         DetailResponseDto responseDto;
         if (null != member) {
             boolean isBookmarked = false;
@@ -179,7 +183,7 @@ public class AccommodationService {
                     .address(accommodation.getAddress())
                     .phone(accommodation.getPhone())
                     .info(accommodation.getInfo())
-                    .likeNum(accommodation.getLikeNum())
+                    .bookmarkNum(bookmarkNum)
                     .thumbnailUrl(accommodation.getThumbnailUrl())
                     .region(accommodation.getRegion())
                     .latitude(accommodation.getLatitude())
@@ -198,7 +202,7 @@ public class AccommodationService {
                     .address(accommodation.getAddress())
                     .phone(accommodation.getPhone())
                     .info(accommodation.getInfo())
-                    .likeNum(accommodation.getLikeNum())
+                    .bookmarkNum(bookmarkNum)
                     .thumbnailUrl(accommodation.getThumbnailUrl())
                     .region(accommodation.getRegion())
                     .latitude(accommodation.getLatitude())
