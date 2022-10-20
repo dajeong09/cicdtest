@@ -66,12 +66,13 @@ public class MyPageService {
         List<TouristSpotResponseDto> touristSpotResponseDtoList = new ArrayList<>();
 
         for (TouristSpotBookmark touristSpotBookmark : touristSpotBookmarkList) {
+            int bookmarkNum = touristSpotBookmark.getTouristSpot().getLikeNum() + touristSpotBookmarkRepository.countByTouristSpot(touristSpotBookmark.getTouristSpot());
             touristSpotResponseDtoList.add(
                     TouristSpotResponseDto.builder()
                             .id(touristSpotBookmark.getTouristSpot().getId())
                             .name(touristSpotBookmark.getTouristSpot().getName())
                             .description(touristSpotBookmark.getTouristSpot().getDescription())
-                            .likeNum(touristSpotBookmark.getTouristSpot().getLikeNum())
+                            .bookmarkNum(bookmarkNum)
                             .region(touristSpotBookmark.getTouristSpot().getRegion())
                             .thumbnailUrl(touristSpotBookmark.getTouristSpot().getThumbnailUrl())
                             .isBookmarked(true)
@@ -91,12 +92,13 @@ public class MyPageService {
         List<RestaurantResponseDto> RestaurantResponseDtoList = new ArrayList<>();
 
         for (RestaurantBookmark restaurantBookmark : restaurantBookmarkList) {
+            int bookmarkNum = restaurantBookmark.getRestaurant().getLikeNum() + restaurantBookmarkRepository.countByRestaurant(restaurantBookmark.getRestaurant());
             RestaurantResponseDtoList.add(
                     RestaurantResponseDto.builder()
                             .id(restaurantBookmark.getRestaurant().getId())
                             .name(restaurantBookmark.getRestaurant().getName())
                             .description(restaurantBookmark.getRestaurant().getDescription())
-                            .likeNum(restaurantBookmark.getRestaurant().getLikeNum())
+                            .bookmarkNum(bookmarkNum)
                             .region(restaurantBookmark.getRestaurant().getRegion())
                             .thumbnailUrl(restaurantBookmark.getRestaurant().getThumbnailUrl())
                             .isBookmarked(true)

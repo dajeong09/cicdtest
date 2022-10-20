@@ -9,8 +9,7 @@ import java.util.List;
 
 public interface TouristSpotBookmarkRepository extends JpaRepository<TouristSpotBookmark,Long> {
     TouristSpotBookmark findByMemberAndTouristSpot(Member member, TouristSpot touristSpot);
-
     int countTouristSpotBookmarkByMember(Member member);
-
     List<TouristSpotBookmark> findAllByMember(Member member);
+    int countByTouristSpot(TouristSpot touristSpot);
 }

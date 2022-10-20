@@ -65,7 +65,7 @@ public class RestaurantService {
             }
         } else {
             restaurants = restaurantRepository.findByHasStation(pageable);
-            if(region != null) {
+            if (region != null) {
                 if (region.equals("우도")) {
                     restaurants = restaurantRepository.findByHasStationAndRegion(pageable, "성산", "우도", "표선");
                 } else if (region.equals("구좌")) {
@@ -90,12 +90,13 @@ public class RestaurantService {
                 if (null != findRestaurantBookmark) {
                     isBookmarked = true;
                 }
+                int bookmarkNum = restaurant.getLikeNum() + restaurantBookmarkRepository.countByRestaurant(restaurant);
                 restaurantResponseDtoList.add(
                         RestaurantResponseDto.builder()
                                 .id(restaurant.getId())
                                 .name(restaurant.getName())
                                 .description(restaurant.getDescription())
-                                .likeNum(restaurant.getLikeNum())
+                                .bookmarkNum(bookmarkNum)
                                 .region(restaurant.getRegion())
                                 .thumbnailUrl(restaurant.getThumbnailUrl())
                                 .hasNearStation(hasNearbyStation)
@@ -110,12 +111,13 @@ public class RestaurantService {
                 if (restaurantNearbyList.size() > 0) {
                     hasNearbyStation = true;
                 }
+                int bookmarkNum = restaurant.getLikeNum() + restaurantBookmarkRepository.countByRestaurant(restaurant);
                 restaurantResponseDtoList.add(
                         RestaurantResponseDto.builder()
                                 .id(restaurant.getId())
                                 .name(restaurant.getName())
                                 .description(restaurant.getDescription())
-                                .likeNum(restaurant.getLikeNum())
+                                .bookmarkNum(bookmarkNum)
                                 .region(restaurant.getRegion())
                                 .thumbnailUrl(restaurant.getThumbnailUrl())
                                 .hasNearStation(hasNearbyStation)
@@ -145,7 +147,7 @@ public class RestaurantService {
 
         List<RestaurantNearby> restaurantNearbyList = restaurantNearbyRepository.findAllByRestaurant(restaurant);
         List<BusStationResponseDto> busStationResponseDtoList = new ArrayList<>();
-        for(RestaurantNearby restaurantNearby : restaurantNearbyList) {
+        for (RestaurantNearby restaurantNearby : restaurantNearbyList) {
             busStationResponseDtoList.add(
                     BusStationResponseDto.builder()
                             .stationName(restaurantNearby.getBusStation().getStationName())
@@ -165,6 +167,8 @@ public class RestaurantService {
             );
         }
 
+        int bookmarkNum = restaurant.getLikeNum() + restaurantBookmarkRepository.countByRestaurant(restaurant);
+
         DetailResponseDto responseDto;
         if (null != member) {
             boolean isBookmarked = false;
@@ -179,7 +183,7 @@ public class RestaurantService {
                     .address(restaurant.getAddress())
                     .phone(restaurant.getPhone())
                     .info(restaurant.getInfo())
-                    .likeNum(restaurant.getLikeNum())
+                    .bookmarkNum(bookmarkNum)
                     .thumbnailUrl(restaurant.getThumbnailUrl())
                     .region(restaurant.getRegion())
                     .latitude(restaurant.getLatitude())
@@ -198,7 +202,7 @@ public class RestaurantService {
                     .address(restaurant.getAddress())
                     .phone(restaurant.getPhone())
                     .info(restaurant.getInfo())
-                    .likeNum(restaurant.getLikeNum())
+                    .bookmarkNum(bookmarkNum)
                     .thumbnailUrl(restaurant.getThumbnailUrl())
                     .region(restaurant.getRegion())
                     .latitude(restaurant.getLatitude())

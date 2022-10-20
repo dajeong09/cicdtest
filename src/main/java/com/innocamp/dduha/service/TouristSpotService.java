@@ -79,7 +79,6 @@ public class TouristSpotService {
         }
 
 
-
         if (null != member) {
             for (TouristSpot touristSpot : touristSpots) {
                 boolean hasNearbyStation = false;
@@ -94,12 +93,14 @@ public class TouristSpotService {
                     isBookmarked = true;
                 }
 
+                int bookmarkNum = touristSpot.getLikeNum() + touristSpotBookmarkRepository.countByTouristSpot(touristSpot);
+
                 touristSpotResponseDtoList.add(
                         TouristSpotResponseDto.builder()
                                 .id(touristSpot.getId())
                                 .name(touristSpot.getName())
                                 .description(touristSpot.getDescription())
-                                .likeNum(touristSpot.getLikeNum())
+                                .bookmarkNum(bookmarkNum)
                                 .region(touristSpot.getRegion())
                                 .thumbnailUrl(touristSpot.getThumbnailUrl())
                                 .hasNearStation(hasNearbyStation)
@@ -115,12 +116,14 @@ public class TouristSpotService {
                     hasNearbyStation = true;
                 }
 
+                int bookmarkNum = touristSpot.getLikeNum() + touristSpotBookmarkRepository.countByTouristSpot(touristSpot);
+
                 touristSpotResponseDtoList.add(
                         TouristSpotResponseDto.builder()
                                 .id(touristSpot.getId())
                                 .name(touristSpot.getName())
                                 .description(touristSpot.getDescription())
-                                .likeNum(touristSpot.getLikeNum())
+                                .bookmarkNum(bookmarkNum)
                                 .region(touristSpot.getRegion())
                                 .thumbnailUrl(touristSpot.getThumbnailUrl())
                                 .hasNearStation(hasNearbyStation)
@@ -169,6 +172,8 @@ public class TouristSpotService {
             );
         }
 
+        int bookmarkNum = touristSpot.getLikeNum() + touristSpotBookmarkRepository.countByTouristSpot(touristSpot);
+
         DetailResponseDto responseDto;
         if (null != member) {
             boolean isBookmarked = false;
@@ -183,7 +188,7 @@ public class TouristSpotService {
                     .address(touristSpot.getAddress())
                     .phone(touristSpot.getPhone())
                     .info(touristSpot.getInfo())
-                    .likeNum(touristSpot.getLikeNum())
+                    .bookmarkNum(bookmarkNum)
                     .thumbnailUrl(touristSpot.getThumbnailUrl())
                     .region(touristSpot.getRegion())
                     .latitude(touristSpot.getLatitude())
@@ -202,7 +207,7 @@ public class TouristSpotService {
                     .address(touristSpot.getAddress())
                     .phone(touristSpot.getPhone())
                     .info(touristSpot.getInfo())
-                    .likeNum(touristSpot.getLikeNum())
+                    .bookmarkNum(bookmarkNum)
                     .thumbnailUrl(touristSpot.getThumbnailUrl())
                     .region(touristSpot.getRegion())
                     .latitude(touristSpot.getLatitude())
