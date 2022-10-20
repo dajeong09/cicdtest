@@ -8,10 +8,16 @@ import com.innocamp.dduha.model.bookmark.AccommodationBookmark;
 import com.innocamp.dduha.model.bookmark.RestaurantBookmark;
 import com.innocamp.dduha.model.bookmark.TouristSpotBookmark;
 import com.innocamp.dduha.model.bookmark.TripBookmark;
+import com.innocamp.dduha.model.review.AccommodationReview;
+import com.innocamp.dduha.model.review.RestaurantReview;
+import com.innocamp.dduha.model.review.TouristSpotReview;
 import com.innocamp.dduha.repository.bookmark.AccommodationBookmarkRepository;
 import com.innocamp.dduha.repository.bookmark.RestaurantBookmarkRepository;
 import com.innocamp.dduha.repository.bookmark.TouristSpotBookmarkRepository;
 import com.innocamp.dduha.repository.bookmark.TripBookmarkRepository;
+import com.innocamp.dduha.repository.review.AccommodationReviewRepository;
+import com.innocamp.dduha.repository.review.RestaurantReviewRepository;
+import com.innocamp.dduha.repository.review.TouristSpotReviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +34,9 @@ public class MyPageService {
     private final RestaurantBookmarkRepository restaurantBookmarkRepository;
     private final AccommodationBookmarkRepository accommodationBookmarkRepository;
     private final TokenProvider tokenProvider;
+    private final TouristSpotReviewRepository touristSpotReviewRepository;
+    private final RestaurantReviewRepository restaurantReviewRepository;
+    private final AccommodationReviewRepository accommodationReviewRepository;
 
     // 내가 즐겨찾기한 각 목록 조회(즐겨찾기 개수)
     public ResponseDto<?> getMyBookmarkedList() {
@@ -142,5 +151,68 @@ public class MyPageService {
             );
         }
         return ResponseDto.success(TripResponseDtoList);
+    }
+
+    // 내가 작성한 관광지 댓글 조회
+    public ResponseDto<?> getMyTouristSpotReview() {
+
+        Member member = tokenProvider.getMemberFromAuthentication();
+
+        List<TouristSpotReview> touristSpotReviewList = touristSpotReviewRepository.findAllByMember(member);
+        List<ReviewResponseDto> reviewResponseDtoList = new ArrayList<>();
+
+        for (TouristSpotReview touristSpotReview : touristSpotReviewList) {
+            reviewResponseDtoList.add(ReviewResponseDto.builder()
+                    .id(touristSpotReview.getId())
+                    .itemId(touristSpotReview.getTouristSpot().getId())
+                    .reviewName(touristSpotReview.getTouristSpot().getName())
+                    .review(touristSpotReview.getReview())
+                    .reviewer(touristSpotReview.getMember().getNickname())
+                    .reviewedAt(touristSpotReview.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")))
+                    .build());
+        }
+        return ResponseDto.success(reviewResponseDtoList);
+    }
+
+    // 내가 작성한 맛집 댓글 조회
+    public ResponseDto<?> getMyRestaurantReview() {
+
+        Member member = tokenProvider.getMemberFromAuthentication();
+
+        List<RestaurantReview> restaurantReviewList = restaurantReviewRepository.findAllByMember(member);
+        List<ReviewResponseDto> reviewResponseDtoList = new ArrayList<>();
+
+        for (RestaurantReview restaurantReview : restaurantReviewList) {
+            reviewResponseDtoList.add(ReviewResponseDto.builder()
+                    .id(restaurantReview.getId())
+                    .itemId(restaurantReview.getRestaurant().getId())
+                    .reviewName(restaurantReview.getRestaurant().getName())
+                    .review(restaurantReview.getReview())
+                    .reviewer(restaurantReview.getMember().getNickname())
+                    .reviewedAt(restaurantReview.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")))
+                    .build());
+        }
+        return ResponseDto.success(reviewResponseDtoList);
+    }
+
+    // 내가 작성한 숙소 댓글 조회
+    public ResponseDto<?> getMyAccommodationReview() {
+
+        Member member = tokenProvider.getMemberFromAuthentication();
+
+        List<AccommodationReview> accommodationReviewList = accommodationReviewRepository.findAllByMember(member);
+        List<ReviewResponseDto> reviewResponseDtoList = new ArrayList<>();
+
+        for (AccommodationReview accommodationReview : accommodationReviewList) {
+            reviewResponseDtoList.add(ReviewResponseDto.builder()
+                    .id(accommodationReview.getId())
+                    .itemId(accommodationReview.getAccommodation().getId())
+                    .reviewName(accommodationReview.getAccommodation().getName())
+                    .review(accommodationReview.getReview())
+                    .reviewer(accommodationReview.getMember().getNickname())
+                    .reviewedAt(accommodationReview.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")))
+                    .build());
+        }
+        return ResponseDto.success(reviewResponseDtoList);
     }
 }
