@@ -40,27 +40,43 @@ public class AccommodationService {
     private final TokenProvider tokenProvider;
 
     @Transactional(readOnly = true)
-    public ResponseDto<?> getAccommodationList(int page, String region) {
+    public ResponseDto<?> getAccommodationList(int page, String region, String station) {
 
         Member member = tokenProvider.getMemberFromAuthentication();
 
         Sort sort = Sort.by("likeNum").descending();
         Pageable pageable = PageRequest.of(page, 10, sort);
-        Page<Accommodation> accommodations;
 
-        if(region == null) {
+        Page<Accommodation> accommodations;
+        List<AccommodationResponseDto> accommodationResponseDtoList = new ArrayList<>();
+
+        if (station == null) {
             accommodations = accommodationRepository.findAll(pageable);
+            if(region != null) {
+                if (region.equals("우도")) {
+                    accommodations = accommodationRepository.findByRegionOrRegionOrRegion(pageable, "성산", "우도", "표선");
+                } else if (region.equals("구좌")) {
+                    accommodations = accommodationRepository.findByRegionOrRegionOrRegion(pageable, "구좌", "조천", "비어있음");
+                } else if (region.equals("애월")) {
+                    accommodations = accommodationRepository.findByRegionOrRegionOrRegion(pageable, "애월", "한림", "비어있음");
+                } else {
+                    accommodations = accommodationRepository.findByRegion(pageable, region);
+                }
+            }
         } else {
-            if (region.equals("성산") || region.equals("우도")) {
-                accommodations = accommodationRepository.findByRegionOrRegion(pageable, "성산", "우도");
-            } else if (region.equals("구좌") || region.equals("조천")) {
-                accommodations = accommodationRepository.findByRegionOrRegion(pageable, "구좌", "조천");
-            } else {
-                accommodations = accommodationRepository.findByRegion(pageable, region);
+            accommodations = accommodationRepository.findByHasStation(pageable);
+            if(region != null) {
+                if (region.equals("우도")) {
+                    accommodations = accommodationRepository.findByHasStationAndRegion(pageable, "성산", "우도", "표선");
+                } else if (region.equals("구좌")) {
+                    accommodations = accommodationRepository.findByHasStationAndRegion(pageable, "구좌", "조천", "비어있음");
+                } else if (region.equals("애월")) {
+                    accommodations = accommodationRepository.findByHasStationAndRegion(pageable, "애월", "한림", "비어있음");
+                } else {
+                    accommodations = accommodationRepository.findByHasStationAndRegion(pageable, region, "비어있음", "비어있음");
+                }
             }
         }
-
-        List<AccommodationResponseDto> accommodationResponseDtoList = new ArrayList<>();
 
         if (null != member) {
             for (Accommodation accommodation : accommodations) {
@@ -107,7 +123,6 @@ public class AccommodationService {
                 );
             }
         }
-
 
         ListResponseDto listResponseDto = ListResponseDto.builder()
                 .totalPages(accommodations.getTotalPages())

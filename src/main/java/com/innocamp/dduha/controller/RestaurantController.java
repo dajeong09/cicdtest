@@ -16,8 +16,11 @@ public class RestaurantController {
     private final RestaurantService restaurantService;
 
     @GetMapping("/restaurant")
-    public ResponseDto<?> getRestaurantList(@RequestParam(value="page") int page, @RequestParam(value = "region", required = false) String region) {
-        return restaurantService.getRestaurantList(page, region);
+    public ResponseDto<?> getRestaurantList(
+            @RequestParam(value = "page") int page,
+            @RequestParam(value = "region", required = false) String region,
+            @RequestParam(value = "station", required = false) String station) {
+        return restaurantService.getRestaurantList(page, region, station);
     }
 
     @GetMapping("/restaurant/{id}")
