@@ -9,10 +9,9 @@ import java.util.List;
 
 public interface RestaurantBookmarkRepository extends JpaRepository<RestaurantBookmark, Long> {
     RestaurantBookmark findByMemberAndRestaurant(Member member, Restaurant restaurant);
-
     int countRestaurantBookmarkByMember(Member member);
-
     List<RestaurantBookmark> findAllByMember(Member member);
+    int countByRestaurant(Restaurant restaurant);
 }
 
 
