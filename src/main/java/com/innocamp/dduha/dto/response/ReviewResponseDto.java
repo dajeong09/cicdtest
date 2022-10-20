@@ -8,6 +8,8 @@ import lombok.Getter;
 @Getter
 public class ReviewResponseDto {
     private Long id;
+    private Long itemId;
+    private String reviewName;
     private String reviewer;
     private String review;
     private String reviewedAt;

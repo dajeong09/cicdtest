@@ -42,4 +42,22 @@ public class MyPageController {
         return myPageService.getMyTripBookmark();
     }
 
+    // 내가 작성한 관광지 댓글 조회
+    @GetMapping("/auth/mypage/touristspotreview")
+    public ResponseDto<?> getMyTouristSpotReview() {
+        return myPageService.getMyTouristSpotReview();
+    }
+
+    // 내가 작성한 맛집 댓글 조회
+    @GetMapping("/auth/mypage/restaurantreview")
+    public ResponseDto<?> getMyRestaurantReview() {
+        return myPageService.getMyRestaurantReview();
+    }
+
+    // 내가 작성한 숙소 댓글 조회
+    @GetMapping("/auth/mypage/accommodationreview")
+    public ResponseDto<?> getMyAccommodationReview() {
+        return myPageService.getMyAccommodationReview();
+    }
+
 }
