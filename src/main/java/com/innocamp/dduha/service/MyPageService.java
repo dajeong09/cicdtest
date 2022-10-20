@@ -106,12 +106,13 @@ public class MyPageService {
         List<AccommodationResponseDto> AccommodationResponseDtoList = new ArrayList<>();
 
         for (AccommodationBookmark accommodationBookmark : accommodationBoookmarkList) {
+            int bookmarkNum = accommodationBookmark.getAccommodation().getLikeNum() + accommodationBookmarkRepository.countByAccommodation(accommodationBookmark.getAccommodation());
             AccommodationResponseDtoList.add(
                     AccommodationResponseDto.builder()
                             .id(accommodationBookmark.getAccommodation().getId())
                             .name(accommodationBookmark.getAccommodation().getName())
                             .description(accommodationBookmark.getAccommodation().getDescription())
-                            .likeNum(accommodationBookmark.getAccommodation().getLikeNum())
+                            .bookmarkNum(bookmarkNum)
                             .region(accommodationBookmark.getAccommodation().getRegion())
                             .thumbnailUrl(accommodationBookmark.getAccommodation().getThumbnailUrl())
                             .isBookmarked(true)

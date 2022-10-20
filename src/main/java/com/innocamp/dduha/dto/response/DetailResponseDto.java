@@ -11,7 +11,7 @@ public class DetailResponseDto {
     private Long id;
     private String name;
     private String description;
-    private int likeNum;
+    private int bookmarkNum;
     private String phone;
     private String address;
     private String info;
