@@ -9,5 +9,6 @@ import java.util.List;
 @Builder
 public class ListResponseDto<T> {
     private int totalPages;
+    private int nextPage;
     private T list;
 }

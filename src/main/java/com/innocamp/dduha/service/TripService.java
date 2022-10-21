@@ -6,6 +6,7 @@ import com.innocamp.dduha.dto.request.CourseRequestDto;
 import com.innocamp.dduha.dto.request.TripRequestDto;
 import com.innocamp.dduha.dto.response.CourseDetailResponseDto;
 import com.innocamp.dduha.dto.response.CourseResponseDto;
+import com.innocamp.dduha.dto.response.ListResponseDto;
 import com.innocamp.dduha.dto.response.TripResponseDto;
 import com.innocamp.dduha.jwt.TokenProvider;
 import com.innocamp.dduha.model.Member;
@@ -22,6 +23,10 @@ import com.innocamp.dduha.repository.coursedetail.CourseDetailAccReposiotry;
 import com.innocamp.dduha.repository.coursedetail.CourseDetailRestRepository;
 import com.innocamp.dduha.repository.coursedetail.CourseDetailSpotRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -83,7 +88,7 @@ public class TripService {
         Member member = tokenProvider.getMemberFromAuthentication();
 
         List<TripResponseDto> tripResponseDtoList = new ArrayList<>();
-        List<Trip> tripList = tripRepository.findAllByMemberAndIsHidden(member, false);
+        List<Trip> tripList = tripRepository.findAllByMemberAndIsHiddenOrderByCreatedAtDesc(member, false);
 
         for (Trip trip : tripList) {
             tripResponseDtoList.add(TripResponseDto.builder()
@@ -238,15 +243,21 @@ public class TripService {
         return ResponseDto.success(NULL);
     }
 
-    public ResponseDto<?> getPublicTrips() {
+    public ResponseDto<?> getPublicTrips(int page) {
 
         Member member = tokenProvider.getMemberFromAuthentication();
 
         List<TripResponseDto> tripResponseDtoList = new ArrayList<>();
-        List<Trip> tripList = tripRepository.findAllByIsPublicAndIsHidden(true, false);
+        //List<Trip> tripList = tripRepository.findAllByIsPublicAndIsHidden(true, false);
+        //(tripList -> trips)
+        Sort sort = Sort.by("createdAt").descending();
+        Pageable pageable = PageRequest.of(page, 6, sort);
+
+        Page<Trip> trips = tripRepository.findByIsPublicIsTrueAndIsHiddenIsFalse(pageable);
+
 
         if (null != member) {
-            for (Trip trip : tripList) {
+            for (Trip trip : trips) {
                 boolean isBookmarked = false;
                 TripBookmark findTripBookmark = tripBookmarkRepository.findByMemberAndTrip(member, trip);
                 if (null != findTripBookmark) {
@@ -263,7 +274,7 @@ public class TripService {
                 );
             }
         } else {
-            for (Trip trip : tripList) {
+            for (Trip trip : trips) {
                 tripResponseDtoList.add(TripResponseDto.builder()
                         .id(trip.getId())
                         .title(trip.getTitle())
@@ -273,7 +284,14 @@ public class TripService {
                 );
             }
         }
-        return ResponseDto.success(tripResponseDtoList);
+
+        ListResponseDto listResponseDto = ListResponseDto.builder()
+                .totalPages(trips.getTotalPages())
+                .nextPage(page+1)
+                .list(tripResponseDtoList)
+                .build();
+
+        return ResponseDto.success(listResponseDto);
     }
 
     public ResponseDto<?> getPublicTripInfo(Long id) {

@@ -48,7 +48,7 @@ public class TouristSpotService {
         Pageable pageable = PageRequest.of(page, 10, sort);
 
         Page<TouristSpot> touristSpots;
-        List<TouristSpotResponseDto> touristSpotResponseDtoList = new ArrayList<>();
+        List<PlaceResponseDto> touristSpotResponseDtoList = new ArrayList<>();
 
         if (station == null) {
              touristSpots = touristSpotRepository.findAll(pageable);
@@ -96,12 +96,15 @@ public class TouristSpotService {
                 int bookmarkNum = touristSpot.getLikeNum() + touristSpotBookmarkRepository.countByTouristSpot(touristSpot);
 
                 touristSpotResponseDtoList.add(
-                        TouristSpotResponseDto.builder()
+                        PlaceResponseDto.builder()
                                 .id(touristSpot.getId())
                                 .name(touristSpot.getName())
                                 .description(touristSpot.getDescription())
                                 .bookmarkNum(bookmarkNum)
                                 .region(touristSpot.getRegion())
+                                .address(touristSpot.getAddress())
+                                .latitude(touristSpot.getLatitude())
+                                .longitude(touristSpot.getLongitude())
                                 .thumbnailUrl(touristSpot.getThumbnailUrl())
                                 .hasNearStation(hasNearbyStation)
                                 .isBookmarked(isBookmarked)
@@ -119,12 +122,15 @@ public class TouristSpotService {
                 int bookmarkNum = touristSpot.getLikeNum() + touristSpotBookmarkRepository.countByTouristSpot(touristSpot);
 
                 touristSpotResponseDtoList.add(
-                        TouristSpotResponseDto.builder()
+                        PlaceResponseDto.builder()
                                 .id(touristSpot.getId())
                                 .name(touristSpot.getName())
                                 .description(touristSpot.getDescription())
                                 .bookmarkNum(bookmarkNum)
                                 .region(touristSpot.getRegion())
+                                .address(touristSpot.getAddress())
+                                .latitude(touristSpot.getLatitude())
+                                .longitude(touristSpot.getLongitude())
                                 .thumbnailUrl(touristSpot.getThumbnailUrl())
                                 .hasNearStation(hasNearbyStation)
                                 .build()
