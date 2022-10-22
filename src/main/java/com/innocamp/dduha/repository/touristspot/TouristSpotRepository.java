@@ -17,6 +17,7 @@ public interface TouristSpotRepository extends JpaRepository<TouristSpot, Long> 
     List<TouristSpot> findByRegionAndNameContaining(String region,String keyword);
 
     List<TouristSpot> findByRegionAndNameContainingOrRegionAndNameContaining(String region1, String keyword1, String region2, String keyword2);
+    List<TouristSpot> findByRegionAndNameContainingOrRegionAndNameContainingOrRegionAndNameContaining(String region1, String keyword1, String region2, String keyword2, String region3, String keyword3);
 
     List<TouristSpot> findAllByLatitudeBetweenAndLongitudeBetween(double latitude1, double latitude2, double longitude1, double longitude2);
 
