@@ -27,16 +27,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.naming.AuthenticationException;
+import javax.xml.bind.ValidationException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static com.innocamp.dduha.exception.ErrorCode.*;
 
@@ -54,7 +54,7 @@ public class TripService {
     private final TokenProvider tokenProvider;
 
     @Transactional
-    public ResponseDto<?> createTrip(TripRequestDto requestDto) {
+    public ResponseEntity<?> createTrip(TripRequestDto requestDto) {
 
         Member member = tokenProvider.getMemberFromAuthentication();
 
@@ -80,15 +80,15 @@ public class TripService {
             courseRepository.save(course);
         }
 
-        return ResponseDto.success(savedTrip.getId());
+        return ResponseEntity.ok(ResponseDto.success(savedTrip.getId()));
     }
 
-    public ResponseDto<?> getMyTrips() {
+    public ResponseEntity<?> getMyTrips() {
 
         Member member = tokenProvider.getMemberFromAuthentication();
 
         List<TripResponseDto> tripResponseDtoList = new ArrayList<>();
-        List<Trip> tripList = tripRepository.findAllByMemberAndIsHiddenOrderByCreatedAtDesc(member, false);
+        List<Trip> tripList = tripRepository.findAllByMemberAndIsHiddenIsFalseOrderByCreatedAtDesc(member);
 
         for (Trip trip : tripList) {
             tripResponseDtoList.add(TripResponseDto.builder()
@@ -100,20 +100,18 @@ public class TripService {
             );
         }
 
-        return ResponseDto.success(tripResponseDtoList);
+        return ResponseEntity.ok(ResponseDto.success(tripResponseDtoList));
     }
 
-    public ResponseDto<?> getMyTripInfo(Long id) {
+    public ResponseEntity<?> getMyTripInfo(Long id) throws AuthenticationException {
 
-        Trip trip = isPresentTrip(id);
-        if (null == trip || trip.getIsHidden()) {
-            return ResponseDto.fail(TRIP_NOT_FOUND);
-        }
+        Trip trip = tripRepository.findTripByIdAndIsHiddenFalse(id).orElseThrow(() ->
+                new NoSuchElementException(String.valueOf(TRIP_NOT_FOUND)));
 
         Member member = tokenProvider.getMemberFromAuthentication();
 
         if (member.getId() != trip.getMember().getId()) {
-            return ResponseDto.fail(NOT_AUTHORIZED);
+            throw new AuthenticationException(String.valueOf(REQUEST_FORBIDDEN));
         }
 
         List<Course> courseList = courseRepository.findAllByTrip(trip);
@@ -159,7 +157,6 @@ public class TripService {
                 );
             }
             if (!courseDetailResponseDtoList.isEmpty()) {
-                //다른 방법 고민해 보기
                 courseDetailResponseDtoList.sort(new CourseDetailComparator());
             }
 
@@ -179,21 +176,19 @@ public class TripService {
                 .endAt(trip.getEndAt().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")))
                 .courses(courseResponseDtoList).build();
 
-        return ResponseDto.success(tripResponseDto);
+        return ResponseEntity.ok(ResponseDto.success(tripResponseDto));
     }
 
     @Transactional
-    public ResponseDto<?> modifyMyTrip(Long id, TripRequestDto requestDto) {
+    public ResponseEntity<?> modifyMyTrip(Long id, TripRequestDto requestDto) throws AuthenticationException {
 
-        Trip trip = isPresentTrip(id);
-        if (null == trip || trip.getIsHidden()) {
-            return ResponseDto.fail(TRIP_NOT_FOUND);
-        }
+        Trip trip = tripRepository.findTripByIdAndIsHiddenFalse(id).orElseThrow(() ->
+                new NoSuchElementException(String.valueOf(TRIP_NOT_FOUND)));
 
         Member member = tokenProvider.getMemberFromAuthentication();
 
         if (member.getId() != trip.getMember().getId()) {
-            return ResponseDto.fail(NOT_AUTHORIZED);
+            throw new AuthenticationException(String.valueOf(REQUEST_FORBIDDEN));
         }
 
         int originalDays = (int) ChronoUnit.DAYS.between(trip.getStartAt(), trip.getEndAt()) + 1;
@@ -209,80 +204,57 @@ public class TripService {
                 courseRepository.save(course);
             }
         } else {
-            //연결된 coursedetails 먼저 삭제 (연관관계사용) 수정
-            List<Course> courseList = courseRepository.findAllByTripAndDayAfter(trip, modifiedDays);
-            for (Course course : courseList) {
-                courseDetailSpotRepository.deleteAllByCourse(course);
-                courseDetailRestRepository.deleteAllByCourse(course);
-                courseDetailAccRepository.deleteAllByCourse(course);
-            }
             courseRepository.deleteByTripAndDayAfter(trip, modifiedDays);
         }
 
-        return ResponseDto.success(NULL);
+        return ResponseEntity.ok(ResponseDto.success(NULL));
     }
 
     @Transactional
-    public ResponseDto<?> deleteTrip(Long id) {
+    public ResponseEntity<?> deleteTrip(Long id) throws AuthenticationException {
 
-        Trip trip = isPresentTrip(id);
-        if (null == trip) {
-            return ResponseDto.fail(TRIP_NOT_FOUND);
-        }
+        Trip trip = tripRepository.findTripByIdAndIsHiddenFalse(id).orElseThrow(() ->
+                new NoSuchElementException(String.valueOf(TRIP_NOT_FOUND)));
 
         Member member = tokenProvider.getMemberFromAuthentication();
 
         if (member.getId() != trip.getMember().getId()) {
-            return ResponseDto.fail(NOT_AUTHORIZED);
+            throw new AuthenticationException(String.valueOf(REQUEST_FORBIDDEN));
         }
 
         trip.doHidden();
-
         tripRepository.save(trip);
 
-        return ResponseDto.success(NULL);
+        return ResponseEntity.ok(ResponseDto.success(NULL));
     }
 
-    public ResponseDto<?> getPublicTrips(int page) {
+    public ResponseEntity<?> getPublicTrips(int page) {
 
         Member member = tokenProvider.getMemberFromAuthentication();
 
         List<TripResponseDto> tripResponseDtoList = new ArrayList<>();
-        //List<Trip> tripList = tripRepository.findAllByIsPublicAndIsHidden(true, false);
-        //(tripList -> trips)
         Sort sort = Sort.by("createdAt").descending();
         Pageable pageable = PageRequest.of(page, 6, sort);
 
         Page<Trip> trips = tripRepository.findByIsPublicIsTrueAndIsHiddenIsFalse(pageable);
 
-
-        if (null != member) {
-            for (Trip trip : trips) {
-                boolean isBookmarked = false;
+        for (Trip trip : trips) {
+            boolean isBookmarked = false;
+            if (null != member) {
                 TripBookmark findTripBookmark = tripBookmarkRepository.findByMemberAndTrip(member, trip);
                 if (null != findTripBookmark) {
                     isBookmarked = true;
                 }
-                tripResponseDtoList.add(TripResponseDto.builder()
-                        .id(trip.getId())
-                        .title(trip.getTitle())
-                        .isPublic(trip.getIsPublic())
-                        .startAt(trip.getStartAt().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")))
-                        .endAt(trip.getEndAt().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")))
-                        .isBookmarked(isBookmarked)
-                        .build()
-                );
             }
-        } else {
-            for (Trip trip : trips) {
-                tripResponseDtoList.add(TripResponseDto.builder()
-                        .id(trip.getId())
-                        .title(trip.getTitle())
-                        .isPublic(trip.getIsPublic())
-                        .startAt(trip.getStartAt().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")))
-                        .endAt(trip.getEndAt().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"))).build()
-                );
-            }
+            tripResponseDtoList.add(TripResponseDto.builder()
+                    .id(trip.getId())
+                    .title(trip.getTitle())
+                    .isPublic(trip.getIsPublic())
+                    .startAt(trip.getStartAt().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")))
+                    .endAt(trip.getEndAt().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")))
+                    .isBookmarked(isBookmarked)
+                    .build()
+            );
         }
 
         ListResponseDto listResponseDto = ListResponseDto.builder()
@@ -291,17 +263,17 @@ public class TripService {
                 .list(tripResponseDtoList)
                 .build();
 
-        return ResponseDto.success(listResponseDto);
+        return ResponseEntity.ok(ResponseDto.success(listResponseDto));
     }
 
-    public ResponseDto<?> getPublicTripInfo(Long id) {
-        //내가 쓴 것 까지 포함? or not  아니면 따로 표시할 수 있는 속성 추가?
+    public ResponseEntity<?> getPublicTripInfo(Long id) {
 
         Member member = tokenProvider.getMemberFromAuthentication();
 
-        Trip trip = isPresentTrip(id);
+        Trip trip = tripRepository.findById(id).orElseThrow(() ->
+                new NoSuchElementException(String.valueOf(TRIP_NOT_FOUND)));
         if (null == trip || trip.getIsHidden() || !trip.getIsPublic()) {
-            return ResponseDto.fail(TRIP_NOT_FOUND);
+            throw new NoSuchElementException(String.valueOf(TRIP_NOT_FOUND));
         }
 
         List<Course> courseList = courseRepository.findAllByTrip(trip);
@@ -348,7 +320,6 @@ public class TripService {
             }
 
             if (!courseDetailResponseDtoList.isEmpty()) {
-                //다른 방법 고민해 보기
                 courseDetailResponseDtoList.sort(new CourseDetailComparator());
             }
 
@@ -359,15 +330,14 @@ public class TripService {
                     .build());
         }
 
-        TripResponseDto tripResponseDto;
-
+        boolean isBookmarked = false;
         if (null != member) {
-            boolean isBookmarked = false;
             TripBookmark findTripBookmark = tripBookmarkRepository.findByMemberAndTrip(member, trip);
             if (null != findTripBookmark) {
                 isBookmarked = true;
             }
-            tripResponseDto = TripResponseDto.builder()
+        }
+        TripResponseDto tripResponseDto = TripResponseDto.builder()
                     .id(trip.getId())
                     .title(trip.getTitle())
                     .isPublic(trip.getIsPublic())
@@ -375,91 +345,58 @@ public class TripService {
                     .endAt(trip.getEndAt().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")))
                     .isBookmarked(isBookmarked)
                     .courses(courseResponseDtoList).build();
-        } else {
-            tripResponseDto = TripResponseDto.builder()
-                    .id(trip.getId())
-                    .title(trip.getTitle())
-                    .isPublic(trip.getIsPublic())
-                    .startAt(trip.getStartAt().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")))
-                    .endAt(trip.getEndAt().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")))
-                    .courses(courseResponseDtoList).build();
-        }
-        return ResponseDto.success(tripResponseDto);
+
+        return ResponseEntity.ok(ResponseDto.success(tripResponseDto));
     }
 
     @Transactional
-    public ResponseDto<?> saveCourseDetailOrder(CourseRequestDto courseRequestDto) {
+    public ResponseEntity<?> saveCourseDetailOrder(CourseRequestDto courseRequestDto) throws AuthenticationException, ValidationException {
 
         Member member = tokenProvider.getMemberFromAuthentication();
 
-        Course course = isPresentCourse(courseRequestDto.getCourseId());
-        if (null == course) {
-            return ResponseDto.fail(COURSE_NOT_FOUND);
-        }
+        Course course = courseRepository.findById(courseRequestDto.getCourseId()).orElseThrow(() ->
+                new NoSuchElementException(String.valueOf(COURSE_NOT_FOUND)));
 
         if (course.getTrip().getMember().getId() != member.getId()) {
-            return ResponseDto.fail(NOT_AUTHORIZED);
+            throw new AuthenticationException(String.valueOf(REQUEST_FORBIDDEN));
         }
 
         for (CourseDetailRequestDto courseDetailRequestDto : courseRequestDto.getCourseDetails()) {
             switch (courseDetailRequestDto.getCategory()) {
                 case "관광지":
-                    CourseDetailSpot courseDetailSpot = isPresentCourseDetailSpot(courseDetailRequestDto.getDetailId());
+                    CourseDetailSpot courseDetailSpot = courseDetailSpotRepository.findById(courseDetailRequestDto.getDetailId())
+                            .orElseThrow(() -> new NoSuchElementException(String.valueOf(DETAIL_NOT_FOUND)));
                     if (courseDetailSpot.getCourse().getId() != course.getId()) {
-                        return ResponseDto.fail(NOT_AUTHORIZED);
+                        throw new AuthenticationException(String.valueOf(REQUEST_FORBIDDEN));
                     }
                     courseDetailSpot.changeOrder(courseDetailRequestDto.getDetailOrder());
                     courseDetailSpotRepository.save(courseDetailSpot);
                     break;
                 case "맛집":
-                    CourseDetailRest courseDetailRest = isPresentCourseDetailRest(courseDetailRequestDto.getDetailId());
+                    CourseDetailRest courseDetailRest = courseDetailRestRepository.findById(courseDetailRequestDto.getDetailId())
+                            .orElseThrow(() -> new NoSuchElementException(String.valueOf(DETAIL_NOT_FOUND)));
                     if (courseDetailRest.getCourse().getId() != course.getId()) {
-                        return ResponseDto.fail(NOT_AUTHORIZED);
+                        throw new AuthenticationException(String.valueOf(REQUEST_FORBIDDEN));
                     }
                     courseDetailRest.changeOrder(courseDetailRequestDto.getDetailOrder());
                     courseDetailRestRepository.save(courseDetailRest);
                     break;
                 case "숙소":
-                    CourseDetailAcc courseDetailAcc = isPresentCourseDetailAcc(courseDetailRequestDto.getDetailId());
+                    CourseDetailAcc courseDetailAcc = courseDetailAccRepository.findById(courseDetailRequestDto.getDetailId())
+                            .orElseThrow(() -> new NoSuchElementException(String.valueOf(DETAIL_NOT_FOUND)));
                     if (courseDetailAcc.getCourse().getId() != course.getId()) {
-                        return ResponseDto.fail(NOT_AUTHORIZED);
+                        throw new AuthenticationException(String.valueOf(REQUEST_FORBIDDEN));
                     }
                     courseDetailAcc.changeOrder(courseDetailRequestDto.getDetailOrder());
                     courseDetailAccRepository.save(courseDetailAcc);
                     break;
                 default:
-                    return ResponseDto.fail(INVALID_CATEGORY);
+                    throw new ValidationException(String.valueOf(INVALID_CATEGORY));
             }
         }
 
-        return ResponseDto.success(NULL);
+        return ResponseEntity.ok(ResponseDto.success(NULL));
     }
-
-    public Trip isPresentTrip(Long id) {
-        Optional<Trip> optionalTrip = tripRepository.findById(id);
-        return optionalTrip.orElse(null);
-    }
-
-    public Course isPresentCourse(Long id) {
-        Optional<Course> optionalCourse = courseRepository.findById(id);
-        return optionalCourse.orElse(null);
-    }
-
-    public CourseDetailSpot isPresentCourseDetailSpot(Long id) {
-        Optional<CourseDetailSpot> optionalCourseDetailSpot = courseDetailSpotRepository.findById(id);
-        return optionalCourseDetailSpot.orElse(null);
-    }
-
-    public CourseDetailRest isPresentCourseDetailRest(Long id) {
-        Optional<CourseDetailRest> optionalCourseDetailRest = courseDetailRestRepository.findById(id);
-        return optionalCourseDetailRest.orElse(null);
-    }
-
-    public CourseDetailAcc isPresentCourseDetailAcc(Long id) {
-        Optional<CourseDetailAcc> optionalCourseDetailAcc = courseDetailAccRepository.findById(id);
-        return optionalCourseDetailAcc.orElse(null);
-    }
-
 }
 
 class CourseDetailComparator implements Comparator<CourseDetailResponseDto> {

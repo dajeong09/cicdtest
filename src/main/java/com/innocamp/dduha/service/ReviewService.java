@@ -17,9 +17,12 @@ import com.innocamp.dduha.repository.review.RestaurantReviewRepository;
 import com.innocamp.dduha.repository.review.TouristSpotReviewRepository;
 import com.innocamp.dduha.repository.touristspot.TouristSpotRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import javax.naming.AuthenticationException;
+import javax.validation.ValidationException;
+import java.util.NoSuchElementException;
 
 import static com.innocamp.dduha.exception.ErrorCode.*;
 
@@ -35,172 +38,128 @@ public class ReviewService {
     private final AccommodationRepository accommodationRepository;
     private final AccommodationReviewRepository accommodationReviewRepository;
 
-    public ResponseDto<?> createReview(String category, Long id, ReviewRequestDto requestDto) {
+    public ResponseEntity<?> createReview(String category, Long id, ReviewRequestDto requestDto) {
 
         Member member = tokenProvider.getMemberFromAuthentication();
 
         switch (category) {
             case "touristspot":
-                TouristSpot touristSpot = isPresentTouristSpot(id);
-                if (null == touristSpot) {
-                    return ResponseDto.fail(TOURISTSPOT_NOT_FOUND);
-                }
+                TouristSpot touristSpot = touristSpotRepository.findById(id).orElseThrow(() ->
+                        new NoSuchElementException(String.valueOf(TOURISTSPOT_NOT_FOUND)));
+
                 TouristSpotReview touristSpotReview = TouristSpotReview.builder()
                         .member(member)
                         .touristSpot(touristSpot)
                         .review(requestDto.getReview()).build();
 
                 touristSpotReviewRepository.save(touristSpotReview);
-
                 break;
             case "restaurant":
-                Restaurant restaurant = isPresentRestaurant(id);
-                if (null == restaurant) {
-                    return ResponseDto.fail(RESTAURANT_NOT_FOUND);
-                }
+                Restaurant restaurant = restaurantRepository.findById(id).orElseThrow(() ->
+                        new NoSuchElementException(String.valueOf(RESTAURANT_NOT_FOUND)));
+
                 RestaurantReview restaurantReview = RestaurantReview.builder()
                         .member(member)
                         .restaurant(restaurant)
                         .review(requestDto.getReview()).build();
 
                 restaurantReviewRepository.save(restaurantReview);
-
                 break;
             case "accommodation":
-                Accommodation accommodation = isPresentAccommodation(id);
-                if (null == accommodation) {
-                    return ResponseDto.fail(ACCOMMODATION_NOT_FOUND);
-                }
+                Accommodation accommodation = accommodationRepository.findById(id).orElseThrow(() ->
+                        new NoSuchElementException(String.valueOf(ACCOMMODATION_NOT_FOUND)));
+
                 AccommodationReview accommodationReview = AccommodationReview.builder()
                         .member(member)
                         .accommodation(accommodation)
                         .review(requestDto.getReview()).build();
 
                 accommodationReviewRepository.save(accommodationReview);
-
                 break;
             default:
-                return ResponseDto.fail(INVALID_CATEGORY);
+                throw new ValidationException(String.valueOf(INVALID_CATEGORY));
         }
 
-        return ResponseDto.success(NULL);
+        return ResponseEntity.ok(ResponseDto.success(NULL));
     }
 
-    public ResponseDto<?> updateReview(String category, Long id, ReviewRequestDto requestDto) {
+    public ResponseEntity<?> updateReview(String category, Long id, ReviewRequestDto requestDto) throws AuthenticationException {
 
         Member member = tokenProvider.getMemberFromAuthentication();
 
         switch (category) {
             case "touristspot":
-                TouristSpotReview touristSpotReview = isPresentTouristSpotReview(id);
-                if (null == touristSpotReview) {
-                    return ResponseDto.fail(REVIEW_NOT_FOUND);
-                }
+                TouristSpotReview touristSpotReview = touristSpotReviewRepository.findById(id).orElseThrow(() ->
+                        new NoSuchElementException(String.valueOf(REVIEW_NOT_FOUND)));
+
                 if (touristSpotReview.getMember().getId() != member.getId()) {
-                    return ResponseDto.fail(NOT_AUTHORIZED);
+                    throw new AuthenticationException(String.valueOf(REQUEST_FORBIDDEN));
                 }
                 touristSpotReview.update(requestDto.getReview());
                 touristSpotReviewRepository.save(touristSpotReview);
                 break;
             case "restaurant":
-                RestaurantReview restaurantReview = isPresentRestaurantReview(id);
-                if (null == restaurantReview) {
-                    return ResponseDto.fail(REVIEW_NOT_FOUND);
-                }
+                RestaurantReview restaurantReview = restaurantReviewRepository.findById(id).orElseThrow(() ->
+                        new NoSuchElementException(String.valueOf(REVIEW_NOT_FOUND)));
+
                 if (restaurantReview.getMember().getId() != member.getId()) {
-                    return ResponseDto.fail(NOT_AUTHORIZED);
+                    throw new AuthenticationException(String.valueOf(REQUEST_FORBIDDEN));
                 }
                 restaurantReview.update(requestDto.getReview());
                 restaurantReviewRepository.save(restaurantReview);
                 break;
             case "accommodation":
-                AccommodationReview accommodationReview = isPresentAccommodationReview(id);
-                if (null == accommodationReview) {
-                    return ResponseDto.fail(REVIEW_NOT_FOUND);
-                }
+                AccommodationReview accommodationReview = accommodationReviewRepository.findById(id).orElseThrow(() ->
+                        new NoSuchElementException(String.valueOf(REVIEW_NOT_FOUND)));
                 if (accommodationReview.getMember().getId() != member.getId()) {
-                    return ResponseDto.fail(NOT_AUTHORIZED);
+                    throw new AuthenticationException(String.valueOf(REQUEST_FORBIDDEN));
                 }
                 accommodationReview.update(requestDto.getReview());
                 accommodationReviewRepository.save(accommodationReview);
                 break;
             default:
-                return ResponseDto.fail(INVALID_CATEGORY);
+                throw new ValidationException(String.valueOf(INVALID_CATEGORY));
         }
 
-        return ResponseDto.success(NULL);
+        return ResponseEntity.ok(ResponseDto.success(NULL));
     }
 
-    public ResponseDto<?> deleteReview(String category, Long id) {
+    public ResponseEntity<?> deleteReview(String category, Long id) throws AuthenticationException {
 
         Member member = tokenProvider.getMemberFromAuthentication();
 
         switch (category) {
             case "touristspot":
-                TouristSpotReview touristSpotReview = isPresentTouristSpotReview(id);
-                if (null == touristSpotReview) {
-                    return ResponseDto.fail(REVIEW_NOT_FOUND);
-                }
+                TouristSpotReview touristSpotReview = touristSpotReviewRepository.findById(id).orElseThrow(() ->
+                        new NoSuchElementException(String.valueOf(REVIEW_NOT_FOUND)));
+
                 if (touristSpotReview.getMember().getId() != member.getId()) {
-                    return ResponseDto.fail(NOT_AUTHORIZED);
+                    throw new AuthenticationException(String.valueOf(REQUEST_FORBIDDEN));
                 }
                 touristSpotReviewRepository.delete(touristSpotReview);
                 break;
             case "restaurant":
-                RestaurantReview restaurantReview = isPresentRestaurantReview(id);
-                if (null == restaurantReview) {
-                    return ResponseDto.fail(REVIEW_NOT_FOUND);
-                }
+                RestaurantReview restaurantReview = restaurantReviewRepository.findById(id).orElseThrow(() ->
+                        new NoSuchElementException(String.valueOf(REVIEW_NOT_FOUND)));
+
                 if (restaurantReview.getMember().getId() != member.getId()) {
-                    return ResponseDto.fail(NOT_AUTHORIZED);
+                    throw new AuthenticationException(String.valueOf(REQUEST_FORBIDDEN));
                 }
                 restaurantReviewRepository.delete(restaurantReview);
                 break;
             case "accommodation":
-                AccommodationReview accommodationReview = isPresentAccommodationReview(id);
-                if (null == accommodationReview) {
-                    return ResponseDto.fail(REVIEW_NOT_FOUND);
-                }
+                AccommodationReview accommodationReview = accommodationReviewRepository.findById(id).orElseThrow(() ->
+                        new NoSuchElementException(String.valueOf(REVIEW_NOT_FOUND)));
                 if (accommodationReview.getMember().getId() != member.getId()) {
-                    return ResponseDto.fail(NOT_AUTHORIZED);
+                    throw new AuthenticationException(String.valueOf(REQUEST_FORBIDDEN));
                 }
                 accommodationReviewRepository.delete(accommodationReview);
                 break;
             default:
-                return ResponseDto.fail(INVALID_CATEGORY);
+                throw new ValidationException(String.valueOf(INVALID_CATEGORY));
         }
 
-        return ResponseDto.success(NULL);
-    }
-
-    public TouristSpot isPresentTouristSpot(Long id) {
-        Optional<TouristSpot> optionalTouristSpot = touristSpotRepository.findById(id);
-        return optionalTouristSpot.orElse(null);
-    }
-
-    public Restaurant isPresentRestaurant(Long id) {
-        Optional<Restaurant> optionalRestaurant = restaurantRepository.findById(id);
-        return optionalRestaurant.orElse(null);
-    }
-
-    public Accommodation isPresentAccommodation(Long id) {
-        Optional<Accommodation> optionalAccommodation = accommodationRepository.findById(id);
-        return optionalAccommodation.orElse(null);
-    }
-
-    public TouristSpotReview isPresentTouristSpotReview(Long id) {
-        Optional<TouristSpotReview> optionalTouristSpotReview = touristSpotReviewRepository.findById(id);
-        return optionalTouristSpotReview.orElse(null);
-    }
-
-    public RestaurantReview isPresentRestaurantReview(Long id) {
-        Optional<RestaurantReview> optionalRestaurantReview = restaurantReviewRepository.findById(id);
-        return optionalRestaurantReview.orElse(null);
-    }
-
-    public AccommodationReview isPresentAccommodationReview(Long id) {
-        Optional<AccommodationReview> optionalAccommodationReview = accommodationReviewRepository.findById(id);
-        return optionalAccommodationReview.orElse(null);
+        return ResponseEntity.ok(ResponseDto.success(NULL));
     }
 
 }

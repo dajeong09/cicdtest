@@ -8,10 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MemberRequestDto {
-
     private String email;
-
     private String nickname;
-
     private String password;
 }

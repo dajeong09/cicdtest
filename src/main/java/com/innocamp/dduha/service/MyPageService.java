@@ -19,6 +19,7 @@ import com.innocamp.dduha.repository.review.AccommodationReviewRepository;
 import com.innocamp.dduha.repository.review.RestaurantReviewRepository;
 import com.innocamp.dduha.repository.review.TouristSpotReviewRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.format.DateTimeFormatter;
@@ -39,7 +40,7 @@ public class MyPageService {
     private final AccommodationReviewRepository accommodationReviewRepository;
 
     // 내가 즐겨찾기한 각 목록 조회(즐겨찾기 개수)
-    public ResponseDto<?> getMyBookmarkedList() {
+    public ResponseEntity<?> getMyBookmarkedList() {
 
         Member member = tokenProvider.getMemberFromAuthentication();
 
@@ -54,11 +55,11 @@ public class MyPageService {
                 .restaurantBookmarkNum(restaurantBookmarkNum)
                 .accommodationBookmarkNum(accommodationBookmarkNum)
                 .build();
-        return ResponseDto.success(myPageResponseDto);
+        return ResponseEntity.ok(ResponseDto.success(myPageResponseDto));
     }
 
     // 내가 즐겨찾기한 관광지 조회
-    public ResponseDto<?> getMyTouristSpotBookmark() {
+    public ResponseEntity<?> getMyTouristSpotBookmark() {
 
         Member member = tokenProvider.getMemberFromAuthentication();
 
@@ -79,12 +80,12 @@ public class MyPageService {
                             .build()
             );
         }
-        return ResponseDto.success(touristSpotResponseDtoList);
+        return ResponseEntity.ok(ResponseDto.success(touristSpotResponseDtoList));
     }
 
 
     //내가 즐겨찾기한 맛집 조회
-    public ResponseDto<?> getMyRestaurantBookmark() {
+    public ResponseEntity<?> getMyRestaurantBookmark() {
 
         Member member = tokenProvider.getMemberFromAuthentication();
 
@@ -105,11 +106,11 @@ public class MyPageService {
                             .build()
             );
         }
-        return ResponseDto.success(RestaurantResponseDtoList);
+        return ResponseEntity.ok(ResponseDto.success(RestaurantResponseDtoList));
     }
 
     //내가 즐겨찾기한 숙소 조회
-    public ResponseDto<?> getMyAccommodationBookmark() {
+    public ResponseEntity<?> getMyAccommodationBookmark() {
 
         Member member = tokenProvider.getMemberFromAuthentication();
 
@@ -130,11 +131,11 @@ public class MyPageService {
                             .build()
             );
         }
-        return ResponseDto.success(AccommodationResponseDtoList);
+        return ResponseEntity.ok(ResponseDto.success(AccommodationResponseDtoList));
     }
 
     //내가 즐겨찾기한 일정 조회
-    public ResponseDto<?> getMyTripBookmark() {
+    public ResponseEntity<?> getMyTripBookmark() {
 
         Member member = tokenProvider.getMemberFromAuthentication();
 
@@ -152,11 +153,11 @@ public class MyPageService {
                             .build()
             );
         }
-        return ResponseDto.success(TripResponseDtoList);
+        return ResponseEntity.ok(ResponseDto.success(TripResponseDtoList));
     }
 
     // 내가 작성한 관광지 댓글 조회
-    public ResponseDto<?> getMyTouristSpotReview() {
+    public ResponseEntity<?> getMyTouristSpotReview() {
 
         Member member = tokenProvider.getMemberFromAuthentication();
 
@@ -173,11 +174,11 @@ public class MyPageService {
                     .reviewedAt(touristSpotReview.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")))
                     .build());
         }
-        return ResponseDto.success(reviewResponseDtoList);
+        return ResponseEntity.ok(ResponseDto.success(reviewResponseDtoList));
     }
 
     // 내가 작성한 맛집 댓글 조회
-    public ResponseDto<?> getMyRestaurantReview() {
+    public ResponseEntity<?> getMyRestaurantReview() {
 
         Member member = tokenProvider.getMemberFromAuthentication();
 
@@ -194,11 +195,11 @@ public class MyPageService {
                     .reviewedAt(restaurantReview.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")))
                     .build());
         }
-        return ResponseDto.success(reviewResponseDtoList);
+        return ResponseEntity.ok(ResponseDto.success(reviewResponseDtoList));
     }
 
     // 내가 작성한 숙소 댓글 조회
-    public ResponseDto<?> getMyAccommodationReview() {
+    public ResponseEntity<?> getMyAccommodationReview() {
 
         Member member = tokenProvider.getMemberFromAuthentication();
 
@@ -215,6 +216,6 @@ public class MyPageService {
                     .reviewedAt(accommodationReview.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")))
                     .build());
         }
-        return ResponseDto.success(reviewResponseDtoList);
+        return ResponseEntity.ok(ResponseDto.success(reviewResponseDtoList));
     }
 }

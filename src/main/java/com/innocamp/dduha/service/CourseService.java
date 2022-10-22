@@ -27,13 +27,13 @@ import com.innocamp.dduha.repository.coursedetail.CourseDetailSpotRepository;
 import com.innocamp.dduha.repository.restaurant.RestaurantRepository;
 import com.innocamp.dduha.repository.touristspot.TouristSpotRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import javax.naming.AuthenticationException;
+import javax.xml.bind.ValidationException;
+import java.util.*;
 
 import static com.innocamp.dduha.exception.ErrorCode.*;
 
@@ -55,17 +55,15 @@ public class CourseService {
     private final TokenProvider tokenProvider;
 
     @Transactional
-    public ResponseDto<?> addCourseDetail(CourseDetailRequestDto requestDto) {
+    public ResponseEntity<?> addCourseDetail(CourseDetailRequestDto requestDto) throws AuthenticationException, ValidationException {
 
         Member member = tokenProvider.getMemberFromAuthentication();
 
-        Course course = isPresentCourse(requestDto.getCourseId());
-        if (null == course) {
-            return ResponseDto.fail(COURSE_NOT_FOUND);
-        }
+        Course course = courseRepository.findById(requestDto.getCourseId()).orElseThrow(() ->
+                new NoSuchElementException(String.valueOf(COURSE_NOT_FOUND)));
 
         if (!course.getTrip().getMember().getId().equals(member.getId())) {
-            return ResponseDto.fail(NOT_AUTHORIZED);
+            throw new AuthenticationException(String.valueOf(REQUEST_FORBIDDEN));
         }
 
         int detailOrder = courseDetailAccRepository.countAllByCourse(course) +
@@ -73,7 +71,7 @@ public class CourseService {
                 courseDetailRestRepository.countAllByCourse(course) + 1;
 
         if (detailOrder > 10) {
-            ResponseDto.fail(EXCEED_MAX_PLACES);
+            throw new ValidationException(String.valueOf(EXCEED_MAX_PLACES));
         }
 
         if (requestDto.getDetailOrder() != 0) {
@@ -108,11 +106,10 @@ public class CourseService {
             }
         }
 
-        System.out.println(requestDto.getDetailId());
-
         switch (requestDto.getCategory()) {
             case "관광지":
-                TouristSpot touristSpot = isPresentTouristSpot(requestDto.getDetailId());
+                TouristSpot touristSpot = touristSpotRepository.findById(requestDto.getDetailId()).orElseThrow(() ->
+                        new NoSuchElementException(String.valueOf(TOURISTSPOT_NOT_FOUND)));
                 CourseDetailSpot courseDetailSpot = CourseDetailSpot.builder()
                         .course(course)
                         .touristSpot(touristSpot)
@@ -120,7 +117,8 @@ public class CourseService {
                 courseDetailSpotRepository.save(courseDetailSpot);
                 break;
             case "맛집":
-                Restaurant restaurant = isPresentRestaurant(requestDto.getDetailId());
+                Restaurant restaurant = restaurantRepository.findById(requestDto.getDetailId()).orElseThrow(() ->
+                        new NoSuchElementException(String.valueOf(RESTAURANT_NOT_FOUND)));
                 CourseDetailRest courseDetailRest = CourseDetailRest.builder()
                         .course(course)
                         .restaurant(restaurant)
@@ -128,7 +126,8 @@ public class CourseService {
                 courseDetailRestRepository.save(courseDetailRest);
                 break;
             case "숙소":
-                Accommodation accommodation = isPresentAccommodation(requestDto.getDetailId());
+                Accommodation accommodation = accommodationRepository.findById(requestDto.getDetailId()).orElseThrow(() ->
+                        new NoSuchElementException(String.valueOf(ACCOMMODATION_NOT_FOUND)));
                 CourseDetailAcc courseDetailAcc = CourseDetailAcc.builder()
                         .course(course)
                         .accommodation(accommodation)
@@ -136,58 +135,55 @@ public class CourseService {
                 courseDetailAccRepository.save(courseDetailAcc);
                 break;
             default:
-                return ResponseDto.fail(INVALID_CATEGORY);
+                throw new ValidationException(String.valueOf(INVALID_CATEGORY));
         }
 
-        return ResponseDto.success(NULL);
+        return ResponseEntity.ok(ResponseDto.success(NULL));
     }
 
     @Transactional
-    public ResponseDto<?> removeCourseDetail(CourseDetailRequestDto courseDetailRequestDto) {
+    public ResponseEntity<?> removeCourseDetail(CourseDetailRequestDto courseDetailRequestDto) throws AuthenticationException, ValidationException {
 
         Member member = tokenProvider.getMemberFromAuthentication();
 
-        Course course = null;
-        int detailOrder = 0;
+        Course course;
+        int detailOrder;
         switch (courseDetailRequestDto.getCategory()) {
             case "관광지":
-                CourseDetailSpot courseDetailSpot = isCourseDetailSpot(courseDetailRequestDto.getDetailId());
-                if (null == courseDetailSpot) {
-                    return ResponseDto.fail(DETAIL_NOT_FOUND);
-                }
+                CourseDetailSpot courseDetailSpot = courseDetailSpotRepository.findById(courseDetailRequestDto.getDetailId())
+                        .orElseThrow(() -> new NoSuchElementException(String.valueOf(DETAIL_NOT_FOUND)));
                 if (!courseDetailSpot.getCourse().getTrip().getMember().getId().equals(member.getId())) {
-                    return ResponseDto.fail(NOT_AUTHORIZED);
+                    throw new AuthenticationException(String.valueOf(REQUEST_FORBIDDEN));
                 }
                 courseDetailSpotRepository.delete(courseDetailSpot);
-                course = isPresentCourse(courseDetailSpot.getCourse().getId());
+                course = courseRepository.findById(courseDetailSpot.getCourse().getId()).orElseThrow(() ->
+                        new NoSuchElementException(String.valueOf(COURSE_NOT_FOUND)));
                 detailOrder = courseDetailSpot.getDetailOrder();
                 break;
             case "맛집":
-                CourseDetailRest courseDetailRest = isCourseDetailRest(courseDetailRequestDto.getDetailId());
-                if (null == courseDetailRest) {
-                    return ResponseDto.fail(DETAIL_NOT_FOUND);
-                }
+                CourseDetailRest courseDetailRest = courseDetailRestRepository.findById(courseDetailRequestDto.getDetailId())
+                        .orElseThrow(() -> new NoSuchElementException(String.valueOf(DETAIL_NOT_FOUND)));
                 if (!courseDetailRest.getCourse().getTrip().getMember().getId().equals(member.getId())) {
-                    return ResponseDto.fail(NOT_AUTHORIZED);
+                    throw new AuthenticationException(String.valueOf(REQUEST_FORBIDDEN));
                 }
                 courseDetailRestRepository.delete(courseDetailRest);
-                course = isPresentCourse(courseDetailRest.getCourse().getId());
+                course = courseRepository.findById(courseDetailRest.getCourse().getId()).orElseThrow(() ->
+                        new NoSuchElementException(String.valueOf(COURSE_NOT_FOUND)));
                 detailOrder = courseDetailRest.getDetailOrder();
                 break;
             case "숙소":
-                CourseDetailAcc courseDetailAcc = isCourseDetailAcc(courseDetailRequestDto.getDetailId());
-                if (null == courseDetailAcc) {
-                    return ResponseDto.fail(DETAIL_NOT_FOUND);
-                }
+                CourseDetailAcc courseDetailAcc = courseDetailAccRepository.findById(courseDetailRequestDto.getDetailId())
+                        .orElseThrow(() -> new NoSuchElementException(String.valueOf(DETAIL_NOT_FOUND)));
                 if (!courseDetailAcc.getCourse().getTrip().getMember().getId().equals(member.getId())) {
-                    return ResponseDto.fail(NOT_AUTHORIZED);
+                    throw new AuthenticationException(String.valueOf(REQUEST_FORBIDDEN));
                 }
                 courseDetailAccRepository.delete(courseDetailAcc);
-                course = isPresentCourse(courseDetailAcc.getCourse().getId());
+                course = courseRepository.findById(courseDetailAcc.getCourse().getId()).orElseThrow(() ->
+                        new NoSuchElementException(String.valueOf(COURSE_NOT_FOUND)));
                 detailOrder = courseDetailAcc.getDetailOrder();
                 break;
             default:
-                return ResponseDto.fail(INVALID_CATEGORY);
+                throw new ValidationException(String.valueOf(INVALID_CATEGORY));
         }
 
         List<CourseDetailSpot> savedCourseDetailSpotList =
@@ -217,10 +213,10 @@ public class CourseService {
             }
         }
 
-        return ResponseDto.success(NULL);
+        return ResponseEntity.ok(ResponseDto.success(NULL));
     }
 
-    public ResponseDto<?> getBookmarkList() {
+    public ResponseEntity<?> getBookmarkList() {
 
         Member member = tokenProvider.getMemberFromAuthentication();
 
@@ -282,126 +278,65 @@ public class CourseService {
             bookmarkedPlaceResponseDtoList.sort(new DateComparator());
         }
 
-        return ResponseDto.success(bookmarkedPlaceResponseDtoList);
+        return ResponseEntity.ok(ResponseDto.success(bookmarkedPlaceResponseDtoList));
     }
 
-    public ResponseDto<?> getNearbyList(double latitude, double longitude) {
-
-        Member member = tokenProvider.getMemberFromAuthentication();
+    public ResponseEntity<?> getNearbyList(double latitude, double longitude) {
 
         double differ = 0.0201;
         List<TouristSpot> touristSpotList = touristSpotRepository.findAllByLatitudeBetweenAndLongitudeBetween(latitude - differ, latitude + differ, longitude - differ, longitude + differ);
         List<Restaurant> restaurantList = restaurantRepository.findAllByLatitudeBetweenAndLongitudeBetween(latitude - differ, latitude + differ, longitude - differ, longitude + differ);
 
         List<CourseNearbyResponseDto> courseNearbyResponseDtoList = new ArrayList<>();
+        double newLatitude;
+        double newLongitude;
+        double theta;
+        double dist;
+        double convertedDist;
 
-        if (null != member) {
-            boolean isBookmarked;
-            for (TouristSpot touristSpot : touristSpotList) {
-                isBookmarked = false;
-                TouristSpotBookmark findTouristSpotBookmark = touristSpotBookmarkRepository.findByMemberAndTouristSpot(member, touristSpot);
-                if (null != findTouristSpotBookmark) {
-                    isBookmarked = true;
-                }
-                double newLatitude = touristSpot.getLatitude();
-                double newLongitude = touristSpot.getLongitude();
-                double theta = longitude - newLongitude;
-                double dist = Math.sin(deg2rad(latitude)) * Math.sin(deg2rad(newLatitude)) + Math.cos(deg2rad(latitude)) * Math.cos(deg2rad(newLatitude)) * Math.cos(deg2rad(theta));
-                dist = Math.acos(dist);
-                dist = rad2deg(dist);
-                dist = dist * 60 * 1.1515 * 1609.344;
-                System.out.println("[" + touristSpot.getName() + "] 까지 거리: " + Math.round(dist / 5) * 5 + "m");
-                if (dist < 5000 && touristSpot.getLatitude() != latitude) {
-                    courseNearbyResponseDtoList.add(CourseNearbyResponseDto.builder()
-                            .id(touristSpot.getId())
-                            .category("관광지")
-                            .name(touristSpot.getName())
-                            .description(touristSpot.getDescription())
-                            .likeNum(touristSpot.getLikeNum())
-                            .region(touristSpot.getRegion())
-                            .thumbnailUrl(touristSpot.getThumbnailUrl())
-                            .isBookmarked(isBookmarked)
-                            .distance((int) Math.round(dist / 5) * 5)
-                            .build());
-                }
+        for (TouristSpot touristSpot : touristSpotList) {
+            newLatitude = touristSpot.getLatitude();
+            newLongitude = touristSpot.getLongitude();
+            theta = longitude - newLongitude;
+            dist = Math.sin(deg2rad(latitude)) * Math.sin(deg2rad(newLatitude))
+                    + Math.cos(deg2rad(latitude)) * Math.cos(deg2rad(newLatitude)) * Math.cos(deg2rad(theta));
+            convertedDist = rad2deg(Math.acos(dist)) * 60 * 1.1515 * 1609.344;
+            if (convertedDist < 5000 && touristSpot.getLatitude() != latitude) {
+                courseNearbyResponseDtoList.add(CourseNearbyResponseDto.builder()
+                        .id(touristSpot.getId())
+                        .category("관광지")
+                        .name(touristSpot.getName())
+                        .description(touristSpot.getDescription())
+                        .likeNum(touristSpot.getLikeNum())
+                        .region(touristSpot.getRegion())
+                        .thumbnailUrl(touristSpot.getThumbnailUrl())
+                        .distance((int) Math.round(convertedDist / 5) * 5)
+                        .build());
             }
-            for (Restaurant restaurant : restaurantList) {
-                isBookmarked = false;
-                RestaurantBookmark findRestaurantBookmark = restaurantBookmarkRepository.findByMemberAndRestaurant(member, restaurant);
-                if (null != findRestaurantBookmark) {
-                    isBookmarked = true;
-                }
-                double newLatitude = restaurant.getLatitude();
-                double newLongitude = restaurant.getLongitude();
-                double theta = longitude - newLongitude;
-                double dist = Math.sin(deg2rad(latitude)) * Math.sin(deg2rad(newLatitude)) + Math.cos(deg2rad(latitude)) * Math.cos(deg2rad(newLatitude)) * Math.cos(deg2rad(theta));
-                dist = Math.acos(dist);
-                dist = rad2deg(dist);
-                dist = dist * 60 * 1.1515 * 1609.344;
-                System.out.println("[" + restaurant.getName() + "] 까지 거리: " + Math.round(dist / 5) * 5 + "m");
-                if (dist < 5000 && restaurant.getLatitude() != latitude) {
-                    courseNearbyResponseDtoList.add(CourseNearbyResponseDto.builder()
-                            .id(restaurant.getId())
-                            .category("맛집")
-                            .name(restaurant.getName())
-                            .description(restaurant.getDescription())
-                            .likeNum(restaurant.getLikeNum())
-                            .region(restaurant.getRegion())
-                            .thumbnailUrl(restaurant.getThumbnailUrl())
-                            .isBookmarked(isBookmarked)
-                            .distance((int) Math.round(dist / 5) * 5)
-                            .build());
-                }
-            }
-        } else {
-            for (TouristSpot touristSpot : touristSpotList) {
-                double newLatitude = touristSpot.getLatitude();
-                double newLongitude = touristSpot.getLongitude();
-                double theta = longitude - newLongitude;
-                double dist = Math.sin(deg2rad(latitude)) * Math.sin(deg2rad(newLatitude)) + Math.cos(deg2rad(latitude)) * Math.cos(deg2rad(newLatitude)) * Math.cos(deg2rad(theta));
-                dist = Math.acos(dist);
-                dist = rad2deg(dist);
-                dist = dist * 60 * 1.1515 * 1609.344;
-                System.out.println("[" + touristSpot.getName() + "] 까지 거리: " + Math.round(dist / 5) * 5 + "m");
-                if (dist < 5000 && touristSpot.getLatitude() != latitude) {
-                    courseNearbyResponseDtoList.add(CourseNearbyResponseDto.builder()
-                            .id(touristSpot.getId())
-                            .category("관광지")
-                            .name(touristSpot.getName())
-                            .description(touristSpot.getDescription())
-                            .likeNum(touristSpot.getLikeNum())
-                            .region(touristSpot.getRegion())
-                            .thumbnailUrl(touristSpot.getThumbnailUrl())
-                            .distance((int) Math.round(dist / 5) * 5)
-                            .build());
-                }
-            }
-            for (Restaurant restaurant : restaurantList) {
-                double newLatitude = restaurant.getLatitude();
-                double newLongitude = restaurant.getLongitude();
-                double theta = longitude - newLongitude;
-                double dist = Math.sin(deg2rad(latitude)) * Math.sin(deg2rad(newLatitude)) + Math.cos(deg2rad(latitude)) * Math.cos(deg2rad(newLatitude)) * Math.cos(deg2rad(theta));
-                dist = Math.acos(dist);
-                dist = rad2deg(dist);
-                dist = dist * 60 * 1.1515 * 1609.344;
-                System.out.println("[" + restaurant.getName() + "] 까지 거리: " + Math.round(dist / 5) * 5 + "m");
-                if (dist < 5000 && restaurant.getLatitude() != latitude) {
-                    courseNearbyResponseDtoList.add(CourseNearbyResponseDto.builder()
-                            .id(restaurant.getId())
-                            .category("맛집")
-                            .name(restaurant.getName())
-                            .description(restaurant.getDescription())
-                            .likeNum(restaurant.getLikeNum())
-                            .region(restaurant.getRegion())
-                            .thumbnailUrl(restaurant.getThumbnailUrl())
-                            .distance((int) Math.round(dist / 5) * 5)
-                            .build());
-                }
+        }
+
+        for (Restaurant restaurant : restaurantList) {
+            newLatitude = restaurant.getLatitude();
+            newLongitude = restaurant.getLongitude();
+            theta = longitude - newLongitude;
+            dist = Math.sin(deg2rad(latitude)) * Math.sin(deg2rad(newLatitude))
+                    + Math.cos(deg2rad(latitude)) * Math.cos(deg2rad(newLatitude)) * Math.cos(deg2rad(theta));
+            convertedDist = rad2deg(Math.acos(dist)) * 60 * 1.1515 * 1609.344;
+            if (convertedDist < 5000 && restaurant.getLatitude() != latitude) {
+                courseNearbyResponseDtoList.add(CourseNearbyResponseDto.builder()
+                        .id(restaurant.getId())
+                        .category("맛집")
+                        .name(restaurant.getName())
+                        .description(restaurant.getDescription())
+                        .likeNum(restaurant.getLikeNum())
+                        .region(restaurant.getRegion())
+                        .thumbnailUrl(restaurant.getThumbnailUrl())
+                        .distance((int) Math.round(convertedDist / 5) * 5)
+                        .build());
             }
         }
 
         if (!courseNearbyResponseDtoList.isEmpty()) {
-            //다른 방법 고민해 보기
             courseNearbyResponseDtoList.sort(new DistanceComparator());
         }
 
@@ -411,46 +346,9 @@ public class CourseService {
                 break;
             }
             courseNearbyResponseDtoListTop5.add(courseNearbyResponseDtoList.get(i));
-
         }
-        return ResponseDto.success(courseNearbyResponseDtoListTop5);
+        return ResponseEntity.ok(ResponseDto.success(courseNearbyResponseDtoListTop5));
 
-    }
-
-
-    public Course isPresentCourse(Long id) {
-        Optional<Course> optionalCourse = courseRepository.findById(id);
-        return optionalCourse.orElse(null);
-    }
-
-    public TouristSpot isPresentTouristSpot(Long id) {
-        Optional<TouristSpot> optionalTouristSpot = touristSpotRepository.findById(id);
-        return optionalTouristSpot.orElse(null);
-    }
-
-    public Restaurant isPresentRestaurant(Long id) {
-        Optional<Restaurant> optionalRestaurant = restaurantRepository.findById(id);
-        return optionalRestaurant.orElse(null);
-    }
-
-    public Accommodation isPresentAccommodation(Long id) {
-        Optional<Accommodation> optionalAccommodation = accommodationRepository.findById(id);
-        return optionalAccommodation.orElse(null);
-    }
-
-    public CourseDetailSpot isCourseDetailSpot(Long id) {
-        Optional<CourseDetailSpot> optionalCourseDetailSpot = courseDetailSpotRepository.findById(id);
-        return optionalCourseDetailSpot.orElse(null);
-    }
-
-    public CourseDetailRest isCourseDetailRest(Long id) {
-        Optional<CourseDetailRest> optionalCourseDetailRest = courseDetailRestRepository.findById(id);
-        return optionalCourseDetailRest.orElse(null);
-    }
-
-    public CourseDetailAcc isCourseDetailAcc(Long id) {
-        Optional<CourseDetailAcc> optionalCourseDetailAcc = courseDetailAccRepository.findById(id);
-        return optionalCourseDetailAcc.orElse(null);
     }
 
     public static double deg2rad(double deg) {

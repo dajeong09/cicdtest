@@ -3,7 +3,7 @@ package com.innocamp.dduha.config;
 import com.innocamp.dduha.jwt.AccessDeniedHandlerException;
 import com.innocamp.dduha.jwt.AuthenticationEntryPointException;
 import com.innocamp.dduha.jwt.TokenProvider;
-import com.innocamp.dduha.service.UserDetailsServiceImpl;
+import com.innocamp.dduha.service.member.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
@@ -29,7 +29,6 @@ public class WebSecurityConfig {
     private final AuthenticationEntryPointException authenticationEntryPointException;
     private final AccessDeniedHandlerException accessDeniedHandlerException;
 
-    // BCryptPasswordEncoder는 비밀번호를 암호화하는 데 사용할 수 있는 메서드를 가진 클래스이다.
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -46,7 +45,6 @@ public class WebSecurityConfig {
                 .authenticationEntryPoint(authenticationEntryPointException)
                 .accessDeniedHandler(accessDeniedHandlerException)
 
-
                 .and()
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -55,7 +53,6 @@ public class WebSecurityConfig {
                 .authorizeRequests()
                 .antMatchers("/member/**").permitAll()
                 .antMatchers("/oauth/**").permitAll()
-                .antMatchers("/login/**").permitAll()
                 .antMatchers("/touristspot/**").permitAll()
                 .antMatchers("/restaurant/**").permitAll()
                 .antMatchers("/accommodation/**").permitAll()

@@ -1,11 +1,11 @@
 package com.innocamp.dduha.controller;
 
-import com.innocamp.dduha.dto.ResponseDto;
-import com.innocamp.dduha.service.AccommodationBookmarkService;
-import com.innocamp.dduha.service.RestaurantBookmarkService;
-import com.innocamp.dduha.service.TouristSpotBookmarkService;
-import com.innocamp.dduha.service.TripBookmarkService;
+import com.innocamp.dduha.service.bookmark.AccommodationBookmarkService;
+import com.innocamp.dduha.service.bookmark.RestaurantBookmarkService;
+import com.innocamp.dduha.service.bookmark.TouristSpotBookmarkService;
+import com.innocamp.dduha.service.bookmark.TripBookmarkService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,25 +21,25 @@ public class BookmarkController {
 
     // 관광지 즐겨찾기 / 취소하기
     @GetMapping("/auth/touristspot/bookmark/{id}")
-    public ResponseDto<?> createTouristSpotBookmark(@PathVariable Long id) {
+    public ResponseEntity<?> createTouristSpotBookmark(@PathVariable Long id) {
         return touristSpotBookmarkService.createTouristSpotBookmark(id);
     }
 
     // 맛집 즐겨찾기 / 취소하기
     @GetMapping("/auth/restaurant/bookmark/{id}")
-    public ResponseDto<?> createRestaurantBookmark(@PathVariable Long id) {
+    public ResponseEntity<?> createRestaurantBookmark(@PathVariable Long id) {
         return restaurantBookmarkService.createRestaurantBookmark(id);
     }
 
     // 숙소 즐겨찾기 / 취소하기
     @GetMapping("/auth/accommodation/bookmark/{id}")
-    public ResponseDto<?> createAccommodationBookmark(@PathVariable Long id) {
+    public ResponseEntity<?> createAccommodationBookmark(@PathVariable Long id) {
         return accommodationBookmarkService.createAccommodationBookmark(id);
     }
 
     // 일정 즐겨찾기 / 취소하기
     @GetMapping("/auth/trip/bookmark/{id}")
-    public ResponseDto<?> createTripBookmark(@PathVariable Long id) {
+    public ResponseEntity<?> createTripBookmark(@PathVariable Long id) {
         return tripBookmarkService.createTripBookmark(id);
     }
 

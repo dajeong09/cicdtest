@@ -7,7 +7,6 @@ import lombok.Getter;
 @Getter
 @Builder
 public class MyPageResponseDto {
-
     private int tripBookmarkNum;
     private int touristSpotBookmarkNum;
     private int restaurantBookmarkNum;

@@ -19,13 +19,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.NoSuchElementException;
+
+import static com.innocamp.dduha.exception.ErrorCode.ACCOMMODATION_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
@@ -40,7 +43,7 @@ public class AccommodationService {
     private final TokenProvider tokenProvider;
 
     @Transactional(readOnly = true)
-    public ResponseDto<?> getAccommodationList(int page, String region, String station) {
+    public ResponseEntity<?> getAccommodationList(int page, String region, String station) {
 
         Member member = tokenProvider.getMemberFromAuthentication();
 
@@ -78,73 +81,54 @@ public class AccommodationService {
             }
         }
 
-        if (null != member) {
-            for (Accommodation accommodation : accommodations) {
-                boolean hasNearbyStation = false;
-                boolean isBookmarked = false;
-                List<AccommodationNearby> accommodationNearbyList = accommodationNearbyRepository.findAllByAccommodation(accommodation);
-                if (accommodationNearbyList.size() > 0) {
-                    hasNearbyStation = true;
-                }
-                AccommodationBookmark accommodationBookmark = accommodationBookmarkRepository.findByMemberAndAccommodation(member, accommodation);
+        for (Accommodation accommodation : accommodations) {
+            boolean hasNearbyStation = false;
+            boolean isBookmarked = false;
+            List<AccommodationNearby> accommodationNearbyList = accommodationNearbyRepository
+                    .findAllByAccommodation(accommodation);
+            if (accommodationNearbyList.size() > 0) {
+                hasNearbyStation = true;
+            }
+            if (member != null) {
+                AccommodationBookmark accommodationBookmark = accommodationBookmarkRepository
+                        .findByMemberAndAccommodation(member, accommodation);
                 if (null != accommodationBookmark) {
                     isBookmarked = true;
                 }
-                int bookmarkNum = accommodation.getLikeNum() + accommodationBookmarkRepository.countByAccommodation(accommodation);
-                accommodationResponseDtoList.add(
-                        PlaceResponseDto.builder()
-                                .id(accommodation.getId())
-                                .name(accommodation.getName())
-                                .description(accommodation.getDescription())
-                                .bookmarkNum(bookmarkNum)
-                                .region(accommodation.getRegion())
-                                .address(accommodation.getAddress())
-                                .latitude(accommodation.getLatitude())
-                                .longitude(accommodation.getLongitude())
-                                .thumbnailUrl(accommodation.getThumbnailUrl())
-                                .hasNearStation(hasNearbyStation)
-                                .isBookmarked(isBookmarked)
-                                .build()
-                );
             }
-        } else {
-            for (Accommodation accommodation : accommodations) {
-                boolean hasNearbyStation = false;
-                List<AccommodationNearby> accommodationNearbyList = accommodationNearbyRepository.findAllByAccommodation(accommodation);
-                if (accommodationNearbyList.size() > 0) {
-                    hasNearbyStation = true;
-                }
-                int bookmarkNum = accommodation.getLikeNum() + accommodationBookmarkRepository.countByAccommodation(accommodation);
-                accommodationResponseDtoList.add(
-                        PlaceResponseDto.builder()
-                                .id(accommodation.getId())
-                                .name(accommodation.getName())
-                                .description(accommodation.getDescription())
-                                .bookmarkNum(bookmarkNum)
-                                .region(accommodation.getRegion())
-                                .address(accommodation.getAddress())
-                                .latitude(accommodation.getLatitude())
-                                .longitude(accommodation.getLongitude())
-                                .thumbnailUrl(accommodation.getThumbnailUrl())
-                                .hasNearStation(hasNearbyStation)
-                                .build()
-                );
-            }
+            int bookmarkNum = accommodation.getLikeNum() + accommodationBookmarkRepository.countByAccommodation(accommodation);
+            accommodationResponseDtoList.add(
+                    PlaceResponseDto.builder()
+                            .id(accommodation.getId())
+                            .name(accommodation.getName())
+                            .description(accommodation.getDescription())
+                            .bookmarkNum(bookmarkNum)
+                            .region(accommodation.getRegion())
+                            .address(accommodation.getAddress())
+                            .latitude(accommodation.getLatitude())
+                            .longitude(accommodation.getLongitude())
+                            .thumbnailUrl(accommodation.getThumbnailUrl())
+                            .hasNearStation(hasNearbyStation)
+                            .isBookmarked(isBookmarked)
+                            .build()
+            );
         }
 
         ListResponseDto listResponseDto = ListResponseDto.builder()
                 .totalPages(accommodations.getTotalPages())
+                .nextPage(page+1)
                 .list(accommodationResponseDtoList).build();
 
-        return ResponseDto.success(listResponseDto);
+        return ResponseEntity.ok(ResponseDto.success(listResponseDto));
     }
 
 
-    public ResponseDto<?> getAccommodationDetail(Long id) {
+    public ResponseEntity<?> getAccommodationDetail(Long id) {
 
         Member member = tokenProvider.getMemberFromAuthentication();
 
-        Accommodation accommodation = isPresentAccommodation(id);
+        Accommodation accommodation = accommodationRepository.findById(id).orElseThrow(() ->
+                new NoSuchElementException(String.valueOf(ACCOMMODATION_NOT_FOUND)));
         List<AccommodationImg> accommodationImgList = accommodationImgRepository.findAllByAccommodation(accommodation);
         List<String> accommodationImgs = new ArrayList<>();
         for (AccommodationImg accommodationImg : accommodationImgList) {
@@ -175,57 +159,33 @@ public class AccommodationService {
 
         int bookmarkNum = accommodation.getLikeNum() + accommodationBookmarkRepository.countByAccommodation(accommodation);
 
-        DetailResponseDto responseDto;
+        boolean isBookmarked = false;
         if (null != member) {
-            boolean isBookmarked = false;
             AccommodationBookmark findAccommodationBookmark = accommodationBookmarkRepository.findByMemberAndAccommodation(member, accommodation);
             if (null != findAccommodationBookmark) {
                 isBookmarked = true;
             }
-            responseDto = DetailResponseDto.builder()
-                    .id(accommodation.getId())
-                    .name(accommodation.getName())
-                    .description(accommodation.getDescription())
-                    .address(accommodation.getAddress())
-                    .phone(accommodation.getPhone())
-                    .info(accommodation.getInfo())
-                    .bookmarkNum(bookmarkNum)
-                    .thumbnailUrl(accommodation.getThumbnailUrl())
-                    .region(accommodation.getRegion())
-                    .latitude(accommodation.getLatitude())
-                    .longitude(accommodation.getLongitude())
-                    .imgUrl(accommodationImgs)
-                    .reviews(reviewResponseDtoList)
-                    .stations(busStationResponseDtoList)
-                    .isBookmarked(isBookmarked)
-                    .build();
-
-        } else {
-            responseDto = DetailResponseDto.builder()
-                    .id(accommodation.getId())
-                    .name(accommodation.getName())
-                    .description(accommodation.getDescription())
-                    .address(accommodation.getAddress())
-                    .phone(accommodation.getPhone())
-                    .info(accommodation.getInfo())
-                    .bookmarkNum(bookmarkNum)
-                    .thumbnailUrl(accommodation.getThumbnailUrl())
-                    .region(accommodation.getRegion())
-                    .latitude(accommodation.getLatitude())
-                    .longitude(accommodation.getLongitude())
-                    .imgUrl(accommodationImgs)
-                    .reviews(reviewResponseDtoList)
-                    .stations(busStationResponseDtoList)
-                    .build();
         }
-        return ResponseDto.success(responseDto);
-    }
 
-    @Transactional
-    public Accommodation isPresentAccommodation(Long id) {
-        Optional<Accommodation> optionalAccommodation = accommodationRepository.findById(id);
-        return optionalAccommodation.orElse(null);
-    }
+        DetailResponseDto responseDto = DetailResponseDto.builder()
+                .id(accommodation.getId())
+                .name(accommodation.getName())
+                .description(accommodation.getDescription())
+                .address(accommodation.getAddress())
+                .phone(accommodation.getPhone())
+                .info(accommodation.getInfo())
+                .bookmarkNum(bookmarkNum)
+                .thumbnailUrl(accommodation.getThumbnailUrl())
+                .region(accommodation.getRegion())
+                .latitude(accommodation.getLatitude())
+                .longitude(accommodation.getLongitude())
+                .imgUrl(accommodationImgs)
+                .reviews(reviewResponseDtoList)
+                .stations(busStationResponseDtoList)
+                .isBookmarked(isBookmarked)
+                .build();
 
+        return ResponseEntity.ok(ResponseDto.success(responseDto));
+    }
 
 }

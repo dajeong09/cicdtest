@@ -9,6 +9,5 @@ import java.util.List;
 
 public interface AccommodationReviewRepository extends JpaRepository<AccommodationReview, Long> {
     List<AccommodationReview> findAllByAccommodationOrderByCreatedAtDesc(Accommodation accommodation);
-
     List<AccommodationReview> findAllByMember(Member member);
 }

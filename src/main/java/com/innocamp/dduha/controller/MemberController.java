@@ -1,13 +1,12 @@
 package com.innocamp.dduha.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.innocamp.dduha.dto.ResponseDto;
 import com.innocamp.dduha.dto.request.*;
-import com.innocamp.dduha.service.*;
+import com.innocamp.dduha.service.member.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 @RequiredArgsConstructor
@@ -22,70 +21,62 @@ public class MemberController {
 
     // 회원가입
     @PostMapping("/member/signup")
-    public ResponseDto<?> signup(@RequestBody MemberRequestDto requestDto) {
+    public ResponseEntity<?> signup(@RequestBody MemberRequestDto requestDto) {
         return memberService.signup(requestDto);
     }
 
     // 로그인
     @PostMapping("/member/login")
-    public ResponseDto<?> login(@RequestBody LoginRequestDto requestDto, HttpServletResponse response) {
+    public ResponseEntity<?> login(@RequestBody LoginRequestDto requestDto, HttpServletResponse response) {
         return memberService.login(requestDto, response);
     }
 
     // 회원 정보 수정
     @PutMapping("/auth/member/modify")
-    public ResponseDto<?> modifyMember(@RequestBody ModifyMemberRequestDto requestDto, HttpServletResponse response) {
+    public ResponseEntity<?> modifyMember(@RequestBody ModifyMemberRequestDto requestDto, HttpServletResponse response) {
         return memberService.modifyMember(requestDto, response);
     }
 
     // 회원 탈퇴
     @DeleteMapping("/auth/member/delete")
-    public ResponseDto<?> deleteMember(@RequestBody MemberRequestDto requestDto) {
+    public ResponseEntity<?> deleteMember(@RequestBody MemberRequestDto requestDto) {
         return memberService.deleteMember(requestDto);
     }
 
     // 카카오 로그인
     @GetMapping("/oauth/kakao")
-    public ResponseDto<?> kakaoLogin(@RequestParam(name = "code") String code, HttpServletResponse response)
+    public ResponseEntity<?> kakaoLogin(@RequestParam(name = "code") String code, HttpServletResponse response)
             throws JsonProcessingException {
-        //authorizeCode : 카카오 서버로부터 받은 인가 코드
         return kakaoService.kakaoLogin(code, response);
-    }
-
-    // 카카오 로그 아웃
-    @GetMapping("/ouath/kakao/logout")
-    public ResponseDto<?> kakaoLogout(HttpServletRequest request) {
-        return kakaoService.logout(request);
     }
 
     // 구글 로그인
     @GetMapping(value = "/oauth/google")
-    public ResponseDto<?> googleLogin(@RequestParam(value = "code") String code,
-                                              HttpServletResponse response) {
+    public ResponseEntity<?> googleLogin(@RequestParam(value = "code") String code, HttpServletResponse response) {
         return googleService.googleLogin(code, response);
     }
 
     // 이메일로 회원가입 링크 전송
     @PostMapping("/member/emailConfirm")
-    public ResponseDto<?> emailConfirm(@RequestBody EmailRequestDto requestDto) throws Exception{
+    public ResponseEntity<?> emailConfirm(@RequestBody EmailRequestDto requestDto) throws Exception {
         return emailService.sendSimpleMessage(requestDto);
     }
 
     // RandomCode를 이용해 이메일 확인
     @GetMapping("/member/email")
-    public ResponseDto<?> getEmail(@RequestParam(value = "code") String code) {
+    public ResponseEntity<?> getEmail(@RequestParam(value = "code") String code) {
         return emailService.getEmail(code);
     }
 
     // 이메일로 비밀번호 재설정 링크 전송
     @PostMapping("/member/findPassword")
-    public ResponseDto<?> findPassword(@RequestBody EmailRequestDto requestDto) throws Exception {
+    public ResponseEntity<?> findPassword(@RequestBody EmailRequestDto requestDto) throws Exception {
         return passwordService.sendSimpleMessage(requestDto);
     }
 
     // 비밀번호 재설정
     @PostMapping("/member/resetPassword")
-    public ResponseDto<?> resetPassword(@RequestBody PasswordRequestDto requestDto) {
+    public ResponseEntity<?> resetPassword(@RequestBody PasswordRequestDto requestDto) {
         return passwordService.resetPassword(requestDto);
     }
 }

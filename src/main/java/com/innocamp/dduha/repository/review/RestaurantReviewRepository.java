@@ -9,6 +9,5 @@ import java.util.List;
 
 public interface RestaurantReviewRepository extends JpaRepository<RestaurantReview, Long> {
     List<RestaurantReview> findAllByRestaurantOrderByCreatedAtDesc(Restaurant restaurant);
-
     List<RestaurantReview> findAllByMember(Member member);
 }

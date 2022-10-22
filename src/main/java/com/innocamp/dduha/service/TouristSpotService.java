@@ -19,13 +19,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.NoSuchElementException;
+
+import static com.innocamp.dduha.exception.ErrorCode.TOURISTSPOT_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
@@ -40,7 +43,7 @@ public class TouristSpotService {
     private final TokenProvider tokenProvider;
 
     @Transactional(readOnly = true)
-    public ResponseDto<?> getTouristSpotList(int page, String region, String station) {
+    public ResponseEntity<?> getTouristSpotList(int page, String region, String station) {
 
         Member member = tokenProvider.getMemberFromAuthentication();
 
@@ -78,78 +81,56 @@ public class TouristSpotService {
             }
         }
 
+        for (TouristSpot touristSpot : touristSpots) {
+            boolean hasNearbyStation = false;
 
-        if (null != member) {
-            for (TouristSpot touristSpot : touristSpots) {
-                boolean hasNearbyStation = false;
-                boolean isBookmarked = false;
-                List<TouristSpotNearby> touristSpotNearbyList = touristSpotNearbyRepository.findAllByTouristSpot(touristSpot);
-                if (touristSpotNearbyList.size() > 0) {
-                    hasNearbyStation = true;
-                }
+            boolean isBookmarked = false;
+            List<TouristSpotNearby> touristSpotNearbyList = touristSpotNearbyRepository.findAllByTouristSpot(touristSpot);
+            if (touristSpotNearbyList.size() > 0) {
+                hasNearbyStation = true;
+            }
 
+            if (null != member) {
                 TouristSpotBookmark findTouristSpotBookmark = touristSpotBookmarkRepository.findByMemberAndTouristSpot(member, touristSpot);
                 if (null != findTouristSpotBookmark) {
                     isBookmarked = true;
                 }
-
-                int bookmarkNum = touristSpot.getLikeNum() + touristSpotBookmarkRepository.countByTouristSpot(touristSpot);
-
-                touristSpotResponseDtoList.add(
-                        PlaceResponseDto.builder()
-                                .id(touristSpot.getId())
-                                .name(touristSpot.getName())
-                                .description(touristSpot.getDescription())
-                                .bookmarkNum(bookmarkNum)
-                                .region(touristSpot.getRegion())
-                                .address(touristSpot.getAddress())
-                                .latitude(touristSpot.getLatitude())
-                                .longitude(touristSpot.getLongitude())
-                                .thumbnailUrl(touristSpot.getThumbnailUrl())
-                                .hasNearStation(hasNearbyStation)
-                                .isBookmarked(isBookmarked)
-                                .build()
-                );
             }
-        } else {
-            for (TouristSpot touristSpot : touristSpots) {
-                boolean hasNearbyStation = false;
-                List<TouristSpotNearby> touristSpotNearbyList = touristSpotNearbyRepository.findAllByTouristSpot(touristSpot);
-                if (touristSpotNearbyList.size() > 0) {
-                    hasNearbyStation = true;
-                }
 
-                int bookmarkNum = touristSpot.getLikeNum() + touristSpotBookmarkRepository.countByTouristSpot(touristSpot);
+            int bookmarkNum = touristSpot.getLikeNum() + touristSpotBookmarkRepository.countByTouristSpot(touristSpot);
 
-                touristSpotResponseDtoList.add(
-                        PlaceResponseDto.builder()
-                                .id(touristSpot.getId())
-                                .name(touristSpot.getName())
-                                .description(touristSpot.getDescription())
-                                .bookmarkNum(bookmarkNum)
-                                .region(touristSpot.getRegion())
-                                .address(touristSpot.getAddress())
-                                .latitude(touristSpot.getLatitude())
-                                .longitude(touristSpot.getLongitude())
-                                .thumbnailUrl(touristSpot.getThumbnailUrl())
-                                .hasNearStation(hasNearbyStation)
-                                .build()
-                );
-            }
+            touristSpotResponseDtoList.add(
+                    PlaceResponseDto.builder()
+                            .id(touristSpot.getId())
+                            .name(touristSpot.getName())
+                            .description(touristSpot.getDescription())
+                            .bookmarkNum(bookmarkNum)
+                            .region(touristSpot.getRegion())
+                            .address(touristSpot.getAddress())
+                            .latitude(touristSpot.getLatitude())
+                            .longitude(touristSpot.getLongitude())
+                            .thumbnailUrl(touristSpot.getThumbnailUrl())
+                            .hasNearStation(hasNearbyStation)
+                            .isBookmarked(isBookmarked)
+                            .build()
+            );
         }
+
 
         ListResponseDto listResponseDto = ListResponseDto.builder()
                 .totalPages(touristSpots.getTotalPages())
+                .nextPage(page + 1)
                 .list(touristSpotResponseDtoList).build();
 
-        return ResponseDto.success(listResponseDto);
+        return ResponseEntity.ok(ResponseDto.success(listResponseDto));
     }
 
-    public ResponseDto<?> getTouristSpotDetail(Long id) {
+    public ResponseEntity<?> getTouristSpotDetail(Long id) {
 
         Member member = tokenProvider.getMemberFromAuthentication();
 
-        TouristSpot touristSpot = isPresentTouristSpot(id);
+        TouristSpot touristSpot = touristSpotRepository.findById(id).orElseThrow(() ->
+                new NoSuchElementException(String.valueOf(TOURISTSPOT_NOT_FOUND)));
         List<TouristSpotImg> touristSpotImgList = touristSpotImgRepository.findAllByTouristSpot(touristSpot);
         List<String> touristSpotImgs = new ArrayList<>();
         for (TouristSpotImg touristSpotImg : touristSpotImgList) {
@@ -180,14 +161,16 @@ public class TouristSpotService {
 
         int bookmarkNum = touristSpot.getLikeNum() + touristSpotBookmarkRepository.countByTouristSpot(touristSpot);
 
-        DetailResponseDto responseDto;
+        boolean isBookmarked = false;
+
         if (null != member) {
-            boolean isBookmarked = false;
             TouristSpotBookmark findTouristSpotBookmark = touristSpotBookmarkRepository.findByMemberAndTouristSpot(member, touristSpot);
             if (null != findTouristSpotBookmark) {
                 isBookmarked = true;
             }
-            responseDto = DetailResponseDto.builder()
+        }
+
+        DetailResponseDto responseDto = DetailResponseDto.builder()
                     .id(touristSpot.getId())
                     .name(touristSpot.getName())
                     .description(touristSpot.getDescription())
@@ -205,31 +188,7 @@ public class TouristSpotService {
                     .isBookmarked(isBookmarked)
                     .build();
 
-        } else {
-            responseDto = DetailResponseDto.builder()
-                    .id(touristSpot.getId())
-                    .name(touristSpot.getName())
-                    .description(touristSpot.getDescription())
-                    .address(touristSpot.getAddress())
-                    .phone(touristSpot.getPhone())
-                    .info(touristSpot.getInfo())
-                    .bookmarkNum(bookmarkNum)
-                    .thumbnailUrl(touristSpot.getThumbnailUrl())
-                    .region(touristSpot.getRegion())
-                    .latitude(touristSpot.getLatitude())
-                    .longitude(touristSpot.getLongitude())
-                    .stations(busStationResponseDtoList)
-                    .imgUrl(touristSpotImgs)
-                    .reviews(touristSpotReviewResponseDtoList)
-                    .build();
-        }
-        return ResponseDto.success(responseDto);
-    }
-
-    @Transactional
-    public TouristSpot isPresentTouristSpot(Long id) {
-        Optional<TouristSpot> optionalTouristSpot = touristSpotRepository.findTouristSpotById(id);
-        return optionalTouristSpot.orElse(null);
+        return ResponseEntity.ok(ResponseDto.success(responseDto));
     }
 
 }

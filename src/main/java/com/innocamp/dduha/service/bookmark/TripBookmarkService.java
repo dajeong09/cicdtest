@@ -1,4 +1,4 @@
-package com.innocamp.dduha.service;
+package com.innocamp.dduha.service.bookmark;
 
 import com.innocamp.dduha.dto.ResponseDto;
 import com.innocamp.dduha.dto.response.BookmarkResponseDto;
@@ -9,10 +9,11 @@ import com.innocamp.dduha.model.bookmark.TripBookmark;
 import com.innocamp.dduha.repository.TripRepository;
 import com.innocamp.dduha.repository.bookmark.TripBookmarkRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.util.Optional;
+import java.util.NoSuchElementException;
 
 import static com.innocamp.dduha.exception.ErrorCode.TRIP_NOT_FOUND;
 
@@ -25,20 +26,19 @@ public class TripBookmarkService {
     private final TripRepository tripRepository;
 
     @Transactional
-    public ResponseDto<?> createTripBookmark(Long id) {
+    public ResponseEntity<?> createTripBookmark(Long id) {
 
         Member member = tokenProvider.getMemberFromAuthentication();
 
-        Trip trip = isPresentTrip(id);
-        if (null == trip) {
-            return ResponseDto.fail(TRIP_NOT_FOUND);
-        }
+        Trip trip = tripRepository.findById(id).orElseThrow(() ->
+                new NoSuchElementException(String.valueOf(TRIP_NOT_FOUND)));
+
         TripBookmark checkBookmark = tripBookmarkRepository.findByMemberAndTrip(member, trip);
         if (null != checkBookmark) {
             tripBookmarkRepository.delete(checkBookmark); // 즐겨 찾기 취소
-            return ResponseDto.success(BookmarkResponseDto.builder()
+            return ResponseEntity.ok(ResponseDto.success(BookmarkResponseDto.builder()
                     .isBookmarked(false)
-                    .build());
+                    .build()));
         }
         TripBookmark tripBookmark = TripBookmark.builder()
                 .member(member)
@@ -46,14 +46,9 @@ public class TripBookmarkService {
                 .build();
 
         tripBookmarkRepository.save(tripBookmark); // 즐겨 찾기
-        return ResponseDto.success(BookmarkResponseDto.builder()
+        return ResponseEntity.ok(ResponseDto.success(BookmarkResponseDto.builder()
                 .isBookmarked(true)
-                .build());
+                .build()));
     }
 
-    @Transactional
-    public Trip isPresentTrip(Long id) {
-        Optional<Trip> optionalTrip = tripRepository.findById(id);
-        return optionalTrip.orElse(null);
-    }
 }

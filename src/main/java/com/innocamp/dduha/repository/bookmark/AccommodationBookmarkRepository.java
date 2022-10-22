@@ -9,10 +9,7 @@ import java.util.List;
 
 public interface AccommodationBookmarkRepository extends JpaRepository<AccommodationBookmark, Long> {
     AccommodationBookmark findByMemberAndAccommodation(Member member, Accommodation accommodation);
-
     int countAccommodationBookmarkByMember(Member member);
-
     List<AccommodationBookmark> findAllByMember(Member member);
-
     int countByAccommodation(Accommodation accommodation);
 }

@@ -8,9 +8,10 @@ import com.innocamp.dduha.repository.accommodation.AccommodationRepository;
 import com.innocamp.dduha.repository.restaurant.RestaurantRepository;
 import com.innocamp.dduha.repository.touristspot.TouristSpotRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
 import java.util.List;
 
 @Service
@@ -22,8 +23,8 @@ public class SearchService {
     private final AccommodationRepository accommodationRepository;
 
     // 관광지 검색
-    @Transactional
-    public ResponseDto<?> searchTouristSpot(String region, String keyword) {
+    @Transactional(readOnly=true)
+    public ResponseEntity<?> searchTouristSpot(String region, String keyword) {
 
         List<TouristSpot> touristSpotList;
         if (region == null) {
@@ -40,12 +41,12 @@ public class SearchService {
                 touristSpotList = touristSpotRepository.findByRegionAndNameContaining(region, keyword);
             }
         }
-        return ResponseDto.success(touristSpotList);
+        return ResponseEntity.ok(ResponseDto.success(touristSpotList));
     }
 
     // 맛집 검색
-    @Transactional
-    public ResponseDto<?> searchRestaurant(String region, String keyword) {
+    @Transactional(readOnly=true)
+    public ResponseEntity<?> searchRestaurant(String region, String keyword) {
         List<Restaurant> restaurantList;
         if (region == null) {
             restaurantList = restaurantRepository.findByNameContaining(keyword);
@@ -61,12 +62,12 @@ public class SearchService {
                 restaurantList = restaurantRepository.findByRegionAndNameContaining(region, keyword);
             }
         }
-        return ResponseDto.success(restaurantList);
+        return ResponseEntity.ok(ResponseDto.success(restaurantList));
     }
 
     //숙소 검색
-    @Transactional
-    public ResponseDto<?> searchAccommodation(String region, String keyword) {
+    @Transactional(readOnly=true)
+    public ResponseEntity<?> searchAccommodation(String region, String keyword) {
         List<Accommodation> accommodationList;
         if (region == null) {
             accommodationList = accommodationRepository.findByNameContaining(keyword);
@@ -82,7 +83,7 @@ public class SearchService {
                 accommodationList = accommodationRepository.findByRegionAndNameContaining(region, keyword);
             }
         }
-        return ResponseDto.success(accommodationList);
+        return ResponseEntity.ok(ResponseDto.success(accommodationList));
     }
 
 }
