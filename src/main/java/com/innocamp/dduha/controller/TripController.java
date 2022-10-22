@@ -1,13 +1,15 @@
 package com.innocamp.dduha.controller;
 
-import com.innocamp.dduha.dto.ResponseDto;
 import com.innocamp.dduha.dto.request.CourseRequestDto;
 import com.innocamp.dduha.dto.request.TripRequestDto;
 import com.innocamp.dduha.service.TripService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
+import javax.naming.AuthenticationException;
+import javax.xml.bind.ValidationException;
+
 
 @RestController
 @RequiredArgsConstructor
@@ -16,42 +18,42 @@ public class TripController {
     private final TripService tripService;
 
     @PostMapping("/auth/trip")
-    public ResponseDto<?> createTrip(@RequestBody TripRequestDto requestDto) {
+    public ResponseEntity<?> createTrip(@RequestBody TripRequestDto requestDto) {
         return tripService.createTrip(requestDto);
     }
 
     @GetMapping("/auth/trip")
-    public ResponseDto<?> getMyTrips() {
+    public ResponseEntity<?> getMyTrips() {
       return tripService.getMyTrips();
     }
 
     @GetMapping("/auth/trip/{id}")
-    public ResponseDto<?> getMyTripInfo(@PathVariable Long id) {
+    public ResponseEntity<?> getMyTripInfo(@PathVariable Long id) throws AuthenticationException {
         return tripService.getMyTripInfo(id);
     }
 
     @PutMapping("/auth/trip/{id}")
-    public ResponseDto<?> modifyMyTrip(@PathVariable Long id, @RequestBody TripRequestDto requestDto) {
+    public ResponseEntity<?> modifyMyTrip(@PathVariable Long id, @RequestBody TripRequestDto requestDto) throws AuthenticationException {
         return tripService.modifyMyTrip(id, requestDto);
     }
 
     @DeleteMapping("/auth/trip/{id}")
-    public ResponseDto<?> deleteTrip(@PathVariable Long id) {
+    public ResponseEntity<?> deleteTrip(@PathVariable Long id) throws AuthenticationException {
         return tripService.deleteTrip(id);
     }
 
     @GetMapping("/trip")
-    public ResponseDto<?> getPublicTrips(@RequestParam(value = "page") int page) {
+    public ResponseEntity<?> getPublicTrips(@RequestParam(value = "page") int page) {
         return tripService.getPublicTrips(page);
     }
 
     @GetMapping("/trip/{id}")
-    public ResponseDto<?> getPublicTripInfo(@PathVariable Long id) {
+    public ResponseEntity<?> getPublicTripInfo(@PathVariable Long id) {
         return tripService.getPublicTripInfo(id);
     }
 
     @PostMapping("/auth/trip/course")
-    public ResponseDto<?> saveCourseDetailOrder(@RequestBody CourseRequestDto courseRequestDto) {
+    public ResponseEntity<?> saveCourseDetailOrder(@RequestBody CourseRequestDto courseRequestDto) throws ValidationException, AuthenticationException {
         return tripService.saveCourseDetailOrder(courseRequestDto);
     }
 }

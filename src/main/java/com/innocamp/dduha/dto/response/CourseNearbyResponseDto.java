@@ -13,6 +13,5 @@ public class CourseNearbyResponseDto {
     private int likeNum;
     private String region;
     private String thumbnailUrl;
-    private boolean isBookmarked;
     private int distance;
 }

@@ -6,6 +6,7 @@ import com.innocamp.dduha.dto.response.UsefulInfoResponseDto;
 import com.innocamp.dduha.model.UsefulInfo;
 import com.innocamp.dduha.repository.UsefulInfoRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -17,7 +18,7 @@ public class UsefulInfoService {
 
     private final UsefulInfoRepository usefulInfoRepository;
 
-    public ResponseDto<?> getUsefulInfo(String category) {
+    public ResponseEntity<?> getUsefulInfo(String category) {
 
         List<UsefulInfo> usefulInfoList = usefulInfoRepository.findAllByCategory(category);
 
@@ -35,6 +36,6 @@ public class UsefulInfoService {
                 .category(category)
                 .info(infoResponseDtoList).build());
 
-        return ResponseDto.success(usefulInfoResponseDtoList);
+        return ResponseEntity.ok(ResponseDto.success(usefulInfoResponseDtoList));
     }
 }

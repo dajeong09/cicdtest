@@ -1,4 +1,4 @@
-package com.innocamp.dduha.service;
+package com.innocamp.dduha.service.member;
 
 import com.innocamp.dduha.dto.ResponseDto;
 import com.innocamp.dduha.dto.request.LoginRequestDto;
@@ -11,12 +11,15 @@ import com.innocamp.dduha.model.Member;
 import com.innocamp.dduha.repository.EmailEncodeRepository;
 import com.innocamp.dduha.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
-import java.util.Optional;
+import javax.validation.ValidationException;
+import java.util.NoSuchElementException;
 
 import static com.innocamp.dduha.exception.ErrorCode.*;
 
@@ -32,14 +35,13 @@ public class MemberService {
 
     //회원 가입
     @Transactional
-    public ResponseDto<?> signup(MemberRequestDto requestDto) {
+    public ResponseEntity<?> signup(MemberRequestDto requestDto) {
 
-        Member member = isPresentMemberByNickname(requestDto.getNickname());
-        if (null != member) {
-            return ResponseDto.fail(DUPLICATE_NICKNAME);
+        if (memberRepository.findByNickname(requestDto.getNickname()).isPresent()) {
+            throw new ValidationException(String.valueOf(DUPLICATE_NICKNAME));
         }
 
-        member = Member.builder()
+        Member member = Member.builder()
                 .email(requestDto.getEmail())
                 .nickname(requestDto.getNickname())
                 .password(passwordEncoder.encode(requestDto.getPassword()))
@@ -50,34 +52,29 @@ public class MemberService {
 
         emailEncodeRepository.deleteByEmail(requestDto.getEmail());
 
-        return ResponseDto.success(NULL);
-
+        return ResponseEntity.ok(ResponseDto.success(NULL));
     }
-
 
     // 로그인
     @Transactional
-    public ResponseDto<?> login(LoginRequestDto requestDto, HttpServletResponse response) {
-        Member member = isPresentMemberByEmail(requestDto.getEmail());
-        if (null == member) {
-            return ResponseDto.fail(MEMBER_NOT_FOUND);
-        }
+    public ResponseEntity<?> login(LoginRequestDto requestDto, HttpServletResponse response) {
+        Member member = memberRepository.findByEmail(requestDto.getEmail()).orElseThrow(() ->
+                new NoSuchElementException(String.valueOf(MEMBER_NOT_FOUND)));
 
         if (!member.validatePassword(passwordEncoder, requestDto.getPassword())) {
-            return ResponseDto.fail(INVALID_PASSWORD);
+            throw new AuthorizationServiceException(String.valueOf(INVALID_PASSWORD));
         }
 
         TokenDto tokenDto = tokenProvider.generateTokenDto(member);
         response.addHeader("Authorization", "Bearer " + tokenDto.getAccessToken());
         response.addHeader("Access-Token-Expire-Time", tokenDto.getAccessTokenExpiresIn().toString());
 
-        return ResponseDto.success(NULL);
-
+        return ResponseEntity.ok(ResponseDto.success(NULL));
     }
 
     // 회원 정보 수정
     @Transactional
-    public ResponseDto<?> modifyMember(ModifyMemberRequestDto requestDto, HttpServletResponse response) {
+    public ResponseEntity<?> modifyMember(ModifyMemberRequestDto requestDto, HttpServletResponse response) {
 
         Member member = tokenProvider.getMemberFromAuthentication();
 
@@ -85,10 +82,10 @@ public class MemberService {
         String currentPassword = requestDto.getCurrentPassword();
         if (currentPassword != null) {
             if (!member.validatePassword(passwordEncoder, currentPassword)) {
-                return ResponseDto.fail(INVALID_PASSWORD);
+                throw new AuthorizationServiceException(String.valueOf(INVALID_PASSWORD));
             }
             if (member.getPassword().equals(requestDto.getNewPassword())) {
-                return ResponseDto.fail(USED_PASSWORD);
+                throw new ValidationException(String.valueOf(USED_PASSWORD));
             }
             password = passwordEncoder.encode(requestDto.getNewPassword());
         }
@@ -100,33 +97,22 @@ public class MemberService {
         response.addHeader("Authorization", "Bearer " + tokenDto.getAccessToken());
         response.addHeader("Access-Token-Expire-Time", tokenDto.getAccessTokenExpiresIn().toString());
 
-        return ResponseDto.success(NULL);
+        return ResponseEntity.ok(ResponseDto.success(NULL));
     }
 
     // 회원 탈퇴
     @Transactional
-    public ResponseDto<?> deleteMember(MemberRequestDto requestDto) {
+    public ResponseEntity<?> deleteMember(MemberRequestDto requestDto) {
 
         Member member = tokenProvider.getMemberFromAuthentication();
 
         if (!member.validatePassword(passwordEncoder, requestDto.getPassword())) {
-            return ResponseDto.fail(INVALID_PASSWORD);
+            throw new ValidationException(String.valueOf((INVALID_PASSWORD)));
         }
 
         memberRepository.delete(member);
-        return ResponseDto.success(NULL);
-    }
 
-    @Transactional
-    public Member isPresentMemberByEmail(String email) {
-        Optional<Member> optionalMember = memberRepository.findByEmail(email);
-        return optionalMember.orElse(null);
-    }
-
-    @Transactional
-    public Member isPresentMemberByNickname(String nickname) {
-        Optional<Member> optionalMember = memberRepository.findByNickname(nickname);
-        return optionalMember.orElse(null);
+        return ResponseEntity.ok(ResponseDto.success(NULL));
     }
 
 }

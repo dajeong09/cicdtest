@@ -1,4 +1,4 @@
-package com.innocamp.dduha.service;
+package com.innocamp.dduha.service.bookmark;
 
 import com.innocamp.dduha.dto.ResponseDto;
 import com.innocamp.dduha.dto.response.BookmarkResponseDto;
@@ -9,10 +9,10 @@ import com.innocamp.dduha.model.bookmark.AccommodationBookmark;
 import com.innocamp.dduha.repository.accommodation.AccommodationRepository;
 import com.innocamp.dduha.repository.bookmark.AccommodationBookmarkRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
 
-import java.util.Optional;
+import java.util.NoSuchElementException;
 
 import static com.innocamp.dduha.exception.ErrorCode.ACCOMMODATION_NOT_FOUND;
 
@@ -24,20 +24,19 @@ public class AccommodationBookmarkService {
     private final AccommodationBookmarkRepository accommodationBookmarkRepository;
     private final TokenProvider tokenProvider;
 
-    public ResponseDto<?> createAccommodationBookmark(@PathVariable Long id) {
+    public ResponseEntity<?> createAccommodationBookmark(Long id) {
 
         Member member = tokenProvider.getMemberFromAuthentication();
 
-        Accommodation accommodation = isPresentAccommodation(id);
-        if (null == accommodation) {
-            return ResponseDto.fail(ACCOMMODATION_NOT_FOUND);
-        }
+        Accommodation accommodation = accommodationRepository.findById(id).orElseThrow(() ->
+                new NoSuchElementException(String.valueOf(ACCOMMODATION_NOT_FOUND)));
+
         AccommodationBookmark checkBookmark = accommodationBookmarkRepository.findByMemberAndAccommodation(member, accommodation);
         if (null != checkBookmark) {
             accommodationBookmarkRepository.delete(checkBookmark); // 즐겨 찾기 취소
-            return ResponseDto.success(BookmarkResponseDto.builder()
+            return ResponseEntity.ok(ResponseDto.success(BookmarkResponseDto.builder()
                     .isBookmarked(false)
-                    .build());
+                    .build()));
         }
         AccommodationBookmark accommodationBookmark = AccommodationBookmark.builder()
                 .member(member)
@@ -45,14 +44,9 @@ public class AccommodationBookmarkService {
                 .build();
 
         accommodationBookmarkRepository.save(accommodationBookmark); // 즐겨 찾기
-        return ResponseDto.success(BookmarkResponseDto.builder()
+        return ResponseEntity.ok(ResponseDto.success(BookmarkResponseDto.builder()
                 .isBookmarked(true)
-                .build());
-    }
-
-    public Accommodation isPresentAccommodation(Long id) {
-        Optional<Accommodation> optionalAccommodation = accommodationRepository.findById(id);
-        return optionalAccommodation.orElse(null);
+                .build()));
     }
 
 }

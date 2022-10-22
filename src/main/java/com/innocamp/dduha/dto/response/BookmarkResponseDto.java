@@ -6,6 +6,5 @@ import lombok.Getter;
 @Getter
 @Builder
 public class BookmarkResponseDto {
-
     private boolean isBookmarked;
 }

@@ -9,7 +9,6 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.List;
 
 public interface AccommodationRepository extends JpaRepository<Accommodation, Long> {
-
     List<Accommodation> findByNameContaining(String keyword);
     List<Accommodation> findByRegionAndNameContaining(String region,String keyword);
     List<Accommodation> findByRegionAndNameContainingOrRegionAndNameContaining(String region1, String keyword1, String region2, String keyword2);
@@ -20,5 +19,4 @@ public interface AccommodationRepository extends JpaRepository<Accommodation, Lo
     Page<Accommodation> findByHasStation(Pageable pageable);
     @Query("select a from Accommodation a where exists (select an from AccommodationNearby an where an.accommodation=a) and a.region in (:region1, :region2, :region3)")
     Page<Accommodation> findByHasStationAndRegion(Pageable pageable, String region1, String region2, String region3);
-
 }

@@ -19,13 +19,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.NoSuchElementException;
+
+import static com.innocamp.dduha.exception.ErrorCode.RESTAURANT_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
@@ -40,7 +43,7 @@ public class RestaurantService {
     private final TokenProvider tokenProvider;
 
     @Transactional(readOnly = true)
-    public ResponseDto<?> getRestaurantList(int page, String region, String station) {
+    public ResponseEntity<?> getRestaurantList(int page, String region, String station) {
 
         Member member = tokenProvider.getMemberFromAuthentication();
 
@@ -78,73 +81,53 @@ public class RestaurantService {
             }
         }
 
-        if (null != member) {
-            for (Restaurant restaurant : restaurants) {
-                boolean hasNearbyStation = false;
-                boolean isBookmarked = false;
-                List<RestaurantNearby> restaurantNearbyList = restaurantNearbyRepository.findAllByRestaurant(restaurant);
-                if (restaurantNearbyList.size() > 0) {
-                    hasNearbyStation = true;
-                }
+        for (Restaurant restaurant : restaurants) {
+            boolean hasNearbyStation = false;
+
+            boolean isBookmarked = false;
+            List<RestaurantNearby> restaurantNearbyList = restaurantNearbyRepository.findAllByRestaurant(restaurant);
+            if (restaurantNearbyList.size() > 0) {
+                hasNearbyStation = true;
+            }
+            if (null != member) {
                 RestaurantBookmark findRestaurantBookmark = restaurantBookmarkRepository.findByMemberAndRestaurant(member, restaurant);
                 if (null != findRestaurantBookmark) {
                     isBookmarked = true;
                 }
-                int bookmarkNum = restaurant.getLikeNum() + restaurantBookmarkRepository.countByRestaurant(restaurant);
-                restaurantResponseDtoList.add(
-                        PlaceResponseDto.builder()
-                                .id(restaurant.getId())
-                                .name(restaurant.getName())
-                                .description(restaurant.getDescription())
-                                .bookmarkNum(bookmarkNum)
-                                .region(restaurant.getRegion())
-                                .address(restaurant.getAddress())
-                                .latitude(restaurant.getLatitude())
-                                .longitude(restaurant.getLongitude())
-                                .thumbnailUrl(restaurant.getThumbnailUrl())
-                                .hasNearStation(hasNearbyStation)
-                                .isBookmarked(isBookmarked)
-                                .build()
-                );
             }
-        } else {
-            for (Restaurant restaurant : restaurants) {
-                boolean hasNearbyStation = false;
-                List<RestaurantNearby> restaurantNearbyList = restaurantNearbyRepository.findAllByRestaurant(restaurant);
-                if (restaurantNearbyList.size() > 0) {
-                    hasNearbyStation = true;
-                }
-                int bookmarkNum = restaurant.getLikeNum() + restaurantBookmarkRepository.countByRestaurant(restaurant);
-                restaurantResponseDtoList.add(
-                        PlaceResponseDto.builder()
-                                .id(restaurant.getId())
-                                .name(restaurant.getName())
-                                .description(restaurant.getDescription())
-                                .bookmarkNum(bookmarkNum)
-                                .region(restaurant.getRegion())
-                                .address(restaurant.getAddress())
-                                .latitude(restaurant.getLatitude())
-                                .longitude(restaurant.getLongitude())
-                                .thumbnailUrl(restaurant.getThumbnailUrl())
-                                .hasNearStation(hasNearbyStation)
-                                .build()
-                );
-            }
+            int bookmarkNum = restaurant.getLikeNum() + restaurantBookmarkRepository.countByRestaurant(restaurant);
+            restaurantResponseDtoList.add(
+                    PlaceResponseDto.builder()
+                            .id(restaurant.getId())
+                            .name(restaurant.getName())
+                            .description(restaurant.getDescription())
+                            .bookmarkNum(bookmarkNum)
+                            .region(restaurant.getRegion())
+                            .address(restaurant.getAddress())
+                            .latitude(restaurant.getLatitude())
+                            .longitude(restaurant.getLongitude())
+                            .thumbnailUrl(restaurant.getThumbnailUrl())
+                            .hasNearStation(hasNearbyStation)
+                            .isBookmarked(isBookmarked)
+                            .build()
+            );
         }
 
         ListResponseDto listResponseDto = ListResponseDto.builder()
                 .totalPages(restaurants.getTotalPages())
+                .nextPage(page + 1)
                 .list(restaurantResponseDtoList).build();
 
-        return ResponseDto.success(listResponseDto);
+        return ResponseEntity.ok(ResponseDto.success(listResponseDto));
     }
 
 
-    public ResponseDto<?> getRestaurantDetail(Long id) {
+    public ResponseEntity<?> getRestaurantDetail(Long id) {
 
         Member member = tokenProvider.getMemberFromAuthentication();
 
-        Restaurant restaurant = isPresentRestaurant(id);
+        Restaurant restaurant = restaurantRepository.findById(id).orElseThrow(() ->
+                new NoSuchElementException(String.valueOf(RESTAURANT_NOT_FOUND)));
         List<RestaurantImg> restaurantImgList = restaurantImgRepository.findAllByRestaurant(restaurant);
         List<String> restaurantImgs = new ArrayList<>();
         for (RestaurantImg restaurantImg : restaurantImgList) {
@@ -175,56 +158,33 @@ public class RestaurantService {
 
         int bookmarkNum = restaurant.getLikeNum() + restaurantBookmarkRepository.countByRestaurant(restaurant);
 
-        DetailResponseDto responseDto;
+        boolean isBookmarked = false;
         if (null != member) {
-            boolean isBookmarked = false;
             RestaurantBookmark findRestaurantBookmark = restaurantBookmarkRepository.findByMemberAndRestaurant(member, restaurant);
             if (null != findRestaurantBookmark) {
                 isBookmarked = true;
             }
-            responseDto = DetailResponseDto.builder()
-                    .id(restaurant.getId())
-                    .name(restaurant.getName())
-                    .description(restaurant.getDescription())
-                    .address(restaurant.getAddress())
-                    .phone(restaurant.getPhone())
-                    .info(restaurant.getInfo())
-                    .bookmarkNum(bookmarkNum)
-                    .thumbnailUrl(restaurant.getThumbnailUrl())
-                    .region(restaurant.getRegion())
-                    .latitude(restaurant.getLatitude())
-                    .longitude(restaurant.getLongitude())
-                    .stations(busStationResponseDtoList)
-                    .imgUrl(restaurantImgs)
-                    .reviews(reviewResponseDtoList)
-                    .isBookmarked(isBookmarked)
-                    .build();
-
-        } else {
-            responseDto = DetailResponseDto.builder()
-                    .id(restaurant.getId())
-                    .name(restaurant.getName())
-                    .description(restaurant.getDescription())
-                    .address(restaurant.getAddress())
-                    .phone(restaurant.getPhone())
-                    .info(restaurant.getInfo())
-                    .bookmarkNum(bookmarkNum)
-                    .thumbnailUrl(restaurant.getThumbnailUrl())
-                    .region(restaurant.getRegion())
-                    .latitude(restaurant.getLatitude())
-                    .longitude(restaurant.getLongitude())
-                    .stations(busStationResponseDtoList)
-                    .imgUrl(restaurantImgs)
-                    .reviews(reviewResponseDtoList)
-                    .build();
         }
-        return ResponseDto.success(responseDto);
-    }
 
-    @Transactional
-    public Restaurant isPresentRestaurant(Long id) {
-        Optional<Restaurant> optionalRestaurant = restaurantRepository.findById(id);
-        return optionalRestaurant.orElse(null);
+        DetailResponseDto responseDto = DetailResponseDto.builder()
+                .id(restaurant.getId())
+                .name(restaurant.getName())
+                .description(restaurant.getDescription())
+                .address(restaurant.getAddress())
+                .phone(restaurant.getPhone())
+                .info(restaurant.getInfo())
+                .bookmarkNum(bookmarkNum)
+                .thumbnailUrl(restaurant.getThumbnailUrl())
+                .region(restaurant.getRegion())
+                .latitude(restaurant.getLatitude())
+                .longitude(restaurant.getLongitude())
+                .stations(busStationResponseDtoList)
+                .imgUrl(restaurantImgs)
+                .reviews(reviewResponseDtoList)
+                .isBookmarked(isBookmarked)
+                .build();
+
+        return ResponseEntity.ok(ResponseDto.success(responseDto));
     }
 
 }

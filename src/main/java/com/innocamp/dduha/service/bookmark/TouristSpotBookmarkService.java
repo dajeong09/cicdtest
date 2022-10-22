@@ -1,4 +1,4 @@
-package com.innocamp.dduha.service;
+package com.innocamp.dduha.service.bookmark;
 
 import com.innocamp.dduha.dto.ResponseDto;
 import com.innocamp.dduha.dto.response.BookmarkResponseDto;
@@ -9,11 +9,11 @@ import com.innocamp.dduha.model.touristspot.TouristSpot;
 import com.innocamp.dduha.repository.bookmark.TouristSpotBookmarkRepository;
 import com.innocamp.dduha.repository.touristspot.TouristSpotRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 
-import javax.transaction.Transactional;
-import java.util.Optional;
+import java.util.NoSuchElementException;
 
 import static com.innocamp.dduha.exception.ErrorCode.TOURISTSPOT_NOT_FOUND;
 
@@ -25,21 +25,19 @@ public class TouristSpotBookmarkService {
     private final TouristSpotBookmarkRepository touristSpotBookmarkRepository;
     private final TokenProvider tokenProvider;
 
-
-    public ResponseDto<?> createTouristSpotBookmark(@PathVariable Long id) {
+    public ResponseEntity<?> createTouristSpotBookmark(@PathVariable Long id) {
 
         Member member = tokenProvider.getMemberFromAuthentication();
 
-        TouristSpot touristSpot = isPresentTouristSpot(id);
-        if (null == touristSpot) {
-            return ResponseDto.fail(TOURISTSPOT_NOT_FOUND);
-        }
+        TouristSpot touristSpot = touristSpotRepository.findTouristSpotById(id).orElseThrow(() ->
+                new NoSuchElementException(String.valueOf(TOURISTSPOT_NOT_FOUND)));
+
         TouristSpotBookmark checkBookmark = touristSpotBookmarkRepository.findByMemberAndTouristSpot(member, touristSpot);
         if (null != checkBookmark) {
             touristSpotBookmarkRepository.delete(checkBookmark); // 즐겨 찾기 취소
-            return ResponseDto.success(BookmarkResponseDto.builder()
+            return ResponseEntity.ok(ResponseDto.success(BookmarkResponseDto.builder()
                     .isBookmarked(false)
-                    .build());
+                    .build()));
         }
         TouristSpotBookmark touristSpotBookmark = TouristSpotBookmark.builder()
                 .member(member)
@@ -47,14 +45,9 @@ public class TouristSpotBookmarkService {
                 .build();
 
         touristSpotBookmarkRepository.save(touristSpotBookmark); // 즐겨 찾기
-        return ResponseDto.success(BookmarkResponseDto.builder()
+        return ResponseEntity.ok(ResponseDto.success(BookmarkResponseDto.builder()
                 .isBookmarked(true)
-                .build());
+                .build()));
     }
 
-    @Transactional
-    public TouristSpot isPresentTouristSpot(Long id) {
-        Optional<TouristSpot> optionalTouristSpot = touristSpotRepository.findTouristSpotById(id);
-        return optionalTouristSpot.orElse(null);
-    }
 }

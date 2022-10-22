@@ -1,4 +1,4 @@
-package com.innocamp.dduha.service;
+package com.innocamp.dduha.service.member;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -24,8 +24,10 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.ValidationException;
 
 import static com.innocamp.dduha.exception.ErrorCode.NULL;
+import static com.innocamp.dduha.exception.ErrorCode.OAUTH_LOGIN_FAILED;
 
 @Service
 @RequiredArgsConstructor
@@ -37,19 +39,15 @@ public class GoogleService {
 
     @Value("${google.client.id}")
     private String googleClientId;
-
     @Value("${google.secret}")
     private String googleSecret;
     @Value("${google.redirect.uri}")
     private String googleRedirectUrl;
-
     @Value("${google.auth.url}")
     private String googleAuthUrl;
 
-    public ResponseDto<?> googleLogin(String code, HttpServletResponse response) {
+    public ResponseEntity<?> googleLogin(String code, HttpServletResponse response) {
 
-        // code를 가지고 구글 유저 가져오기
-        // 추후 리팩토링 예정
         GoogleLoginDto googleUser = findGoogleUser(code);
 
         Member member = memberRepository.findMemberByEmail(googleUser.getEmail());
@@ -76,8 +74,7 @@ public class GoogleService {
         response.addHeader("Authorization", "Bearer " + tokenDto.getAccessToken());
         response.addHeader("Access-Token-Expire-Time", tokenDto.getAccessTokenExpiresIn().toString());
 
-        return ResponseDto.success(NULL);
-
+        return ResponseEntity.ok(ResponseDto.success(NULL));
     }
 
     public GoogleLoginDto findGoogleUser(String code) {
@@ -113,11 +110,9 @@ public class GoogleService {
             String resultJson = restTemplate.getForObject(requestUrl, String.class);
 
             if (resultJson != null) {
-                return objectMapper.readValue(resultJson, new TypeReference<>() {
-                });
-
+                return objectMapper.readValue(resultJson, new TypeReference<>() {});
             } else {
-                throw new Exception("Google OAuth failed!");
+                throw new ValidationException(String.valueOf(OAUTH_LOGIN_FAILED));
             }
         } catch (Exception e) {
             e.printStackTrace();

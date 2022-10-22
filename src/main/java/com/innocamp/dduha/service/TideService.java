@@ -6,6 +6,7 @@ import com.innocamp.dduha.dto.response.TideResponseDto;
 import com.innocamp.dduha.model.Tide;
 import com.innocamp.dduha.repository.TideRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -19,7 +20,7 @@ public class TideService {
 
     private final TideRepository tideRepository;
 
-    public ResponseDto<?> getTide(String obs) {
+    public ResponseEntity<?> getTide(String obs) {
 
         LocalDate now = LocalDate.now();
         List<TideResponseDto> tideResponseDtoList = new ArrayList<>();
@@ -46,6 +47,6 @@ public class TideService {
             }
         }
 
-        return ResponseDto.success(tideResponseDtoList);
+        return ResponseEntity.ok(ResponseDto.success(tideResponseDtoList));
     }
 }

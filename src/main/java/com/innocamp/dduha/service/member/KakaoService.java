@@ -1,4 +1,4 @@
-package com.innocamp.dduha.service;
+package com.innocamp.dduha.service.member;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -21,13 +21,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 
 import static com.innocamp.dduha.exception.ErrorCode.NULL;
 
@@ -46,11 +40,10 @@ public class KakaoService {
     @Value("${kakao.redirect-uri}")
     private String KakaoRedirectUri;
 
-    public ResponseDto<?> kakaoLogin(String code, HttpServletResponse response) throws JsonProcessingException {
-        // 1. "인가 코드"로 "액세스 토큰" 요청
+    public ResponseEntity<?> kakaoLogin(String code, HttpServletResponse response) throws JsonProcessingException {
+
         String kakaoToken = getAccessToken(code);
 
-        // 2. 토큰으로 카카오 API 호출
         OauthUserDto kakaoUserInfo = getKakaoUserInfo(kakaoToken);
 
         Member member = memberRepository.findMemberByEmail(kakaoUserInfo.getEmail());
@@ -61,7 +54,6 @@ public class KakaoService {
             kNickname = strings[0]+"_k"+ (Integer.parseInt(strings[1])+1);
         }
 
-        // 3. 처음 접속한 회원일 경우, 회원 가입 요청
         if (member == null) {
             member = Member.builder()
                     .nickname(kNickname)
@@ -76,7 +68,7 @@ public class KakaoService {
         response.addHeader("Authorization", "Bearer " + tokenDto.getAccessToken());
         response.addHeader("Access-Token-Expire-Time", tokenDto.getAccessTokenExpiresIn().toString());
 
-        return ResponseDto.success(NULL);
+        return ResponseEntity.ok(ResponseDto.success(NULL));
     }
 
     private String getAccessToken(String code) throws JsonProcessingException {
@@ -105,13 +97,11 @@ public class KakaoService {
                 "https://kauth.kakao.com/oauth/token",
                 HttpMethod.POST,
                 kakaoTokenRequest,
-                // Token이 String 타입이므로
                 String.class
         );
 
         // HTTP 응답 (JSON) -> 액세스 토큰 파싱
         String responseBody = response.getBody();
-        // ObjectMapper
         ObjectMapper objectMapper = new ObjectMapper();
         // JsonNode 중첩된 Json
         //readTree 역직렬화, 객체형으로 다시 바꿔준다
@@ -145,38 +135,7 @@ public class KakaoService {
         String email = jsonNode.get("kakao_account")
                 .get("email").asText();
 
-
-        System.out.println("카카오 사용자 정보: " + id + ", " + nickname + ", " + email);
         return new OauthUserDto(id, nickname, email);
-    }
-
-    // 로그 아웃
-    public ResponseDto<?> logout(HttpServletRequest request) {
-        String token = request.getHeader("kakaoToken");
-
-        String reqURL = "http://localhost:8080/ouath/kakao/logout";
-        try {
-            URL url = new URL(reqURL);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("POST");
-            conn.setRequestProperty("Authorization", "Bearer " + token);
-
-            int responseCode = conn.getResponseCode();
-            System.out.println("responseCode : " + responseCode);
-
-            BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-
-            String result = "";
-            String line = "";
-
-            while ((line = br.readLine()) != null) {
-                result += line;
-            }
-            System.out.println(result);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return ResponseDto.success(NULL);
     }
 
 }

@@ -7,24 +7,24 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SecurityException;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
+import javax.validation.ValidationException;
 import java.security.Key;
 import java.util.Date;
 
-@Slf4j
+import static com.innocamp.dduha.exception.ErrorCode.*;
+
 @Component
 public class TokenProvider {
 
     private static final String AUTHORITIES_KEY = "auth";
     private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24;            //1일
     private final Key key;
-
 
     public TokenProvider(@Value("${jwt.secret}") String secretKey) {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
@@ -58,22 +58,19 @@ public class TokenProvider {
         return ((UserDetailsImpl) authentication.getPrincipal()).getMember();
     }
 
-    public boolean validateToken(String token) {
+    public void validateToken(String token) {
         try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
-            return true;
         } catch (SecurityException | MalformedJwtException e) {
-            log.info("Invalid JWT signature, 유효하지 않는 JWT 서명 입니다.");
+            throw new ValidationException(String.valueOf(INVALID_SIGNATURE));
         } catch (ExpiredJwtException e) {
-            log.info("Expired JWT token, 만료된 JWT token 입니다.");
+            throw new ValidationException(String.valueOf(EXPIRED_TOKEN));
         } catch (UnsupportedJwtException e) {
-            log.info("Unsupported JWT token, 지원되지 않는 JWT 토큰 입니다.");
+            throw new ValidationException(String.valueOf(UNSUPPORTED_TOKEN));
         } catch (IllegalArgumentException e) {
-            log.info("JWT claims is empty, 잘못된 JWT 토큰 입니다.");
+            throw new ValidationException(String.valueOf(INVALID_TOKEN));
         }
-        return false;
     }
-
 
 }
 

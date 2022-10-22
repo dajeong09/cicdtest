@@ -22,5 +22,4 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Long> {
     Page<Restaurant> findByHasStation(Pageable pageable);
     @Query("select r from Restaurant r where exists (select rn from RestaurantNearby rn where rn.restaurant=r) and r.region in (:region1, :region2, :region3)")
     Page<Restaurant> findByHasStationAndRegion(Pageable pageable, String region1, String region2, String region3);
-
 }

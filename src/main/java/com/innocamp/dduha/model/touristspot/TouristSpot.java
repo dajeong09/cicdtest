@@ -40,7 +40,7 @@ public class TouristSpot {
     private int likeNum;
 
     @Column(nullable = false)
-    private String region;      // enum 으로 바꿀까 고민
+    private String region;
 
     @Column
     private double latitude;

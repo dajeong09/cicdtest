@@ -3,7 +3,7 @@ package com.innocamp.dduha.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.innocamp.dduha.dto.ResponseDto;
-import com.innocamp.dduha.service.UserDetailsServiceImpl;
+import com.innocamp.dduha.service.member.UserDetailsServiceImpl;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -36,18 +36,11 @@ import static com.innocamp.dduha.exception.ErrorCode.*;
 public class JwtFilter extends OncePerRequestFilter {
 
     public static String AUTHORIZATION_HEADER = "Authorization";
-
     public static String BEARER_PREFIX = "Bearer ";
-
     public static String AUTHORITIES_KEY = "auth";
-
     private final String SECRET_KEY;
-
     private final TokenProvider tokenProvider;
-
     private final UserDetailsServiceImpl userDetailsService;
-
-
 
 
     @Override
@@ -58,8 +51,9 @@ public class JwtFilter extends OncePerRequestFilter {
         Key key = Keys.hmacShaKeyFor(keyBytes);
 
         String jwt = resolveToken(request);
+        tokenProvider.validateToken(jwt);
 
-        if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
+        if (StringUtils.hasText(jwt)) {
             Claims claims;
             try {
                 claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(jwt).getBody();

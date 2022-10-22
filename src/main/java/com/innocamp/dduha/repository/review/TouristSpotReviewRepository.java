@@ -9,6 +9,5 @@ import java.util.List;
 
 public interface TouristSpotReviewRepository extends JpaRepository<TouristSpotReview, Long> {
     List<TouristSpotReview> findAllByTouristSpotOrderByCreatedAtDesc(TouristSpot touristSpot);
-
     List<TouristSpotReview> findAllByMember(Member member);
 }
