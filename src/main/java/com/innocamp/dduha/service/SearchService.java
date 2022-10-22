@@ -24,13 +24,17 @@ public class SearchService {
     // 관광지 검색
     @Transactional
     public ResponseDto<?> searchTouristSpot(String region, String keyword) {
+
         List<TouristSpot> touristSpotList;
         if (region == null) {
             touristSpotList = touristSpotRepository.findByNameContaining(keyword);
         } else {
-            if (region.equals("성산") || region.equals("우도")) {
-                touristSpotList = touristSpotRepository.findByRegionAndNameContainingOrRegionAndNameContaining("성산", keyword, "우도", keyword);
-            } else if (region.equals("구좌") || region.equals("조천")) {
+            if (region.equals("우도")) {
+                touristSpotList = touristSpotRepository.findByRegionAndNameContainingOrRegionAndNameContainingOrRegionAndNameContaining
+                        ("우도", keyword, "성산", keyword, "표선", keyword);
+            } else if (region.equals("애월")) {
+                touristSpotList = touristSpotRepository.findByRegionAndNameContainingOrRegionAndNameContaining("애월", keyword, "한림", keyword);
+            } else if (region.equals("구좌")) {
                 touristSpotList = touristSpotRepository.findByRegionAndNameContainingOrRegionAndNameContaining("구좌", keyword, "조천", keyword);
             } else {
                 touristSpotList = touristSpotRepository.findByRegionAndNameContaining(region, keyword);
@@ -46,9 +50,12 @@ public class SearchService {
         if (region == null) {
             restaurantList = restaurantRepository.findByNameContaining(keyword);
         } else {
-            if (region.equals("성산") || region.equals("우도")) {
-                restaurantList = restaurantRepository.findByRegionAndNameContainingOrRegionAndNameContaining("성산", keyword, "우도", keyword);
-            } else if (region.equals("구좌") || region.equals("조천")) {
+            if (region.equals("우도")) {
+                restaurantList = restaurantRepository.findByRegionAndNameContainingOrRegionAndNameContainingOrRegionAndNameContaining
+                        ("우도", keyword, "성산", keyword, "표선", keyword);
+            } else if (region.equals("애월")) {
+                restaurantList = restaurantRepository.findByRegionAndNameContainingOrRegionAndNameContaining("애월", keyword, "한림", keyword);
+            } else if (region.equals("구좌")) {
                 restaurantList = restaurantRepository.findByRegionAndNameContainingOrRegionAndNameContaining("구좌", keyword, "조천", keyword);
             } else {
                 restaurantList = restaurantRepository.findByRegionAndNameContaining(region, keyword);
@@ -64,9 +71,12 @@ public class SearchService {
         if (region == null) {
             accommodationList = accommodationRepository.findByNameContaining(keyword);
         } else {
-            if (region.equals("성산") || region.equals("우도")) {
-                accommodationList = accommodationRepository.findByRegionAndNameContainingOrRegionAndNameContaining("성산", keyword, "우도", keyword);
-            } else if (region.equals("구좌") || region.equals("조천")) {
+            if (region.equals("우도")) {
+                accommodationList = accommodationRepository.findByRegionAndNameContainingOrRegionAndNameContainingOrRegionAndNameContaining
+                        ("우도", keyword, "성산", keyword, "표선", keyword);
+            } else if (region.equals("애월")) {
+                accommodationList = accommodationRepository.findByRegionAndNameContainingOrRegionAndNameContaining("애월", keyword, "한림", keyword);
+            } else if (region.equals("구좌")) {
                 accommodationList = accommodationRepository.findByRegionAndNameContainingOrRegionAndNameContaining("구좌", keyword, "조천", keyword);
             } else {
                 accommodationList = accommodationRepository.findByRegionAndNameContaining(region, keyword);
