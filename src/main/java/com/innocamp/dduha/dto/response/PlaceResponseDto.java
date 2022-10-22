@@ -12,8 +12,11 @@ public class PlaceResponseDto {
     private String category;
     private String name;
     private String description;
-    private int likeNum;
+    private int bookmarkNum;
     private String region;
+    private String address;
+    private Double latitude;
+    private Double longitude;
     private String thumbnailUrl;
     private boolean hasNearStation;
     private boolean isBookmarked;

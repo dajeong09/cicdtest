@@ -48,7 +48,7 @@ public class RestaurantService {
         Pageable pageable = PageRequest.of(page, 10, sort);
 
         Page<Restaurant> restaurants;
-        List<RestaurantResponseDto> restaurantResponseDtoList = new ArrayList<>();
+        List<PlaceResponseDto> restaurantResponseDtoList = new ArrayList<>();
 
         if (station == null) {
             restaurants = restaurantRepository.findAll(pageable);
@@ -92,12 +92,15 @@ public class RestaurantService {
                 }
                 int bookmarkNum = restaurant.getLikeNum() + restaurantBookmarkRepository.countByRestaurant(restaurant);
                 restaurantResponseDtoList.add(
-                        RestaurantResponseDto.builder()
+                        PlaceResponseDto.builder()
                                 .id(restaurant.getId())
                                 .name(restaurant.getName())
                                 .description(restaurant.getDescription())
                                 .bookmarkNum(bookmarkNum)
                                 .region(restaurant.getRegion())
+                                .address(restaurant.getAddress())
+                                .latitude(restaurant.getLatitude())
+                                .longitude(restaurant.getLongitude())
                                 .thumbnailUrl(restaurant.getThumbnailUrl())
                                 .hasNearStation(hasNearbyStation)
                                 .isBookmarked(isBookmarked)
@@ -113,12 +116,15 @@ public class RestaurantService {
                 }
                 int bookmarkNum = restaurant.getLikeNum() + restaurantBookmarkRepository.countByRestaurant(restaurant);
                 restaurantResponseDtoList.add(
-                        RestaurantResponseDto.builder()
+                        PlaceResponseDto.builder()
                                 .id(restaurant.getId())
                                 .name(restaurant.getName())
                                 .description(restaurant.getDescription())
                                 .bookmarkNum(bookmarkNum)
                                 .region(restaurant.getRegion())
+                                .address(restaurant.getAddress())
+                                .latitude(restaurant.getLatitude())
+                                .longitude(restaurant.getLongitude())
                                 .thumbnailUrl(restaurant.getThumbnailUrl())
                                 .hasNearStation(hasNearbyStation)
                                 .build()

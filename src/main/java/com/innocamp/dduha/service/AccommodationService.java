@@ -48,7 +48,7 @@ public class AccommodationService {
         Pageable pageable = PageRequest.of(page, 10, sort);
 
         Page<Accommodation> accommodations;
-        List<AccommodationResponseDto> accommodationResponseDtoList = new ArrayList<>();
+        List<PlaceResponseDto> accommodationResponseDtoList = new ArrayList<>();
 
         if (station == null) {
             accommodations = accommodationRepository.findAll(pageable);
@@ -92,12 +92,15 @@ public class AccommodationService {
                 }
                 int bookmarkNum = accommodation.getLikeNum() + accommodationBookmarkRepository.countByAccommodation(accommodation);
                 accommodationResponseDtoList.add(
-                        AccommodationResponseDto.builder()
+                        PlaceResponseDto.builder()
                                 .id(accommodation.getId())
                                 .name(accommodation.getName())
                                 .description(accommodation.getDescription())
                                 .bookmarkNum(bookmarkNum)
                                 .region(accommodation.getRegion())
+                                .address(accommodation.getAddress())
+                                .latitude(accommodation.getLatitude())
+                                .longitude(accommodation.getLongitude())
                                 .thumbnailUrl(accommodation.getThumbnailUrl())
                                 .hasNearStation(hasNearbyStation)
                                 .isBookmarked(isBookmarked)
@@ -113,12 +116,15 @@ public class AccommodationService {
                 }
                 int bookmarkNum = accommodation.getLikeNum() + accommodationBookmarkRepository.countByAccommodation(accommodation);
                 accommodationResponseDtoList.add(
-                        AccommodationResponseDto.builder()
+                        PlaceResponseDto.builder()
                                 .id(accommodation.getId())
                                 .name(accommodation.getName())
                                 .description(accommodation.getDescription())
                                 .bookmarkNum(bookmarkNum)
                                 .region(accommodation.getRegion())
+                                .address(accommodation.getAddress())
+                                .latitude(accommodation.getLatitude())
+                                .longitude(accommodation.getLongitude())
                                 .thumbnailUrl(accommodation.getThumbnailUrl())
                                 .hasNearStation(hasNearbyStation)
                                 .build()

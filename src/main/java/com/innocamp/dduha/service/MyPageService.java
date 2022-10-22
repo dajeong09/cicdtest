@@ -63,12 +63,12 @@ public class MyPageService {
         Member member = tokenProvider.getMemberFromAuthentication();
 
         List<TouristSpotBookmark> touristSpotBookmarkList = touristSpotBookmarkRepository.findAllByMember(member);
-        List<TouristSpotResponseDto> touristSpotResponseDtoList = new ArrayList<>();
+        List<PlaceResponseDto> touristSpotResponseDtoList = new ArrayList<>();
 
         for (TouristSpotBookmark touristSpotBookmark : touristSpotBookmarkList) {
             int bookmarkNum = touristSpotBookmark.getTouristSpot().getLikeNum() + touristSpotBookmarkRepository.countByTouristSpot(touristSpotBookmark.getTouristSpot());
             touristSpotResponseDtoList.add(
-                    TouristSpotResponseDto.builder()
+                    PlaceResponseDto.builder()
                             .id(touristSpotBookmark.getTouristSpot().getId())
                             .name(touristSpotBookmark.getTouristSpot().getName())
                             .description(touristSpotBookmark.getTouristSpot().getDescription())
@@ -89,12 +89,12 @@ public class MyPageService {
         Member member = tokenProvider.getMemberFromAuthentication();
 
         List<RestaurantBookmark> restaurantBookmarkList = restaurantBookmarkRepository.findAllByMember(member);
-        List<RestaurantResponseDto> RestaurantResponseDtoList = new ArrayList<>();
+        List<PlaceResponseDto> RestaurantResponseDtoList = new ArrayList<>();
 
         for (RestaurantBookmark restaurantBookmark : restaurantBookmarkList) {
             int bookmarkNum = restaurantBookmark.getRestaurant().getLikeNum() + restaurantBookmarkRepository.countByRestaurant(restaurantBookmark.getRestaurant());
             RestaurantResponseDtoList.add(
-                    RestaurantResponseDto.builder()
+                    PlaceResponseDto.builder()
                             .id(restaurantBookmark.getRestaurant().getId())
                             .name(restaurantBookmark.getRestaurant().getName())
                             .description(restaurantBookmark.getRestaurant().getDescription())
@@ -114,12 +114,12 @@ public class MyPageService {
         Member member = tokenProvider.getMemberFromAuthentication();
 
         List<AccommodationBookmark> accommodationBoookmarkList = accommodationBookmarkRepository.findAllByMember(member);
-        List<AccommodationResponseDto> AccommodationResponseDtoList = new ArrayList<>();
+        List<PlaceResponseDto> AccommodationResponseDtoList = new ArrayList<>();
 
         for (AccommodationBookmark accommodationBookmark : accommodationBoookmarkList) {
             int bookmarkNum = accommodationBookmark.getAccommodation().getLikeNum() + accommodationBookmarkRepository.countByAccommodation(accommodationBookmark.getAccommodation());
             AccommodationResponseDtoList.add(
-                    AccommodationResponseDto.builder()
+                    PlaceResponseDto.builder()
                             .id(accommodationBookmark.getAccommodation().getId())
                             .name(accommodationBookmark.getAccommodation().getName())
                             .description(accommodationBookmark.getAccommodation().getDescription())

@@ -225,15 +225,17 @@ public class CourseService {
         Member member = tokenProvider.getMemberFromAuthentication();
 
         List<PlaceResponseDto> bookmarkedPlaceResponseDtoList = new ArrayList<>();
+        int bookmarkNum;
         List<TouristSpotBookmark> touristSpotBookmarkList = touristSpotBookmarkRepository.findAllByMember(member);
         for (TouristSpotBookmark touristSpotBookmark : touristSpotBookmarkList) {
+            bookmarkNum = touristSpotBookmark.getTouristSpot().getLikeNum() + touristSpotBookmarkRepository.countByTouristSpot(touristSpotBookmark.getTouristSpot());
             bookmarkedPlaceResponseDtoList.add(
                     PlaceResponseDto.builder()
                             .id(touristSpotBookmark.getTouristSpot().getId())
                             .category("관광지")
                             .name(touristSpotBookmark.getTouristSpot().getName())
                             .description(touristSpotBookmark.getTouristSpot().getDescription())
-                            .likeNum(touristSpotBookmark.getTouristSpot().getLikeNum())
+                            .bookmarkNum(bookmarkNum)
                             .region(touristSpotBookmark.getTouristSpot().getRegion())
                             .thumbnailUrl(touristSpotBookmark.getTouristSpot().getThumbnailUrl())
                             .isBookmarked(true)
@@ -243,13 +245,14 @@ public class CourseService {
         }
         List<RestaurantBookmark> restaurantBookmarkList = restaurantBookmarkRepository.findAllByMember(member);
         for (RestaurantBookmark restaurantBookmark : restaurantBookmarkList) {
+            bookmarkNum = restaurantBookmark.getRestaurant().getLikeNum() + restaurantBookmarkRepository.countByRestaurant(restaurantBookmark.getRestaurant());
             bookmarkedPlaceResponseDtoList.add(
                     PlaceResponseDto.builder()
                             .id(restaurantBookmark.getRestaurant().getId())
                             .category("맛집")
                             .name(restaurantBookmark.getRestaurant().getName())
                             .description(restaurantBookmark.getRestaurant().getDescription())
-                            .likeNum(restaurantBookmark.getRestaurant().getLikeNum())
+                            .bookmarkNum(bookmarkNum)
                             .region(restaurantBookmark.getRestaurant().getRegion())
                             .thumbnailUrl(restaurantBookmark.getRestaurant().getThumbnailUrl())
                             .isBookmarked(true)
@@ -259,13 +262,14 @@ public class CourseService {
         }
         List<AccommodationBookmark> accommodationBookmarkList = accommodationBookmarkRepository.findAllByMember(member);
         for (AccommodationBookmark accommodationBookmark : accommodationBookmarkList) {
+            bookmarkNum = accommodationBookmark.getAccommodation().getLikeNum() + accommodationBookmarkRepository.countByAccommodation(accommodationBookmark.getAccommodation());
             bookmarkedPlaceResponseDtoList.add(
                     PlaceResponseDto.builder()
                             .id(accommodationBookmark.getAccommodation().getId())
                             .category("숙소")
                             .name(accommodationBookmark.getAccommodation().getName())
                             .description(accommodationBookmark.getAccommodation().getDescription())
-                            .likeNum(accommodationBookmark.getAccommodation().getLikeNum())
+                            .bookmarkNum(bookmarkNum)
                             .region(accommodationBookmark.getAccommodation().getRegion())
                             .thumbnailUrl(accommodationBookmark.getAccommodation().getThumbnailUrl())
                             .isBookmarked(true)

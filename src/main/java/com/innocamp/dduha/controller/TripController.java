@@ -21,7 +21,7 @@ public class TripController {
     }
 
     @GetMapping("/auth/trip")
-    public ResponseDto<?> getMyTrips() {  //사용자 검증 후 변경
+    public ResponseDto<?> getMyTrips() {
       return tripService.getMyTrips();
     }
 
@@ -41,8 +41,8 @@ public class TripController {
     }
 
     @GetMapping("/trip")
-    public ResponseDto<?> getPublicTrips() {
-        return tripService.getPublicTrips();
+    public ResponseDto<?> getPublicTrips(@RequestParam(value = "page") int page) {
+        return tripService.getPublicTrips(page);
     }
 
     @GetMapping("/trip/{id}")
