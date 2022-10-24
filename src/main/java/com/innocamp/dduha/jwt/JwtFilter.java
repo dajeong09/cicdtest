@@ -51,9 +51,9 @@ public class JwtFilter extends OncePerRequestFilter {
         Key key = Keys.hmacShaKeyFor(keyBytes);
 
         String jwt = resolveToken(request);
-        tokenProvider.validateToken(jwt);
 
         if (StringUtils.hasText(jwt)) {
+            tokenProvider.validateToken(jwt);
             Claims claims;
             try {
                 claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(jwt).getBody();
