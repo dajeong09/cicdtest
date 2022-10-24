@@ -94,8 +94,7 @@ public class PasswordService {
     public ResponseEntity<?> sendSimpleMessage(EmailRequestDto requestDto) throws Exception {
         memberRepository.findByEmail(requestDto.getEmail()).orElseThrow(() ->
                 new NoSuchElementException(String.valueOf(MEMBER_NOT_FOUND)));
-        PasswordEncode passwordEncode = passwordEncodeRepository.findPasswordEncodeByEmail(requestDto.getEmail()).orElseThrow(() ->
-                new NoSuchElementException(String.valueOf(EMAIL_NOT_FOUND)));
+        PasswordEncode passwordEncode = passwordEncodeRepository.findPasswordEncodeByEmail(requestDto.getEmail()).orElse(null);
         if (passwordEncode != null && passwordEncode.getCreatedAt().plusDays(1).isAfter(LocalDateTime.now())) {
             throw new ValidationException(String.valueOf(ALREADY_REQUESTED_EMAIL));
         } else if (passwordEncode != null) {

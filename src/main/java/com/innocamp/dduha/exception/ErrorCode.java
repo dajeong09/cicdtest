@@ -13,7 +13,7 @@ public enum ErrorCode {
     DUPLICATE_EMAIL("DUPLICATE_EMAIL", "중복된 이메일입니다."),
     DUPLICATE_NICKNAME("DUPLICATE_NICKNAME", "중복된 닉네임입니다."),
     MEMBER_NOT_FOUND("MEMBER_NOT_FOUND", "회원정보를 찾을 수 없습니다."),
-    INVALID_PASSWORD("INVALID_PASSWORD", "비밀번호를 찾을 수 없습니다."),
+    INVALID_PASSWORD("INVALID_PASSWORD", "비밀번호가 일치하지 않습니다."),
     NEED_LOGIN("NEED_LOGIN", "로그인이 필요합니다"),
     USED_PASSWORD("USED_PASSWORD", "기존 비밀번호와 일치합니다."),
     ALREADY_REQUESTED_EMAIL("ALREADY_REQUESTED_EMAIL", "이미 요청한 이메일 입니다."),

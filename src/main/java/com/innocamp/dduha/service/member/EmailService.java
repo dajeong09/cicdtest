@@ -93,8 +93,7 @@ public class EmailService {
         if (optionalMember.isPresent()) {
             throw new ValidationException(String.valueOf(DUPLICATE_EMAIL));
         }
-        EmailEncode emailEncode = emailEncodeRepository.findByEmail(requestDto.getEmail()).orElseThrow(() ->
-                new NoSuchElementException(String.valueOf(EMAIL_NOT_FOUND)));
+        EmailEncode emailEncode = emailEncodeRepository.findByEmail(requestDto.getEmail()).orElse(null);
         if (emailEncode != null && emailEncode.getCreatedAt().plusDays(1).isAfter(LocalDateTime.now())) {
             throw new ValidationException(String.valueOf(ALREADY_REQUESTED_EMAIL));
         } else if (emailEncode != null) {
