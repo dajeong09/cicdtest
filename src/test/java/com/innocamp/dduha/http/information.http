@@ -1,0 +1,5 @@
+### 물때 더 알아보기
+GET http://localhost:8080/tide?obs={{obs}}
+
+### 뚜벅이들을 위한 서비스
+GET http://localhost:8080/information?category={{category}}

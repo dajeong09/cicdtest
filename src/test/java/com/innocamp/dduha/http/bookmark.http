@@ -1,0 +1,15 @@
+### 관광지 즐겨찾기/취소하기
+GET http://localhost:8080/auth/touristspot/bookmark/{{id}}
+Authorization: Bearer {{auth_token}}
+
+### 맛집 즐겨찾기/취소하기
+GET http://localhost:8080/auth/restaurant/bookmark/{{id}}
+Authorization: Bearer {{auth_token}}
+
+### 맛집 즐겨찾기/취소하기
+GET http://localhost:8080/auth/accommodation/bookmark/{{id}}
+Authorization: Bearer {{auth_token}}
+
+### 일정 즐겨찾기/취소하기
+GET http://localhost:8080/auth/trip/bookmark/{{id}}
+Authorization: Bearer {{auth_token}}

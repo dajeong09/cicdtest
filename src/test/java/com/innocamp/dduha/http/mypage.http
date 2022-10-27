@@ -1,0 +1,31 @@
+### 내가 즐겨찾기한 항목 개수
+GET http://localhost:8080/auth/mypage
+Authorization: Bearer {{auth_token}}
+
+### 내가 즐겨찾기한 관광지 조회
+GET http://localhost:8080/auth/mypage/touristspot/bookmark
+Authorization: Bearer {{auth_token}}
+
+### 내가 즐겨찾기한 맛집 조회
+GET http://localhost:8080/auth/mypage/restaurant/bookmark
+Authorization: Bearer {{auth_token}}
+
+### 내가 즐겨찾기한 숙소 조회
+GET http://localhost:8080/auth/mypage/accommodation/bookmark
+Authorization: Bearer {{auth_token}}
+
+### 내가 즐겨찾기한 일정 조회
+GET http://localhost:8080/auth/mypage/trip/bookmark
+Authorization: Bearer {{auth_token}}
+
+### 내가 작성한 관광지 댓글 조회
+GET http://localhost:8080/auth/mypage/touristspotreview
+Authorization: Bearer {{auth_token}}
+
+### 내가 작성한 맛집 댓글 조회
+GET http://localhost:8080/auth/mypage/restaurantreview
+Authorization: Bearer {{auth_token}}
+
+### 내가 작성한 숙소 댓글 조회
+GET http://localhost:8080/auth/mypage/accommodationreview
+Authorization: Bearer {{auth_token}}
