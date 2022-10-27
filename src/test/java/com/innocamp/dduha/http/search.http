@@ -1,0 +1,8 @@
+### 관광지 검색
+GET http://localhost:8080/touristspot/search?region={{region}}&keyword={{keyword}}
+
+### 맛집 검색
+GET http://localhost:8080/restaurant/search?region={{region}}&keyword={{keyword}}
+
+### 숙소 검색
+GET http://localhost:8080/accommodation/search?region={{region}}&keyword={{keyword}}

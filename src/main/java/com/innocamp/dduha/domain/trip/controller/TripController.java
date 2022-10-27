@@ -7,10 +7,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.naming.AuthenticationException;
-import javax.xml.bind.ValidationException;
-
-
 @RestController
 @RequiredArgsConstructor
 public class TripController {
@@ -28,17 +24,17 @@ public class TripController {
     }
 
     @GetMapping("/auth/trip/{id}")
-    public ResponseEntity<?> getMyTripInfo(@PathVariable Long id) throws AuthenticationException {
+    public ResponseEntity<?> getMyTripInfo(@PathVariable Long id) {
         return tripService.getMyTripInfo(id);
     }
 
     @PutMapping("/auth/trip/{id}")
-    public ResponseEntity<?> modifyMyTrip(@PathVariable Long id, @RequestBody TripRequestDto requestDto) throws AuthenticationException {
+    public ResponseEntity<?> modifyMyTrip(@PathVariable Long id, @RequestBody TripRequestDto requestDto) {
         return tripService.modifyMyTrip(id, requestDto);
     }
 
     @DeleteMapping("/auth/trip/{id}")
-    public ResponseEntity<?> deleteTrip(@PathVariable Long id) throws AuthenticationException {
+    public ResponseEntity<?> deleteTrip(@PathVariable Long id) {
         return tripService.deleteTrip(id);
     }
 
@@ -53,7 +49,7 @@ public class TripController {
     }
 
     @PostMapping("/auth/trip/course")
-    public ResponseEntity<?> saveCourseDetailOrder(@RequestBody CourseRequestDto courseRequestDto) throws ValidationException, AuthenticationException {
+    public ResponseEntity<?> saveCourseDetailOrder(@RequestBody CourseRequestDto courseRequestDto) {
         return tripService.saveCourseDetailOrder(courseRequestDto);
     }
 }

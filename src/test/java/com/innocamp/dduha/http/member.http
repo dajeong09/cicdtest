@@ -1,0 +1,72 @@
+### 회원가입
+POST http://localhost:8080/member/signup
+Content-Type: application/json
+
+{
+  "email": "user2@test.com",
+  "nickname": "유저닉네임2",
+  "password": "abc1234"
+}
+
+### 로그인
+POST http://localhost:8080/member/login
+Content-Type: application/json
+
+{
+  "email": "test@test.com",
+  "password": "1234"
+}
+
+### 카카오 로그인
+GET https://localhost:8080/oauth/kakao?code={{code}}
+
+### 구글 로그인
+GET https://localhost:8080/oauth/google?code={{code}}
+
+### 회원 정보 수정
+PUT http://localhost:8080/auth/member/modify
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "nickname": "유저닉네임수정",
+  "currentPassword": "abc1234",
+  "newPassword": "def5678"
+}
+
+### 회원 탈퇴
+DELETE http://localhost:8080/auth/member/delete
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "password": "def5678"
+}
+
+### 회원가입 링크 요청
+POST http://localhost:8080/member/emailConfirm
+Content-Type: application/json
+
+{
+  "email": "user@test.com"
+}
+
+### 코드로 이메일 가져오기
+GET http://localhost:8080/member/email?code={{code}}
+
+### 비밀번호 재설정 요청
+POST http://localhost:8080/member/findPassword
+Content-Type: application/json
+
+{
+  "email": "test@test.com"
+}
+
+### 비밀번호 재설정
+POST http://localhost:8080/member/resetPassword
+Content-Type: application/json
+
+{
+  "code": "abc1234",
+  "password": "1234"
+}

@@ -1,8 +1,11 @@
 package com.innocamp.dduha.domain.member.dto.request;
 
-import lombok.Builder;
+import lombok.*;
 
 @Builder
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class GoogleLoginRequestDto {
     private String clientId;
     private String redirectUri;

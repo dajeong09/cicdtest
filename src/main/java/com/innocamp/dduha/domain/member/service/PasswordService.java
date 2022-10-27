@@ -111,10 +111,7 @@ public class PasswordService {
     @Transactional
     public ResponseEntity<?> resetPassword(PasswordRequestDto requestDto) {
         PasswordEncode passwordEncode = passwordEncodeRepository.findPasswordEncodeByRandomCode(requestDto.getCode()).orElseThrow(() ->
-                new NoSuchElementException(String.valueOf(CODE_NOT_FOUND)));
-        if (null == passwordEncode) {
-            throw new ValidationException(String.valueOf(INVALID_CODE));
-        }
+                new ValidationException(String.valueOf(INVALID_CODE)));
         if (passwordEncode.getCreatedAt().plusDays(1).isBefore(LocalDateTime.now())) {
             passwordEncodeRepository.delete(passwordEncode);
             throw new ValidationException(String.valueOf(EXPIRED_CODE));

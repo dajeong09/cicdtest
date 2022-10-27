@@ -28,11 +28,11 @@ import com.innocamp.dduha.domain.bookmark.repository.RestaurantBookmarkRepositor
 import com.innocamp.dduha.domain.bookmark.repository.TouristSpotBookmarkRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.naming.AuthenticationException;
-import javax.xml.bind.ValidationException;
+import javax.validation.ValidationException;
 import java.util.*;
 
 import static com.innocamp.dduha.global.exception.ErrorCode.*;
@@ -54,8 +54,9 @@ public class CourseService {
 
     private final TokenProvider tokenProvider;
 
+
     @Transactional
-    public ResponseEntity<?> addCourseDetail(CourseDetailRequestDto requestDto) throws AuthenticationException, ValidationException {
+    public ResponseEntity<?> addCourseDetail(CourseDetailRequestDto requestDto) {
 
         Member member = tokenProvider.getMemberFromAuthentication();
 
@@ -63,7 +64,7 @@ public class CourseService {
                 new NoSuchElementException(String.valueOf(COURSE_NOT_FOUND)));
 
         if (!course.getTrip().getMember().getId().equals(member.getId())) {
-            throw new AuthenticationException(String.valueOf(REQUEST_FORBIDDEN));
+            throw new AuthenticationServiceException(String.valueOf(REQUEST_FORBIDDEN));
         }
 
         int detailOrder = courseDetailAccRepository.countAllByCourse(course) +
@@ -142,7 +143,7 @@ public class CourseService {
     }
 
     @Transactional
-    public ResponseEntity<?> removeCourseDetail(CourseDetailRequestDto courseDetailRequestDto) throws AuthenticationException, ValidationException {
+    public ResponseEntity<?> removeCourseDetail(CourseDetailRequestDto courseDetailRequestDto) {
 
         Member member = tokenProvider.getMemberFromAuthentication();
 
@@ -153,7 +154,7 @@ public class CourseService {
                 CourseDetailSpot courseDetailSpot = courseDetailSpotRepository.findById(courseDetailRequestDto.getDetailId())
                         .orElseThrow(() -> new NoSuchElementException(String.valueOf(DETAIL_NOT_FOUND)));
                 if (!courseDetailSpot.getCourse().getTrip().getMember().getId().equals(member.getId())) {
-                    throw new AuthenticationException(String.valueOf(REQUEST_FORBIDDEN));
+                    throw new AuthenticationServiceException(String.valueOf(REQUEST_FORBIDDEN));
                 }
                 courseDetailSpotRepository.delete(courseDetailSpot);
                 course = courseRepository.findById(courseDetailSpot.getCourse().getId()).orElseThrow(() ->
@@ -164,7 +165,7 @@ public class CourseService {
                 CourseDetailRest courseDetailRest = courseDetailRestRepository.findById(courseDetailRequestDto.getDetailId())
                         .orElseThrow(() -> new NoSuchElementException(String.valueOf(DETAIL_NOT_FOUND)));
                 if (!courseDetailRest.getCourse().getTrip().getMember().getId().equals(member.getId())) {
-                    throw new AuthenticationException(String.valueOf(REQUEST_FORBIDDEN));
+                    throw new AuthenticationServiceException(String.valueOf(REQUEST_FORBIDDEN));
                 }
                 courseDetailRestRepository.delete(courseDetailRest);
                 course = courseRepository.findById(courseDetailRest.getCourse().getId()).orElseThrow(() ->
@@ -175,7 +176,7 @@ public class CourseService {
                 CourseDetailAcc courseDetailAcc = courseDetailAccRepository.findById(courseDetailRequestDto.getDetailId())
                         .orElseThrow(() -> new NoSuchElementException(String.valueOf(DETAIL_NOT_FOUND)));
                 if (!courseDetailAcc.getCourse().getTrip().getMember().getId().equals(member.getId())) {
-                    throw new AuthenticationException(String.valueOf(REQUEST_FORBIDDEN));
+                    throw new AuthenticationServiceException(String.valueOf(REQUEST_FORBIDDEN));
                 }
                 courseDetailAccRepository.delete(courseDetailAcc);
                 course = courseRepository.findById(courseDetailAcc.getCourse().getId()).orElseThrow(() ->

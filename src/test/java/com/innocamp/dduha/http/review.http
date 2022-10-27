@@ -1,0 +1,21 @@
+### 리뷰 작성
+POST http://localhost:8080/auth/{{category}}/review/{{id}}
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "review": "참 아름다워요"
+}
+
+### 리뷰 수정
+PUT http://localhost:8080/auth/{{category}}/review/{{id}}
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "review": "참 아름다워요 최고"
+}
+
+### 리뷰 삭제
+DELETE http://localhost:8080/auth/{{category}}/review/{{id}}
+Authorization: Bearer {{auth_token}}
