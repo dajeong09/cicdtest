@@ -18,9 +18,9 @@ import com.innocamp.dduha.domain.review.model.TouristSpotReview;
 import com.innocamp.dduha.domain.place.accommodation.repository.AccommodationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.stereotype.Service;
 
-import javax.naming.AuthenticationException;
 import javax.validation.ValidationException;
 import java.util.NoSuchElementException;
 
@@ -83,7 +83,7 @@ public class ReviewService {
         return ResponseEntity.ok(ResponseDto.success(NULL));
     }
 
-    public ResponseEntity<?> updateReview(String category, Long id, ReviewRequestDto requestDto) throws AuthenticationException {
+    public ResponseEntity<?> updateReview(String category, Long id, ReviewRequestDto requestDto) {
 
         Member member = tokenProvider.getMemberFromAuthentication();
 
@@ -93,7 +93,7 @@ public class ReviewService {
                         new NoSuchElementException(String.valueOf(REVIEW_NOT_FOUND)));
 
                 if (touristSpotReview.getMember().getId() != member.getId()) {
-                    throw new AuthenticationException(String.valueOf(REQUEST_FORBIDDEN));
+                    throw new AuthenticationServiceException(String.valueOf(REQUEST_FORBIDDEN));
                 }
                 touristSpotReview.update(requestDto.getReview());
                 touristSpotReviewRepository.save(touristSpotReview);
@@ -103,7 +103,7 @@ public class ReviewService {
                         new NoSuchElementException(String.valueOf(REVIEW_NOT_FOUND)));
 
                 if (restaurantReview.getMember().getId() != member.getId()) {
-                    throw new AuthenticationException(String.valueOf(REQUEST_FORBIDDEN));
+                    throw new AuthenticationServiceException(String.valueOf(REQUEST_FORBIDDEN));
                 }
                 restaurantReview.update(requestDto.getReview());
                 restaurantReviewRepository.save(restaurantReview);
@@ -112,7 +112,7 @@ public class ReviewService {
                 AccommodationReview accommodationReview = accommodationReviewRepository.findById(id).orElseThrow(() ->
                         new NoSuchElementException(String.valueOf(REVIEW_NOT_FOUND)));
                 if (accommodationReview.getMember().getId() != member.getId()) {
-                    throw new AuthenticationException(String.valueOf(REQUEST_FORBIDDEN));
+                    throw new AuthenticationServiceException(String.valueOf(REQUEST_FORBIDDEN));
                 }
                 accommodationReview.update(requestDto.getReview());
                 accommodationReviewRepository.save(accommodationReview);
@@ -124,7 +124,7 @@ public class ReviewService {
         return ResponseEntity.ok(ResponseDto.success(NULL));
     }
 
-    public ResponseEntity<?> deleteReview(String category, Long id) throws AuthenticationException {
+    public ResponseEntity<?> deleteReview(String category, Long id) {
 
         Member member = tokenProvider.getMemberFromAuthentication();
 
@@ -134,7 +134,7 @@ public class ReviewService {
                         new NoSuchElementException(String.valueOf(REVIEW_NOT_FOUND)));
 
                 if (touristSpotReview.getMember().getId() != member.getId()) {
-                    throw new AuthenticationException(String.valueOf(REQUEST_FORBIDDEN));
+                    throw new AuthenticationServiceException(String.valueOf(REQUEST_FORBIDDEN));
                 }
                 touristSpotReviewRepository.delete(touristSpotReview);
                 break;
@@ -143,7 +143,7 @@ public class ReviewService {
                         new NoSuchElementException(String.valueOf(REVIEW_NOT_FOUND)));
 
                 if (restaurantReview.getMember().getId() != member.getId()) {
-                    throw new AuthenticationException(String.valueOf(REQUEST_FORBIDDEN));
+                    throw new AuthenticationServiceException(String.valueOf(REQUEST_FORBIDDEN));
                 }
                 restaurantReviewRepository.delete(restaurantReview);
                 break;
@@ -151,7 +151,7 @@ public class ReviewService {
                 AccommodationReview accommodationReview = accommodationReviewRepository.findById(id).orElseThrow(() ->
                         new NoSuchElementException(String.valueOf(REVIEW_NOT_FOUND)));
                 if (accommodationReview.getMember().getId() != member.getId()) {
-                    throw new AuthenticationException(String.valueOf(REQUEST_FORBIDDEN));
+                    throw new AuthenticationServiceException(String.valueOf(REQUEST_FORBIDDEN));
                 }
                 accommodationReviewRepository.delete(accommodationReview);
                 break;

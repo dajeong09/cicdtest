@@ -84,7 +84,7 @@ public class MemberService {
             if (!member.validatePassword(passwordEncoder, currentPassword)) {
                 throw new AuthorizationServiceException(String.valueOf(INVALID_PASSWORD));
             }
-            if (member.getPassword().equals(requestDto.getNewPassword())) {
+            if (member.validatePassword(passwordEncoder, requestDto.getNewPassword())) {
                 throw new ValidationException(String.valueOf(USED_PASSWORD));
             }
             password = passwordEncoder.encode(requestDto.getNewPassword());

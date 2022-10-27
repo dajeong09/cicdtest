@@ -28,11 +28,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.naming.AuthenticationException;
-import javax.xml.bind.ValidationException;
+import javax.validation.ValidationException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -103,7 +103,7 @@ public class TripService {
         return ResponseEntity.ok(ResponseDto.success(tripResponseDtoList));
     }
 
-    public ResponseEntity<?> getMyTripInfo(Long id) throws AuthenticationException {
+    public ResponseEntity<?> getMyTripInfo(Long id) {
 
         Trip trip = tripRepository.findTripByIdAndIsHiddenFalse(id).orElseThrow(() ->
                 new NoSuchElementException(String.valueOf(TRIP_NOT_FOUND)));
@@ -111,7 +111,7 @@ public class TripService {
         Member member = tokenProvider.getMemberFromAuthentication();
 
         if (member.getId() != trip.getMember().getId()) {
-            throw new AuthenticationException(String.valueOf(REQUEST_FORBIDDEN));
+            throw new AuthenticationServiceException(String.valueOf(REQUEST_FORBIDDEN));
         }
 
         List<Course> courseList = courseRepository.findAllByTrip(trip);
@@ -180,7 +180,7 @@ public class TripService {
     }
 
     @Transactional
-    public ResponseEntity<?> modifyMyTrip(Long id, TripRequestDto requestDto) throws AuthenticationException {
+    public ResponseEntity<?> modifyMyTrip(Long id, TripRequestDto requestDto) {
 
         Trip trip = tripRepository.findTripByIdAndIsHiddenFalse(id).orElseThrow(() ->
                 new NoSuchElementException(String.valueOf(TRIP_NOT_FOUND)));
@@ -188,7 +188,7 @@ public class TripService {
         Member member = tokenProvider.getMemberFromAuthentication();
 
         if (member.getId() != trip.getMember().getId()) {
-            throw new AuthenticationException(String.valueOf(REQUEST_FORBIDDEN));
+            throw new AuthenticationServiceException(String.valueOf(REQUEST_FORBIDDEN));
         }
 
         int originalDays = (int) ChronoUnit.DAYS.between(trip.getStartAt(), trip.getEndAt()) + 1;
@@ -211,7 +211,7 @@ public class TripService {
     }
 
     @Transactional
-    public ResponseEntity<?> deleteTrip(Long id) throws AuthenticationException {
+    public ResponseEntity<?> deleteTrip(Long id) {
 
         Trip trip = tripRepository.findTripByIdAndIsHiddenFalse(id).orElseThrow(() ->
                 new NoSuchElementException(String.valueOf(TRIP_NOT_FOUND)));
@@ -219,7 +219,7 @@ public class TripService {
         Member member = tokenProvider.getMemberFromAuthentication();
 
         if (member.getId() != trip.getMember().getId()) {
-            throw new AuthenticationException(String.valueOf(REQUEST_FORBIDDEN));
+            throw new AuthenticationServiceException(String.valueOf(REQUEST_FORBIDDEN));
         }
 
         trip.doHidden();
@@ -350,15 +350,15 @@ public class TripService {
     }
 
     @Transactional
-    public ResponseEntity<?> saveCourseDetailOrder(CourseRequestDto courseRequestDto) throws AuthenticationException, ValidationException {
+    public ResponseEntity<?> saveCourseDetailOrder(CourseRequestDto courseRequestDto) {
 
         Member member = tokenProvider.getMemberFromAuthentication();
 
         Course course = courseRepository.findById(courseRequestDto.getCourseId()).orElseThrow(() ->
                 new NoSuchElementException(String.valueOf(COURSE_NOT_FOUND)));
-
+        System.out.println(course.getTrip().getMember().getId());
         if (course.getTrip().getMember().getId() != member.getId()) {
-            throw new AuthenticationException(String.valueOf(REQUEST_FORBIDDEN));
+            throw new AuthenticationServiceException(String.valueOf(REQUEST_FORBIDDEN));
         }
 
         for (CourseDetailRequestDto courseDetailRequestDto : courseRequestDto.getCourseDetails()) {
@@ -367,7 +367,7 @@ public class TripService {
                     CourseDetailSpot courseDetailSpot = courseDetailSpotRepository.findById(courseDetailRequestDto.getDetailId())
                             .orElseThrow(() -> new NoSuchElementException(String.valueOf(DETAIL_NOT_FOUND)));
                     if (courseDetailSpot.getCourse().getId() != course.getId()) {
-                        throw new AuthenticationException(String.valueOf(REQUEST_FORBIDDEN));
+                        throw new AuthenticationServiceException(String.valueOf(REQUEST_FORBIDDEN));
                     }
                     courseDetailSpot.changeOrder(courseDetailRequestDto.getDetailOrder());
                     courseDetailSpotRepository.save(courseDetailSpot);
@@ -376,7 +376,7 @@ public class TripService {
                     CourseDetailRest courseDetailRest = courseDetailRestRepository.findById(courseDetailRequestDto.getDetailId())
                             .orElseThrow(() -> new NoSuchElementException(String.valueOf(DETAIL_NOT_FOUND)));
                     if (courseDetailRest.getCourse().getId() != course.getId()) {
-                        throw new AuthenticationException(String.valueOf(REQUEST_FORBIDDEN));
+                        throw new AuthenticationServiceException(String.valueOf(REQUEST_FORBIDDEN));
                     }
                     courseDetailRest.changeOrder(courseDetailRequestDto.getDetailOrder());
                     courseDetailRestRepository.save(courseDetailRest);
@@ -385,7 +385,7 @@ public class TripService {
                     CourseDetailAcc courseDetailAcc = courseDetailAccRepository.findById(courseDetailRequestDto.getDetailId())
                             .orElseThrow(() -> new NoSuchElementException(String.valueOf(DETAIL_NOT_FOUND)));
                     if (courseDetailAcc.getCourse().getId() != course.getId()) {
-                        throw new AuthenticationException(String.valueOf(REQUEST_FORBIDDEN));
+                        throw new AuthenticationServiceException(String.valueOf(REQUEST_FORBIDDEN));
                     }
                     courseDetailAcc.changeOrder(courseDetailRequestDto.getDetailOrder());
                     courseDetailAccRepository.save(courseDetailAcc);

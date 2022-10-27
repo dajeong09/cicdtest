@@ -6,9 +6,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.naming.AuthenticationException;
-import javax.xml.bind.ValidationException;
-
 @RestController
 @RequiredArgsConstructor
 public class CourseController {
@@ -16,14 +13,12 @@ public class CourseController {
     private final CourseService courseService;
 
     @PostMapping("/auth/course/details")
-    public ResponseEntity<?> addCourseDetail(@RequestBody CourseDetailRequestDto courseDetailRequestDto)
-            throws ValidationException, AuthenticationException {
+    public ResponseEntity<?> addCourseDetail(@RequestBody CourseDetailRequestDto courseDetailRequestDto) {
         return courseService.addCourseDetail(courseDetailRequestDto);
     }
 
     @DeleteMapping("/auth/course/details")
-    public ResponseEntity<?> removeCourseDetail(@RequestBody CourseDetailRequestDto courseDetailRequestDto)
-            throws ValidationException, AuthenticationException {
+    public ResponseEntity<?> removeCourseDetail(@RequestBody CourseDetailRequestDto courseDetailRequestDto) {
         return courseService.removeCourseDetail(courseDetailRequestDto);
     }
 

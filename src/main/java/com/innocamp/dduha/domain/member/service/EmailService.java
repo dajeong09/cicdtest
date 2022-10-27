@@ -22,7 +22,6 @@ import java.io.UnsupportedEncodingException;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Date;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static com.innocamp.dduha.global.exception.ErrorCode.*;
@@ -110,10 +109,8 @@ public class EmailService {
     public ResponseEntity<?> getEmail(String code) {
 
         EmailEncode emailEncode = emailEncodeRepository.findByRandomCode(code).orElseThrow(() ->
-                new NoSuchElementException(String.valueOf(CODE_NOT_FOUND)));
-        if (null == emailEncode) {
-            throw new ValidationException(String.valueOf(INVALID_CODE));
-        }
+                new ValidationException(String.valueOf(INVALID_CODE)));
+
 
         if (emailEncode.getCreatedAt().plusDays(1).isBefore(LocalDateTime.now())) {
             throw new ValidationException(String.valueOf(EXPIRED_CODE));

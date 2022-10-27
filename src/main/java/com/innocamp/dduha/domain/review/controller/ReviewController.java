@@ -6,8 +6,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.naming.AuthenticationException;
-
 @RestController
 @RequiredArgsConstructor
 public class ReviewController {
@@ -22,12 +20,12 @@ public class ReviewController {
 
     @PutMapping("/auth/{category}/review/{id}")
     public ResponseEntity<?> updateReview(@PathVariable String category, @PathVariable Long id,
-                                       @RequestBody ReviewRequestDto requestDto) throws AuthenticationException {
+                                       @RequestBody ReviewRequestDto requestDto) {
         return reviewService.updateReview(category, id, requestDto);
     }
 
     @DeleteMapping("/auth/{category}/review/{id}")
-    public ResponseEntity<?> deleteReview(@PathVariable String category, @PathVariable Long id) throws AuthenticationException {
+    public ResponseEntity<?> deleteReview(@PathVariable String category, @PathVariable Long id) {
         return reviewService.deleteReview(category, id);
     }
 }
