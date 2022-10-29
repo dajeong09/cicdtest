@@ -58,6 +58,8 @@ jobs:
       run: |
         ./gradlew --version
         ./gradlew build # 빌드
+        with:
+          arguments: clean build -x test
         
     - name: Zip build file and deploy sh
       run: |
