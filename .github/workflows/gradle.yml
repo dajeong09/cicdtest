@@ -15,9 +15,9 @@ on:
 
 env:
   AWS_REGION: ap-northeast-2
-  S3_BUCKET_NAME: dduha-build
-  CODE_DEPLOY_APPLICATION_NAME: dduha-be
-  CODE_DEPLOY_DEPLOYMENT_GROUP_NAME: dduha-release-group
+  S3_BUCKET_NAME: dduha-bucket
+  CODE_DEPLOY_APPLICATION_NAME: dduha
+  CODE_DEPLOY_DEPLOYMENT_GROUP_NAME: dduha-gitaction-group
 
 permissions:
   contents: read
