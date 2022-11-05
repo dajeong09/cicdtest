@@ -21,7 +21,4 @@ hooks:
     - location: scripts/start.sh
       timeout: 60
       runas: ubuntu
-  ValidateService:
-    - location: health.sh
-      timeout: 60
-      runas: ubuntu
+
