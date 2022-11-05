@@ -60,6 +60,7 @@ public class WebSecurityConfig {
                 .antMatchers("/course/**").permitAll()
                 .antMatchers("/tide/**").permitAll()
                 .antMatchers("/information/**").permitAll()
+                .antMatchers("/profile/**").permitAll()
                 .anyRequest().authenticated()
 
                 .and()
